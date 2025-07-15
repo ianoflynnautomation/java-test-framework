@@ -1,0 +1,8 @@
+{
+  "apiSettings": {
+    "baseUrl": "http://localhost:8080",
+    "clientTimeoutSeconds": 15,
+    "maxRetryAttempts": 2,
+    "pauseBetweenFailuresMillis": 500
+  }
+}

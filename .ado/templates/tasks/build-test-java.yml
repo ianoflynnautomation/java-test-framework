@@ -1,0 +1,30 @@
+jobs:
+- job: BuildAndTestJava
+  displayName: 'Build and Test Java App'
+  pool:
+    vmImage: 'ubuntu-latest'
+  steps:
+    - task: JavaToolInstaller@0
+      displayName: 'Use Java $(JAVA_VERSION)'
+      inputs:
+        versionSpec: '$(JAVA_VERSION)'
+        jdkArchitectureOption: 'x64'
+        jdkSourceOption: 'PreInstalled'
+
+    # Example for Maven
+    - task: Maven@3
+      displayName: 'Build & Test with Maven'
+      inputs:
+        mavenPomFile: 'pom.xml' # Path to your pom.xml
+        goals: 'package' # The 'package' goal typically includes the 'test' phase
+        publishJUnitTestResults: false # We will use a dedicated publish task
+
+    # Key step: Publish the results with a clear title
+    - task: PublishTestResults@2
+      displayName: 'Publish Java Test Results'
+      condition: succeededOrFailed()
+      inputs:
+        testResultsFormat: 'JUnit'
+        testResultsFiles: '**/surefire-reports/TEST-*.xml' # Default Maven Surefire report location
+        testRunTitle: 'Java Unit/Integration Tests' # CRITICAL for filtering
+        failTaskOnFailedTests: true
