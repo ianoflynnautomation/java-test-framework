@@ -1,71 +1,41 @@
 package solutions.bjjeire.api.infrastructure.junit;
 
-
-import com.github.javafaker.Faker;
-import org.testng.annotations.TestInstance;
-import solutions.bjjeire.api.configuration.ApiSettings;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import solutions.bjjeire.api.configuration.ApiTestConfiguration;
 import solutions.bjjeire.api.http.TestClient;
-import solutions.bjjeire.api.services.ApiClientService;
-import solutions.bjjeire.api.services.App;
-import solutions.bjjeire.core.configuration.EnvironmentConfigurationProvider;
-import solutions.bjjeire.core.configuration.IConfigurationProvider;
 import solutions.bjjeire.core.plugins.junit.JunitBaseTest;
 
 /**
- * A base class for all non-Cucumber API test classes, integrating DI setup
- * with the custom plugin execution lifecycle from JunitBaseTest.
- *
- * It initializes an 'App' container once per test class by hooking into
- * the beforeAll() method from its parent.
+ * A Spring-enabled base class for all non-Cucumber API test classes.
+ * It automatically loads the Spring context and provides access to beans.
  */
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = ApiTestConfiguration.class)
 public abstract class ApiTest extends JunitBaseTest {
 
-    private App app;
-
     /**
-     * Overrides the lifecycle hook from JunitBaseTest to set up the
-     * DI container before any tests in the class run.
+     * The Spring Application Context, which acts as the dependency injection container.
+     * It is autowired by the Spring TestContext Framework.
      */
-    @Override
-    protected void beforeAll() throws Exception {
-        super.beforeAll(); // Ensures parent class logic runs first
-        // Manually perform dependency injection for the JUnit test context.
-        IConfigurationProvider configProvider = new EnvironmentConfigurationProvider();
-        ApiSettings apiSettings = configProvider.getSettings(ApiSettings.class);
-        ApiClientService apiClientService = new ApiClientService(apiSettings);
-        Faker faker = new Faker();
-        this.app = new App(apiClientService, apiSettings, faker);
-    }
-
-    /**
-     * Overrides the lifecycle hook from JunitBaseTest to tear down the
-     * DI container after all tests in the class have completed.
-     */
-    @Override
-    protected void afterClass() {
-        if (app != null) {
-            app.close();
-        }
-        super.afterClass(); // Ensures parent class logic runs last
-    }
-
-    /**
-     * Provides access to the App container, which holds shared services.
-     * @return The App instance for the current test class.
-     */
-    protected App app() {
-        if (app == null) {
-            throw new IllegalStateException("The App container is not initialized. Ensure beforeAll() has run successfully.");
-        }
-        return app;
-    }
+    @Autowired
+    private ApplicationContext applicationContext;
 
     /**
      * The main entry point for creating a fluent API request for a test.
-     * This delegates to the App container to create a new, isolated client.
-     * @return A new TestClient instance.
+     * It retrieves a new prototype-scoped TestClient bean from the Spring context.
+     *
+     * @return A new, isolated TestClient instance for a single test.
      */
     protected TestClient when() {
-        return app().createTestClient();
+        if (applicationContext == null) {
+            throw new IllegalStateException("Spring ApplicationContext is not initialized. Ensure the test class is annotated correctly.");
+        }
+        // Retrieve a fresh, non-singleton instance of TestClient for each call.
+        // This assumes TestClient is configured with a prototype or cucumber-glue scope.
+        return applicationContext.getBean(TestClient.class);
     }
 }

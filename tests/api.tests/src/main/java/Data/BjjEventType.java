@@ -1,8 +1,14 @@
 package Data;
 
 public enum BjjEventType {
-    SEMINAR,
-    COMPETITION,
-    OPEN_MAT,
-    CAMP
+
+    OpenMat,
+
+    Seminar,
+
+    Tournament,
+
+    Camp,
+
+    Other
 }

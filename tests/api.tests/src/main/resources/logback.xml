@@ -1,0 +1,27 @@
+<!-- src/main/resources/logback.xml -->
+<configuration>
+    <!-- Console Appender for local development -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- File Appender for CI/CD environments (JSON format) -->
+    <appender name="JSON_FILE" class="ch.qos.logback.core.FileAppender">
+        <file>logs/app.log</file>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <!-- Includes standard fields and MDC properties -->
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT" />
+        <!-- <appender-ref ref="JSON_FILE" /> --> <!-- Uncomment for file logging -->
+    </root>
+
+    <!-- Set specific log levels for noisy libraries -->
+    <logger name="okhttp3" level="WARN"/>
+    <logger name="io.cucumber" level="INFO"/>
+    <logger name="solutions.bjjeire" level="DEBUG"/> <!-- Set your app's base package to DEBUG for detailed logs -->
+</configuration>

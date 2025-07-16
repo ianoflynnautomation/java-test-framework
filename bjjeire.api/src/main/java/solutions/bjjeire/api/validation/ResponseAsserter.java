@@ -36,33 +36,11 @@ public class ResponseAsserter<T> {
         this.response = Objects.requireNonNull(response, "MeasuredResponse cannot be null.");
     }
 
-    // --- Public Accessors for use in Steps and Hooks ---
-
-    public int getStatusCode() {
-        return response.getStatusCode();
-    }
-
-    public String getResponseBodyAsString() {
-        return response.getResponseBodyAsString();
-    }
-
-    /**
-     * Provides access to the deserialized response data.
-     * @return An Optional containing the data object, or empty if deserialization failed.
-     */
-    public Optional<T> getData() {
-        return response.getData();
-    }
-
-    // --- Fluent Assertion Methods ---
-
-    public ResponseAsserter<T> then() {
-        return this;
-    }
-
-    public ResponseAsserter<T> and() {
-        return this;
-    }
+    public int getStatusCode() { return response.getStatusCode(); }
+    public String getResponseBodyAsString() { return response.getResponseBodyAsString(); }
+    public Optional<T> getData() { return response.getData(); }
+    public ResponseAsserter<T> then() { return this; }
+    public ResponseAsserter<T> and() { return this; }
 
     public ResponseAsserter<T> hasStatusCode(int expectedStatusCode) {
         if (response.getStatusCode() != expectedStatusCode) {
@@ -91,30 +69,6 @@ public class ResponseAsserter<T> {
         if (response.getExecutionTime().compareTo(expectedMaxDuration) > 0) {
             throw new ApiAssertionException(
                     String.format("Request execution time %s was over the expected max of %s.", response.getExecutionTime(), expectedMaxDuration),
-                    response.getRawResponse().request().url().toString(),
-                    response.getResponseBodyAsString()
-            );
-        }
-        return this;
-    }
-
-    public ResponseAsserter<T> hasHeader(String headerName, String expectedValue) {
-        String actualValue = response.getHeader(headerName).orElse(null);
-        if (!expectedValue.equals(actualValue)) {
-            throw new ApiAssertionException(
-                    String.format("Expected header '%s' to be '%s' but was '%s'.", headerName, expectedValue, actualValue),
-                    response.getRawResponse().request().url().toString(),
-                    response.getResponseBodyAsString()
-            );
-        }
-        return this;
-    }
-
-    public ResponseAsserter<T> bodyEquals(T expectedBody) {
-        Object actualBody = response.getData().orElse(null);
-        if (!Objects.equals(expectedBody, actualBody)) {
-            throw new ApiAssertionException(
-                    String.format("Expected response body to be '%s' but was '%s'.", expectedBody, actualBody),
                     response.getRawResponse().request().url().toString(),
                     response.getResponseBodyAsString()
             );

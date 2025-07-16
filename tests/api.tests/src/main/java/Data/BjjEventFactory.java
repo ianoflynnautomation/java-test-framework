@@ -1,11 +1,13 @@
 package Data;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.javafaker.Faker;
 import org.bson.types.ObjectId;
 
 import java.math.BigDecimal;
-import java.time.DayOfWeek;
+import java.time.LocalDateTime;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -16,7 +18,11 @@ import java.util.function.Consumer;
 public class BjjEventFactory {
 
     private static final Faker faker = new Faker();
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    // Register the JavaTimeModule and configure enum serialization
+    private static final ObjectMapper objectMapper = new ObjectMapper()
+            .configure(SerializationFeature.WRITE_ENUMS_USING_INDEX, true)
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+            .registerModule(new JavaTimeModule());
 
     public static CreateBjjEventCommand getValidBjjEventCommand() {
         return new CreateBjjEventCommand(getValidBjjEvent());
@@ -29,14 +35,16 @@ public class BjjEventFactory {
     public static BjjEvent getValidBjjEvent() {
         return new BjjEvent(
                 new ObjectId().toString(),
+                LocalDateTime.now(), // Changed from Instant.now()
+                LocalDateTime.now(),
                 "Dublin BJJ Masterclass Series",
                 "Weekly BJJ seminars with Professor " + faker.name().fullName() + " at Dublin Grappling Hub.",
-                BjjEventType.SEMINAR,
+                BjjEventType.Seminar,
                 new Organizer(
                         "Dublin Grappling Hub",
                         "https://www.dublingrappling.com"
                 ),
-                EventStatus.UPCOMING,
+                EventStatus.Upcoming,
                 "Event is coming soon",
                 new SocialMedia(
                         "https://www.instagram.com/dublingrappling",
@@ -44,11 +52,12 @@ public class BjjEventFactory {
                         "https://x.com/dublingrappling",
                         "https://www.youtube.com/@dublingrappling"
                 ),
-                County.DUBLIN,
+                County.Dublin,
                 new Location(
                         "45 O'Connell Street, Dublin 1, Ireland",
                         "Dublin Grappling Hub",
                         new GeoCoordinates(
+                                "Point",
                                 -6.260273,
                                 53.349805,
                                 "Dublin test",
@@ -56,17 +65,18 @@ public class BjjEventFactory {
                         )
                 ),
                 new BjjEventSchedule(
-                        ScheduleType.FIXED_DATE,
+                        ScheduleType.FixedDate,
                         LocalDate.now().plusDays(14),
                         LocalDate.now().plusDays(14),
                         List.of(new DailySchedule(
-                                DayOfWeek.WEDNESDAY,
+//                                DayOfWeek.WEDNESDAY,
+                                "Wednesday",
                                 LocalTime.of(9, 0),
                                 LocalTime.of(13, 0)
                         ))
                 ),
                 new PricingModel(
-                        PricingType.PER_DAY,
+                        PricingType.FlatRate,
                         new BigDecimal("45.00"),
                         1,
                         "EUR"
@@ -79,14 +89,16 @@ public class BjjEventFactory {
     public static BjjEvent createBjjEvent(Consumer<BjjEvent.Builder> configure) {
         var builder = new BjjEvent.Builder()
                 .id(new ObjectId().toString())
+                .createdOnUtc(LocalDateTime.now()) // Changed from Instant.now()
+                .updatedOnUtc(LocalDateTime.now())
                 .name("Dublin BJJ Masterclass Series")
                 .description("Weekly BJJ seminars with Professor " + faker.name().fullName() + " at " + faker.company().name() + ".")
-                .type(BjjEventType.SEMINAR)
+                .type(BjjEventType.Seminar)
                 .organiser(new Organizer(
                         faker.company().name(),
                         faker.internet().url()
                 ))
-                .status(EventStatus.UPCOMING)
+                .status(EventStatus.Upcoming)
                 .statusReason("Event is coming soon")
                 .socialMedia(new SocialMedia(
                         "https://www.instagram.com/" + faker.lorem().word(),
@@ -94,11 +106,12 @@ public class BjjEventFactory {
                         "https://x.com/" + faker.lorem().word(),
                         "https://www.youtube.com/@" + faker.lorem().word()
                 ))
-                .county(County.DUBLIN)
+                .county(County.Dublin)
                 .location(new Location(
                         faker.address().fullAddress(),
                         faker.company().name() + " Venue",
                         new GeoCoordinates(
+                                "Point",
                                 Double.parseDouble(faker.address().latitude()),
                                 Double.parseDouble(faker.address().longitude()),
                                 faker.address().streetName(),
@@ -106,17 +119,18 @@ public class BjjEventFactory {
                         )
                 ))
                 .schedule(new BjjEventSchedule(
-                        ScheduleType.FIXED_DATE,
+                        ScheduleType.FixedDate,
                         LocalDate.now().plusDays(14),
                         LocalDate.now().plusDays(14),
                         List.of(new DailySchedule(
-                                DayOfWeek.WEDNESDAY,
+//                          ß
+                                "Wednesday",
                                 LocalTime.of(9, 0),
                                 LocalTime.of(13, 0)
                         ))
                 ))
                 .pricing(new PricingModel(
-                        PricingType.PER_DAY,
+                        PricingType.FlatRate,
                         new BigDecimal("45.00"),
                         1,
                         "EUR"

@@ -1,25 +1,33 @@
 package solutions.bjjeire.cucumber.hooks;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
 import io.cucumber.java.Scenario;
-import solutions.bjjeire.cucumber.context.ScenarioContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import solutions.bjjeire.cucumber.context.ScenarioContext;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * Manages the lifecycle of a Cucumber scenario using Spring for dependency injection.
+ * This class is automatically discovered by Cucumber and its dependencies are autowired by Spring.
+ */
 public class Hooks {
 
     private static final Logger logger = LoggerFactory.getLogger(Hooks.class);
-    private static final ObjectMapper jsonMapper = new ObjectMapper();
-    private final ScenarioContext scenarioContext;
+    private static final ObjectMapper jsonMapper = new ObjectMapper()
+            .enable(SerializationFeature.INDENT_OUTPUT);
 
-    public Hooks(ScenarioContext scenarioContext) {
-        this.scenarioContext = scenarioContext;
-    }
+    @Autowired
+    private ScenarioContext scenarioContext;
+
+    // A public, no-argument constructor is required for Spring to instantiate this bean.
+    public Hooks() {}
 
     @Before
     public void setup(Scenario scenario) {
@@ -37,25 +45,37 @@ public class Hooks {
         }
     }
 
+    /**
+     * Logs detailed context information when a scenario fails, such as the last
+     * API request and response, and attaches it to the Cucumber report.
+     *
+     * @param scenario The failing scenario.
+     */
     private void logFailureDetails(Scenario scenario) {
         Map<String, Object> failureContext = new LinkedHashMap<>();
+        failureContext.put("scenarioName", scenario.getName());
+        failureContext.put("scenarioTags", scenario.getSourceTagNames());
+
         if (scenarioContext.getResponseAsserter() != null) {
             failureContext.put("lastApiResponseCode", scenarioContext.getResponseAsserter().getStatusCode());
             failureContext.put("lastApiResponseBody", scenarioContext.getResponseAsserter().getResponseBodyAsString());
         } else {
             failureContext.put("lastApiResponse", "No API response was recorded in the context.");
         }
+
         if (scenarioContext.getRequestPayload() != null) {
             try {
                 failureContext.put("lastApiRequestPayload", jsonMapper.writeValueAsString(scenarioContext.getRequestPayload()));
             } catch (Exception e) {
+                logger.error("Could not serialize request payload to JSON.", e);
                 failureContext.put("lastApiRequestPayload", "Could not serialize request payload.");
             }
         }
 
         try {
-            String failureJson = jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(failureContext);
+            String failureJson = jsonMapper.writeValueAsString(failureContext);
             logger.error("Failure Context:\n{}", failureJson);
+            // Attach the detailed context to the Cucumber report for better debugging
             scenario.attach(failureJson, "application/json", "Failure Context");
         } catch (Exception e) {
             logger.error("Could not serialize failure context to JSON.", e);

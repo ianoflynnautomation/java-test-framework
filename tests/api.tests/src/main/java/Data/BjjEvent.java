@@ -1,7 +1,12 @@
 package Data;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+
 public record BjjEvent(
         String id,
+        LocalDateTime createdOnUtc,
+        LocalDateTime updatedOnUtc,
         String name,
         String description,
         BjjEventType type,
@@ -19,6 +24,8 @@ public record BjjEvent(
     // Custom builder to allow for optional configuration
     public static class Builder {
         private String id;
+        private LocalDateTime createdOnUtc; // Changed from Instant
+        private LocalDateTime updatedOnUtc;
         private String name;
         private String description;
         private BjjEventType type;
@@ -34,6 +41,8 @@ public record BjjEvent(
         private String imageUrl;
 
         public Builder id(String id) { this.id = id; return this; }
+        public Builder createdOnUtc(LocalDateTime createdOnUtc) { this.createdOnUtc = createdOnUtc; return this; }
+        public Builder updatedOnUtc(LocalDateTime updatedOnUtc) { this.updatedOnUtc = updatedOnUtc; return this; }
         public Builder name(String name) { this.name = name; return this; }
         public Builder description(String description) { this.description = description; return this; }
         public Builder type(BjjEventType type) { this.type = type; return this; }
@@ -49,7 +58,7 @@ public record BjjEvent(
         public Builder imageUrl(String imageUrl) { this.imageUrl = imageUrl; return this; }
 
         public BjjEvent build() {
-            return new BjjEvent(id, name, description, type, organiser, status, statusReason, socialMedia,
+            return new BjjEvent(id, createdOnUtc, updatedOnUtc, name, description, type, organiser, status, statusReason, socialMedia,
                     county, location, schedule, pricing, eventUrl, imageUrl);
         }
     }

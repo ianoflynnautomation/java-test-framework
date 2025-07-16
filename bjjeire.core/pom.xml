@@ -53,11 +53,15 @@
             <artifactId>java-client</artifactId>
         </dependency>
 
-        <!-- Testing Frameworks (for use in downstream modules) -->
+        <!--
+        FIX: Added JUnit 5 dependencies with 'compile' scope.
+        This makes the JUnit annotations and classes available within the 'core' module
+        and to any downstream modules that depend on it.
+        -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
-            <scope>compile</scope> <!-- Compile scope so test modules can use it -->
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -94,12 +98,8 @@
             <artifactId>commons-io</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -112,6 +112,10 @@
         <dependency>
             <groupId>org.mongodb</groupId>
             <artifactId>bson</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
         </dependency>
     </dependencies>
 

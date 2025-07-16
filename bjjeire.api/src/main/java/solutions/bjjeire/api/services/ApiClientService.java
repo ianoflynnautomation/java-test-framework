@@ -1,18 +1,22 @@
 package solutions.bjjeire.api.services;
 
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import lombok.Getter;
-import solutions.bjjeire.api.configuration.ApiSettings;
-import solutions.bjjeire.api.models.MeasuredResponse;
-import solutions.bjjeire.api.models.NotSuccessfulRequestException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.github.resilience4j.core.IntervalFunction;
 import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryConfig;
 import io.github.resilience4j.retry.RetryRegistry;
+import lombok.Getter;
 import okhttp3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import solutions.bjjeire.api.configuration.ApiSettings;
+import solutions.bjjeire.api.models.MeasuredResponse;
+import solutions.bjjeire.api.models.NotSuccessfulRequestException;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -21,18 +25,30 @@ import java.util.function.Supplier;
 /**
  * A stateless, thread-safe service for executing HTTP requests.
  * It manages a shared OkHttpClient and implements retry logic using Resilience4j.
- * This class is designed to be a singleton managed by the DI container.
+ * This class is a Spring-managed singleton service.
  */
-@Getter
-public class ApiClientService implements AutoCloseable {
+@Service
+public class ApiClientService implements IApiClientService {
 
     private static final Logger logger = LoggerFactory.getLogger(ApiClientService.class);
     private final OkHttpClient httpClient;
+    @Getter
     private final ObjectMapper objectMapper;
     private final Retry retry;
 
+    /**
+     * Constructor for Spring dependency injection.
+     * @param settings The application's API settings, injected by Spring.
+     */
+    @Autowired
     public ApiClientService(ApiSettings settings) {
-        this.objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+        logger.info("Initializing ApiClientService with timeout of {}s and {} retry attempts.",
+                settings.getClientTimeoutSeconds(), settings.getMaxRetryAttempts());
+
+        this.objectMapper = new ObjectMapper()
+                .registerModule(new JavaTimeModule())
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
         this.httpClient = new OkHttpClient.Builder()
                 .connectTimeout(Duration.ofSeconds(settings.getClientTimeoutSeconds()))
@@ -48,6 +64,7 @@ public class ApiClientService implements AutoCloseable {
         this.retry = RetryRegistry.of(retryConfig).retry("api-request");
     }
 
+    @Override
     public <T> MeasuredResponse<T> execute(Request request, Class<T> responseType) {
         Supplier<MeasuredResponse<T>> measuredRequestSupplier = () -> {
             logger.info("Executing request: {} {}", request.method(), request.url());
@@ -55,24 +72,38 @@ public class ApiClientService implements AutoCloseable {
             try (Response response = httpClient.newCall(request).execute()) {
                 long endTime = System.nanoTime();
                 Duration executionTime = Duration.ofNanos(endTime - startTime);
-                var measuredResponse = new MeasuredResponse<>(response, executionTime, objectMapper, responseType);
 
-                if (!measuredResponse.isSuccessful()) {
-                    logger.warn("Request was not successful. Status: {}, URL: {}", response.code(), request.url());
+                if (!response.isSuccessful()) {
+                    String errorBody = getErrorBody(response);
+                    logger.warn("Request failed. Status: {}, URL: {}, Body: {}", response.code(), request.url(), errorBody);
                     throw new NotSuccessfulRequestException(
-                            String.format("Request failed with status: %d. Body: %s",
-                                    response.code(), measuredResponse.getResponseBodyAsString())
+                            String.format("Request failed with status: %d. Body: %s", response.code(), errorBody)
                     );
                 }
+
+                var measuredResponse = new MeasuredResponse<>(response, executionTime, objectMapper, responseType);
                 logger.info("Request successful. Status: {}, URL: {}, Duration: {}ms",
                         response.code(), request.url(), executionTime.toMillis());
                 return measuredResponse;
+
             } catch (IOException e) {
+                logger.error("API request execution failed for {}", request.url(), e);
                 throw new RuntimeException("API request execution failed for " + request.url(), e);
             }
         };
 
         return Retry.decorateSupplier(this.retry, measuredRequestSupplier).get();
+    }
+
+    private String getErrorBody(Response response) {
+        try (ResponseBody body = response.body()) {
+            if (body != null) {
+                return body.string();
+            }
+        } catch (IOException e) {
+            logger.error("Could not read error response body for request to {}", response.request().url(), e);
+        }
+        return "[No response body or body could not be read]";
     }
 
     @Override

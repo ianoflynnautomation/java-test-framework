@@ -1,9 +1,11 @@
 package Data;
 
 public enum EventStatus {
-    UPCOMING,
-    ONGOING,
-    COMPLETED,
-    CANCELLED,
-    POSTPONED
+    Postponed ,
+    Upcoming,
+    RegistrationOpen,
+    RegistrationClosed,
+    Ongoing,
+    Completed,
+    Canceled,
 }

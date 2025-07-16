@@ -19,6 +19,14 @@
             <groupId>solutions.bjjeire</groupId>
             <artifactId>bjjeire.api</artifactId>
         </dependency>
+
+        <!-- Spring Test -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <!-- Test Scoped Dependencies -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -42,7 +50,7 @@
         </dependency>
         <dependency>
             <groupId>io.cucumber</groupId>
-            <artifactId>cucumber-picocontainer</artifactId>
+            <artifactId>cucumber-spring</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -53,7 +61,10 @@
             <groupId>com.jayway.jsonpath</groupId>
             <artifactId>json-path</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

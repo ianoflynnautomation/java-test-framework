@@ -1,7 +1,6 @@
 package solutions.bjjeire.core.configuration;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonParser;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 import org.apache.commons.io.IOUtils;
@@ -12,28 +11,32 @@ import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.Properties;
 
+///**
+// * @deprecated This static utility class is a legacy component.
+// * Use the Spring-managed {@link EnvironmentConfigurationProvider} bean instead,
+// * which is more robust, testable, and aligns with modern dependency injection principles.
+// */
 @UtilityClass
 public final class ConfigurationService {
     private static String environment;
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     public static String getEnvironment() {
         return environment;
     }
 
+    @SneakyThrows
     public static <T> T get(Class<T> configSection) {
-        T mappedObject = (T)new Object();
         if (environment == null) {
             String environmentOverride = System.getProperty("environment");
             if (environmentOverride == null) {
-                InputStream input = ConfigurationService.class.getResourceAsStream("/application.properties");
-                var p = new Properties();
-                try {
+                try (InputStream input = ConfigurationService.class.getResourceAsStream("/application.properties")) {
+                    var p = new Properties();
                     p.load(input);
-                } catch (IOException e) {
-                    return mappedObject;
+                    environment = p.getProperty("environment");
+                } catch (IOException | NullPointerException e) {
+                    throw new RuntimeException("Could not load environment from application.properties", e);
                 }
-
-                environment = p.getProperty("environment");
             } else {
                 environment = environmentOverride;
             }
@@ -43,17 +46,12 @@ public final class ConfigurationService {
         String jsonFileContent = getFileAsString(fileName);
         String sectionName = getSectionName(configSection);
 
-        var jsonObject = JsonParser.parseString(jsonFileContent).getAsJsonObject().get(sectionName).toString();
-
-        var gson = new Gson();
-
-        try {
-            mappedObject = gson.fromJson(jsonObject, configSection);
-        } catch (Exception e) {
-            e.printStackTrace();
+        var sectionNode = objectMapper.readTree(jsonFileContent).get(sectionName);
+        if (sectionNode == null) {
+            throw new RuntimeException("Configuration section '" + sectionName + "' not found in " + fileName);
         }
 
-        return mappedObject;
+        return objectMapper.treeToValue(sectionNode, configSection);
     }
 
     public static String getSectionName(Class<?> configSection) {
@@ -64,11 +62,8 @@ public final class ConfigurationService {
 
     @SneakyThrows
     public static String getFileAsString(String fileName) {
-        InputStream input = ConfigurationService.class.getResourceAsStream("/" + fileName);
-        try {
+        try (InputStream input = ConfigurationService.class.getResourceAsStream("/" + fileName)) {
             return IOUtils.toString(Objects.requireNonNull(input), StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            return "";
         }
     }
 }

@@ -12,4 +12,7 @@ public class ApiSettings {
     private int maxRetryAttempts = 3;
 
     private long pauseBetweenFailuresMillis = 1000;
+
+    ApiSettings() {
+    }
 }

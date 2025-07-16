@@ -1,7 +1,13 @@
 package Data;
 
 public enum PricingType {
-    PER_DAY,
-    FULL_EVENT,
-    FREE
+
+    Free,
+
+    FlatRate,
+
+    PerSession,
+
+    PerDay
+
 }

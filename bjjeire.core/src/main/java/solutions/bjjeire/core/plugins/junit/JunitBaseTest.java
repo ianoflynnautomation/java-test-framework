@@ -35,7 +35,7 @@
 
                 var testClass = this.getClass();
                 assert testInfo.getTestMethod().isPresent();
-                var methodInfo = Arrays.stream(testClass.getMethods()).filter(m -> m.getName() == testInfo.getTestMethod().get().getName()).findFirst().get();
+                var methodInfo = Arrays.stream(testClass.getMethods()).filter(m -> m.getName().equals(testInfo.getTestMethod().get().getName())).findFirst().get();
                 PluginExecutionEngine.preBeforeTest(CURRENT_TEST_RESULT.get(), methodInfo);
                 beforeEach();
                 PluginExecutionEngine.postBeforeTest(CURRENT_TEST_RESULT.get(), methodInfo);

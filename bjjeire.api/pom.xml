@@ -29,6 +29,16 @@
             <artifactId>annotations</artifactId>
         </dependency>
 
+        <!-- Spring DI -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+        </dependency>
+
         <!-- HTTP and JSON -->
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
@@ -60,27 +70,41 @@
             <groupId>com.github.javafaker</groupId>
             <artifactId>javafaker</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
 
-        <!-- Test Dependencies -->
+        <!--
+        FIX: Changed scope to 'compile' for test dependencies needed by the reusable ApiTest base class.
+        This makes them available to the main source code of this module.
+        -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <scope>compile</scope>
+        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
-            <scope>test</scope>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-params</artifactId>
-            <scope>test</scope>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
-            <scope>test</scope>
+            <scope>compile</scope>
         </dependency>
 
+        <!-- This dependency is only needed for running Cucumber tests, so 'test' scope is correct. -->
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
+            <groupId>io.cucumber</groupId>
+            <artifactId>cucumber-spring</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
