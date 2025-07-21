@@ -19,21 +19,11 @@ import solutions.bjjeire.core.configuration.IConfigurationProvider;
 @PropertySource("classpath:application.properties")
 public class CucumberTestConfiguration {
 
-    /**
-     * Creates a singleton bean for the configuration provider.
-     * @param environment The active environment (e.g., "development"), injected from application.properties.
-     * @return An instance of IConfigurationProvider.
+    /*
+     * FIX: The IConfigurationProvider is now a @Component and will be picked up
+     * automatically by the @ComponentScan. We no longer need to define it as a @Bean here.
      */
-    @Bean
-    public IConfigurationProvider configurationProvider(@Value("${environment:development}") String environment) {
-        return new EnvironmentConfigurationProvider(environment);
-    }
 
-    /**
-     * Creates the ApiSettings bean using the configuration provider.
-     * @param provider The configuration provider bean.
-     * @return A configured ApiSettings instance.
-     */
     @Bean
     public ApiSettings apiSettings(IConfigurationProvider provider) {
         ApiSettings settings = provider.getSettings(ApiSettings.class);
@@ -45,10 +35,6 @@ public class CucumberTestConfiguration {
         return settings;
     }
 
-    /**
-     * Provides a singleton Faker instance for generating test data.
-     * @return A Faker instance.
-     */
     @Bean
     public Faker faker() {
         return new Faker();

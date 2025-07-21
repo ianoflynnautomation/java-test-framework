@@ -6,7 +6,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -17,6 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * A robust, thread-safe implementation of IConfigurationProvider using Jackson for JSON processing.
  * It loads configuration from a JSON file corresponding to the specified environment.
  */
+@Component
 public class EnvironmentConfigurationProvider implements IConfigurationProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(EnvironmentConfigurationProvider.class);
@@ -26,10 +29,14 @@ public class EnvironmentConfigurationProvider implements IConfigurationProvider 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
-     * Constructor takes the environment as an argument, which will be provided by the Spring context.
-     * @param environment The name of the environment (e.g., "development").
+     * FIX: This class is now a component, and its dependencies (the environment name)
+     * are injected by Spring. This resolves bean initialization order issues.
+     *
+     * @param environment The name of the environment (e.g., "development"),
+     * injected from application.properties.
      */
-    public EnvironmentConfigurationProvider(String environment) {
+    @Autowired
+    public EnvironmentConfigurationProvider(@Value("${environment:development}") String environment) {
         this.environment = environment;
         logger.info("Initializing configuration for environment: '{}'", this.environment);
         String configFileName = String.format("testSettings.%s.json", this.environment);
@@ -66,7 +73,7 @@ public class EnvironmentConfigurationProvider implements IConfigurationProvider 
     private String loadResourceFile(String fileName) {
         try (InputStream input = getClass().getClassLoader().getResourceAsStream(fileName)) {
             if (input == null) {
-                throw new RuntimeException("Resource file not found: " + fileName);
+                throw new RuntimeException("Resource file not found on classpath: " + fileName);
             }
             return IOUtils.toString(input, StandardCharsets.UTF_8);
         } catch (IOException e) {
