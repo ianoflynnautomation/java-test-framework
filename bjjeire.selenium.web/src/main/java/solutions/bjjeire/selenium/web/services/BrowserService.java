@@ -20,10 +20,12 @@ public class BrowserService extends WebService {
 
     private static final Logger log = LoggerFactory.getLogger(BrowserService.class);
     private final WebSettings webSettings;
+    protected final JavaScriptService javaScriptService;
 
     @Autowired
-    public BrowserService(DriverService driverService, WebSettings webSettings) {
+    public BrowserService(DriverService driverService, JavaScriptService javaScriptService, WebSettings webSettings) {
         super(driverService);
+        this.javaScriptService = javaScriptService;
         this.webSettings = webSettings;
     }
 
@@ -48,6 +50,15 @@ public class BrowserService extends WebService {
             log.warn("Timed out waiting for page to load completely.", ex);
         }
     }
+
+    public void clearLocalStorage() {
+        javaScriptService.execute("localStorage.clear()");
+    }
+    public void clearSessionStorage() {
+
+        javaScriptService.execute("sessionStorage.clear()");
+    }
+
 
     public void waitForPartialUrl(String partialUrl) {
         long timeout = webSettings.getTimeoutSettings().getWaitForPartialUrl();

@@ -5,7 +5,7 @@ web-settings:
   baseUrl: "https://localhost:60743"
   executionType: "regular"
   defaultBrowser: "firefox"
-  defaultLifeCycle: "restart every time"
+  defaultLifeCycle: "reuse if started"
   automaticallyScrollToVisible: "false"
   waitUntilReadyOnElementFound: "false"
   screenshotsOnFailEnabled: "false"

@@ -8,12 +8,14 @@ import org.springframework.stereotype.Component;
 import solutions.bjjeire.selenium.web.components.Heading;
 import solutions.bjjeire.selenium.web.components.Label;
 import solutions.bjjeire.selenium.web.components.Select;
+import solutions.bjjeire.selenium.web.components.custom.event.EventArticle;
 import solutions.bjjeire.selenium.web.components.custom.gym.GymArticle;
 import solutions.bjjeire.selenium.web.configuration.UrlSettings;
 import solutions.bjjeire.selenium.web.configuration.WebSettings;
 import solutions.bjjeire.selenium.web.infrastructure.DriverService;
 import solutions.bjjeire.selenium.web.pages.ListPageBase;
 import solutions.bjjeire.selenium.web.pages.WebPage;
+import solutions.bjjeire.selenium.web.pages.events.EventsPage;
 import solutions.bjjeire.selenium.web.pages.gyms.data.GymCardDetails;
 import solutions.bjjeire.selenium.web.services.BrowserService;
 import solutions.bjjeire.selenium.web.services.ComponentCreateService;
@@ -23,6 +25,9 @@ import solutions.bjjeire.selenium.web.services.NavigationService;
 import solutions.bjjeire.selenium.web.waitstrategies.WaitStrategyFactory;
 
 import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Component
 @Scope("prototype")
@@ -52,6 +57,18 @@ public class GymsPage extends ListPageBase {
 
     public GymsPage selectCounty(String county) {
         countyDropdown().selectByText(county);
+        return this;
+    }
+
+    public GymsPage assertAllGymsMatchCountyFilter(String expectedCounty) {
+        List<GymArticle> cards = gymCards();
+        assertFalse(cards.isEmpty(), "Expected to find gyms cards after filtering, but none were found.");
+
+        for (GymArticle card : cards) {
+            String actualCounty = card.county().getText();
+            assertTrue(actualCounty.toLowerCase().contains(expectedCounty.toLowerCase()),
+                    String.format("Gym card '%s' should have county '%s' but was '%s'", card.headingText().getText(), expectedCounty, actualCounty));
+        }
         return this;
     }
 

@@ -68,17 +68,30 @@ public class BrowserLifecyclePlugin implements Plugin {
 
     @Override
     public void postAfterTest(TestResult testResult, TimeRecord timeRecord, Method memberInfo, Throwable failedTestException) {
+        // This method is now a simple delegate for JUnit-based tests.
+        handleBrowserShutdown(testResult);
+    }
+
+    /**
+     * Contains the reusable logic for deciding whether to shut down the browser.
+     * This can be called from any test framework's hook (JUnit, TestNG, Cucumber).
+     *
+     * @param testResult The result of the test execution (e.g., SUCCESS, FAILURE).
+     */
+    public void handleBrowserShutdown(TestResult testResult) {
         BrowserConfiguration config = currentBrowserConfiguration.get();
         if (config == null) {
-            log.warn("Current browser configuration not found in post-after-test hook for: {}", memberInfo.getName());
+            log.warn("Current browser configuration not found in post-test hook.");
             return;
         }
 
         if (config.getLifecycle() == Lifecycle.REUSE_IF_STARTED) {
+            log.debug("Browser lifecycle is 'REUSE_IF_STARTED', keeping browser open.");
             return;
         }
 
         if (config.getLifecycle() == Lifecycle.RESTART_ON_FAIL && testResult != TestResult.FAILURE) {
+            log.debug("Browser lifecycle is 'RESTART_ON_FAIL' and test passed, keeping browser open.");
             return;
         }
 
@@ -97,7 +110,6 @@ public class BrowserLifecyclePlugin implements Plugin {
         } catch (Exception ex) {
             log.error("Failed to start the browser. This is the root cause of the test failure.", ex);
             isBrowserStartedCorrectly.set(false);
-            // Re-throw as a runtime exception to halt the test execution immediately.
             throw new RuntimeException("Failed to initialize WebDriver. Check logs for the original exception.", ex);
         }
         previousBrowserConfiguration.set(currentBrowserConfiguration.get());

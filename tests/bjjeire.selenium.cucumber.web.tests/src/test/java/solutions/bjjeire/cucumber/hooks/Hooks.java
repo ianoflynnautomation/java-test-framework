@@ -9,8 +9,10 @@ import org.openqa.selenium.WebDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import solutions.bjjeire.core.plugins.TestResult;
 import solutions.bjjeire.selenium.web.configuration.WebSettings;
 import solutions.bjjeire.selenium.web.infrastructure.BrowserConfiguration;
+import solutions.bjjeire.selenium.web.infrastructure.BrowserLifecyclePlugin;
 import solutions.bjjeire.selenium.web.infrastructure.DriverService;
 import solutions.bjjeire.selenium.web.infrastructure.Lifecycle;
 
@@ -25,10 +27,16 @@ public class Hooks {
     @Autowired
     private WebSettings webSettings;
 
+    // Inject the BrowserLifecyclePlugin to delegate lifecycle decisions.
+    @Autowired
+    private BrowserLifecyclePlugin browserLifecyclePlugin;
+
     @Before
     public void beforeScenario(Scenario scenario) {
         log.info("Starting Scenario: '{}'", scenario.getName());
 
+        // The @Before hook is now responsible for starting the browser for each scenario.
+        // The BrowserLifecyclePlugin will decide whether to shut it down in the @After hook.
         BrowserConfiguration defaultConfig = new BrowserConfiguration(
                 webSettings.getDefaultBrowserEnum(),
                 Lifecycle.fromText(webSettings.getDefaultLifeCycle()),
@@ -45,9 +53,9 @@ public class Hooks {
     public void afterScenario(Scenario scenario) {
         log.info("Finished Scenario: '{}' with status: {}", scenario.getName(), scenario.getStatus());
 
-        try {
-            if (scenario.isFailed()) {
-                log.error("Scenario failed! Capturing screenshot...");
+        if (scenario.isFailed()) {
+            log.error("Scenario failed! Capturing and attaching screenshot...");
+            try {
                 WebDriver driver = driverService.getWrappedDriver();
                 if (driver instanceof TakesScreenshot) {
                     final byte[] screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.BYTES);
@@ -56,12 +64,18 @@ public class Hooks {
                 } else {
                     log.warn("WebDriver does not support taking screenshots.");
                 }
+            } catch (Exception e) {
+                log.error("Failed to capture screenshot on scenario failure.", e);
+            }finally {
+                log.info("Closing browser after scenario.");
+                driverService.close();
             }
-        } catch (Exception e) {
-            log.error("Failed to take screenshot or get driver on scenario failure.", e);
-        } finally {
-            log.info("Closing browser after scenario.");
-            driverService.close();
         }
+
+        // Convert Cucumber's scenario status to our internal TestResult enum.
+        TestResult testResult = scenario.isFailed() ? TestResult.FAILURE : TestResult.SUCCESS;
+
+        // Delegate the decision to shut down the browser to the centralized plugin logic.
+        browserLifecyclePlugin.handleBrowserShutdown(testResult);
     }
 }
