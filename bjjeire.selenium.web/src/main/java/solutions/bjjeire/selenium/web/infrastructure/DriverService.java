@@ -53,6 +53,11 @@ public class DriverService {
         WebDriver driver;
         String executionType = webSettings.getExecutionType();
 
+        // Defensive null-check to provide a clear error message.
+        if (executionType == null) {
+            throw new IllegalStateException("The 'executionType' property is not set. Please check your application.yml/properties and ensure the WebSettings are loaded correctly.");
+        }
+
         switch (executionType.toLowerCase()) {
             case "grid":
             case "selenoid":

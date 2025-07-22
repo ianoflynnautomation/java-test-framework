@@ -1,17 +1,22 @@
 package solutions.bjjeire.selenium.web.infrastructure.testng;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import solutions.bjjeire.selenium.web.infrastructure.BrowserLifecyclePlugin;
-import solutions.bjjeire.selenium.web.services.App;
+import org.springframework.test.context.ContextConfiguration;
 import solutions.bjjeire.core.plugins.testng.BaseTest;
+import solutions.bjjeire.selenium.web.configuration.SeleniumConfig;
+import solutions.bjjeire.selenium.web.services.App;
 
-public class WebTest extends BaseTest {
+/**
+ * A specific base class for web tests using TestNG.
+ * It extends the generic BaseTest and provides the Selenium-specific context.
+ */
+@ContextConfiguration(classes = SeleniumConfig.class)
+public abstract class WebTest extends BaseTest {
 
     @Autowired
     protected App app;
 
-   @Override
+    @Override
     protected void configure() {
-       addPlugin(BrowserLifecyclePlugin.class);
     }
 }

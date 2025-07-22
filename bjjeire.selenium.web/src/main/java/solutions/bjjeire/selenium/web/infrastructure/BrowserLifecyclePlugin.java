@@ -1,5 +1,7 @@
 package solutions.bjjeire.selenium.web.infrastructure;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import solutions.bjjeire.core.plugins.Plugin;
@@ -18,6 +20,7 @@ import java.lang.reflect.Type;
 @Component
 public class BrowserLifecyclePlugin extends Plugin {
 
+    private static final Logger logger = LoggerFactory.getLogger(BrowserLifecyclePlugin.class);
     private final DriverService driverService;
     private final WebSettings webSettings;
 
@@ -90,7 +93,7 @@ public class BrowserLifecyclePlugin extends Plugin {
             driverService.start(currentBrowserConfiguration.get());
             isBrowserStartedCorrectly.set(true);
         } catch (Exception ex) {
-            // TODO: Add proper logging
+            logger.error("Failed to start the browser. This is the root cause of the test failure.", ex);
             isBrowserStartedCorrectly.set(false);
         }
         previousBrowserConfiguration.set(currentBrowserConfiguration.get());

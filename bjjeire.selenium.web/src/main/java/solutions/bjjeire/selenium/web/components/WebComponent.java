@@ -58,8 +58,8 @@ public abstract class WebComponent implements BjjEireComponent {
     protected final ComponentWaitService componentWaitService;
     private final List<WaitStrategy> waitStrategies;
     private final WebSettings webSettings;
-    private final ApplicationContext applicationContext;
-    private final WaitStrategyFactory waitStrategyFactory; // FIX: Injected factory
+    protected final ApplicationContext applicationContext;
+    private final WaitStrategyFactory waitStrategyFactory;
 
     @Autowired
     public WebComponent(

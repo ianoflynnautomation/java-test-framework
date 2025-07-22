@@ -1,12 +1,10 @@
 package solutions.bjjeire.api.configuration;
 
 import com.github.javafaker.Faker;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
-import solutions.bjjeire.core.configuration.EnvironmentConfigurationProvider;
 import solutions.bjjeire.core.configuration.IConfigurationProvider;
 
 /**

@@ -6,13 +6,12 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.cucumber.spring.CucumberContextConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import solutions.bjjeire.selenium.web.configuration.SeleniumConfig;
 import solutions.bjjeire.selenium.web.pages.events.EventsPage;
 import solutions.bjjeire.selenium.web.pages.events.data.BjjEventType;
 
-@CucumberContextConfiguration
-@ContextConfiguration(classes = SeleniumConfig.class)
 public class BjjEventSteps {
 
     @Autowired

@@ -1,29 +1,29 @@
 package solutions.bjjeire.core.plugins.testng;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.ITestResult;
 import org.testng.annotations.*;
 import solutions.bjjeire.core.plugins.PluginExecutionEngine;
 import solutions.bjjeire.core.plugins.TestResult;
 import solutions.bjjeire.core.plugins.TimeRecord;
-import solutions.bjjeire.core.plugins.UsesPlugins;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
+/**
+ * A generic, Spring-enabled base class for TestNG tests.
+ * 1. Extends AbstractTestNGSpringContextTests for core Spring-TestNG integration.
+ * 2. Injects the PluginExecutionEngine.
+ * 3. Does NOT specify a @ContextConfiguration, making it reusable for different test types.
+ */
 @Listeners(TestResultListener.class)
-public class BaseTest extends UsesPlugins {
+public abstract class BaseTest {
+
+    @Autowired
+    protected PluginExecutionEngine pluginExecutionEngine;
 
     static final ThreadLocal<TestResult> CURRENT_TEST_RESULT = new ThreadLocal<>();
     static final ThreadLocal<TimeRecord> CURRENT_TEST_TIME_RECORD = ThreadLocal.withInitial(TimeRecord::new);
-    private static final ThreadLocal<Boolean> CONFIGURATION_EXECUTED = new ThreadLocal<>();
-    private static final List<String> ALREADY_EXECUTED_BEFORE_CLASSES = Collections.synchronizedList(new ArrayList<>());
+    private static final ThreadLocal<Boolean> CONFIGURATION_EXECUTED = ThreadLocal.withInitial(() -> false);
 
-    public BaseTest() {
-        CONFIGURATION_EXECUTED.set(false);
-    }
-
-    @BeforeClass
+    @BeforeClass(alwaysRun = true)
     public void beforeClass() {
         try {
             if (!CONFIGURATION_EXECUTED.get()) {
@@ -31,64 +31,56 @@ public class BaseTest extends UsesPlugins {
                 CONFIGURATION_EXECUTED.set(true);
             }
             var testClass = this.getClass();
-            PluginExecutionEngine.preBeforeClass(testClass);
+            pluginExecutionEngine.preBeforeClass(testClass);
             beforeAll();
-            PluginExecutionEngine.postBeforeClass(testClass);
+            pluginExecutionEngine.postBeforeClass(testClass);
         } catch (Exception e) {
-            PluginExecutionEngine.beforeClassFailed(e);
+            pluginExecutionEngine.beforeClassFailed(e);
         }
     }
 
-    @BeforeMethod
+    @BeforeMethod(alwaysRun = true)
     public void beforeMethodCore(ITestResult result) throws Exception {
         try {
             var methodInfo = this.getClass().getMethod(result.getMethod().getMethodName());
-            PluginExecutionEngine.preBeforeTest(CURRENT_TEST_RESULT.get(), methodInfo);
+            pluginExecutionEngine.preBeforeTest(CURRENT_TEST_RESULT.get(), methodInfo);
             beforeEach();
-            PluginExecutionEngine.postBeforeTest(CURRENT_TEST_RESULT.get(), methodInfo);
+            pluginExecutionEngine.postBeforeTest(CURRENT_TEST_RESULT.get(), methodInfo);
         } catch (Exception e) {
             e.printStackTrace();
-            PluginExecutionEngine.beforeTestFailed(e);
+            pluginExecutionEngine.beforeTestFailed(e);
         }
     }
 
-    @AfterMethod
+    @AfterMethod(alwaysRun = true)
     public void afterMethodCore(ITestResult result) {
         try {
             var testClass = this.getClass();
             var methodInfo = testClass.getMethod(result.getMethod().getMethodName());
-            PluginExecutionEngine.preAfterTest(CURRENT_TEST_RESULT.get(), CURRENT_TEST_TIME_RECORD.get(), methodInfo);
+            pluginExecutionEngine.preAfterTest(CURRENT_TEST_RESULT.get(), CURRENT_TEST_TIME_RECORD.get(), methodInfo);
             afterEach();
-            PluginExecutionEngine.postAfterTest(CURRENT_TEST_RESULT.get(), CURRENT_TEST_TIME_RECORD.get(), methodInfo, result.getThrowable());
-
+            pluginExecutionEngine.postAfterTest(CURRENT_TEST_RESULT.get(), CURRENT_TEST_TIME_RECORD.get(), methodInfo, result.getThrowable());
         } catch (Exception e) {
-            PluginExecutionEngine.afterTestFailed(e);
+            pluginExecutionEngine.afterTestFailed(e);
         }
     }
 
-    @AfterClass
+    @AfterClass(alwaysRun = true)
     public void afterClassCore() {
         try {
             var testClass = this.getClass();
-            PluginExecutionEngine.preAfterClass(testClass);
+            pluginExecutionEngine.preAfterClass(testClass);
             afterAll();
-            PluginExecutionEngine.postAfterClass(testClass);
+            pluginExecutionEngine.postAfterClass(testClass);
         } catch (Exception e) {
-            PluginExecutionEngine.afterClassFailed(e);
+            pluginExecutionEngine.afterClassFailed(e);
         }
     }
-    protected void configure() {
-    }
 
-    protected void beforeAll() throws Exception {
-    }
-
-    protected void afterAll() throws Exception {
-    }
-
-    protected void beforeEach() throws Exception {
-    }
-
-    protected void afterEach() {
-    }
+    // Hook methods for subclasses to override
+    protected void configure() {}
+    protected void beforeAll() throws Exception {}
+    protected void afterAll() throws Exception {}
+    protected void beforeEach() throws Exception {}
+    protected void afterEach() {}
 }
