@@ -14,13 +14,12 @@ import java.lang.reflect.Type;
 
 /**
  * A Spring-managed plugin to control the browser lifecycle during test execution.
- * It replaces the static, ThreadLocal-based approach with a proper bean that
- * receives its dependencies via constructor injection.
+ * It receives its dependencies via constructor injection.
  */
 @Component
-public class BrowserLifecyclePlugin extends Plugin {
+public class BrowserLifecyclePlugin implements Plugin {
 
-    private static final Logger logger = LoggerFactory.getLogger(BrowserLifecyclePlugin.class);
+    private static final Logger log = LoggerFactory.getLogger(BrowserLifecyclePlugin.class);
     private final DriverService driverService;
     private final WebSettings webSettings;
 
@@ -35,7 +34,8 @@ public class BrowserLifecyclePlugin extends Plugin {
     }
 
     @Override
-    public void preBeforeClass(Class type) {
+    public void preBeforeClass(Class<?> type) {
+        log.debug("Executing pre-before-class hooks for class: {}", type.getSimpleName());
         if ("regular".equalsIgnoreCase(webSettings.getExecutionType())) {
             currentBrowserConfiguration.set(getBrowserConfiguration(type));
             if (shouldRestartBrowser()) {
@@ -43,17 +43,17 @@ public class BrowserLifecyclePlugin extends Plugin {
                 startBrowser();
             }
         }
-        super.preBeforeClass(type);
     }
 
     @Override
-    public void postAfterClass(Class type) {
+    public void postAfterClass(Class<?> type) {
+        log.debug("Executing post-after-class hooks for class: {}", type.getSimpleName());
         shutdownBrowser();
-        super.postAfterClass(type);
     }
 
     @Override
     public void preBeforeTest(TestResult testResult, Method memberInfo) {
+        log.debug("Executing pre-before-test hooks for method: {}", memberInfo.getName());
         currentBrowserConfiguration.set(getBrowserConfiguration(memberInfo));
         if (shouldRestartBrowser()) {
             shutdownBrowser();
@@ -62,15 +62,17 @@ public class BrowserLifecyclePlugin extends Plugin {
     }
 
     @Override
-    public void beforeTestFailed(Exception ex) throws Exception {
-        // Potentially add screenshot/logging logic here
-        throw ex;
+    public void beforeTestFailed(Exception ex) {
+        log.error("A failure occurred before the test method could execute.", ex);
     }
 
     @Override
     public void postAfterTest(TestResult testResult, TimeRecord timeRecord, Method memberInfo, Throwable failedTestException) {
         BrowserConfiguration config = currentBrowserConfiguration.get();
-        if (config == null) return;
+        if (config == null) {
+            log.warn("Current browser configuration not found in post-after-test hook for: {}", memberInfo.getName());
+            return;
+        }
 
         if (config.getLifecycle() == Lifecycle.REUSE_IF_STARTED) {
             return;
@@ -84,7 +86,7 @@ public class BrowserLifecyclePlugin extends Plugin {
     }
 
     private void shutdownBrowser() {
-        driverService.close(); // Uses the injected service
+        driverService.close();
         previousBrowserConfiguration.remove();
     }
 
@@ -93,8 +95,10 @@ public class BrowserLifecyclePlugin extends Plugin {
             driverService.start(currentBrowserConfiguration.get());
             isBrowserStartedCorrectly.set(true);
         } catch (Exception ex) {
-            logger.error("Failed to start the browser. This is the root cause of the test failure.", ex);
+            log.error("Failed to start the browser. This is the root cause of the test failure.", ex);
             isBrowserStartedCorrectly.set(false);
+            // Re-throw as a runtime exception to halt the test execution immediately.
+            throw new RuntimeException("Failed to initialize WebDriver. Check logs for the original exception.", ex);
         }
         previousBrowserConfiguration.set(currentBrowserConfiguration.get());
     }

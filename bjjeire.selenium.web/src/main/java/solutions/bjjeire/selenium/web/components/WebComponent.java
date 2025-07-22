@@ -8,6 +8,8 @@ import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.FluentWait;
 import org.openqa.selenium.support.ui.Select;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
@@ -38,6 +40,7 @@ import static org.apache.commons.text.StringEscapeUtils.unescapeHtml4;
 @Component
 @Scope("prototype")
 public abstract class WebComponent implements BjjEireComponent {
+    private static final Logger log = LoggerFactory.getLogger(WebComponent.class);
 
     @Setter(AccessLevel.PROTECTED)
     private WebElement wrappedElement;
@@ -284,7 +287,7 @@ public abstract class WebComponent implements BjjEireComponent {
                 Thread.sleep(500);
             }
         } catch (Exception ex) {
-            // Handle or log exception
+            log.warn("JavaScript scrollIntoView failed. This may be non-critical.", ex);
         }
     }
 
@@ -308,8 +311,8 @@ public abstract class WebComponent implements BjjEireComponent {
         try {
             wait.until(x -> tryClick());
         } catch (TimeoutException e) {
-//            Log.info("Click has timed out.  Trying with JS click()...");
-//            javaScriptService.execute("arguments[0].click()", findElement());
+            log.warn("Default click timed out after {} seconds. Attempting JavaScript click as a fallback.", toBeClickableTimeout);
+            javaScriptService.execute("arguments[0].click()", findElement());
         }
     }
 
@@ -318,15 +321,15 @@ public abstract class WebComponent implements BjjEireComponent {
             toBeVisible().toBeClickable().findElement().click();
             return true;
         } catch (ElementNotInteractableException e) {
-//            Log.error("ElementNotInteractableException found - retrying with scroll.. ");
+            log.warn("ElementNotInteractableException encountered. Retrying after scroll.", e);
             scrollToVisible();
             return false;
         } catch (StaleElementReferenceException e) {
-//            Log.error("StaleElementReference Exception found - retrying with a new Find... ");
+            log.warn("StaleElementReferenceException encountered. Retrying with a new find.", e);
             findElement();
             return false;
         } catch (WebDriverException e) {
-//            Log.error("WebDriverException found - trying again... ");
+            log.warn("WebDriverException encountered during click attempt. Retrying.", e);
             return false;
         }
     }
@@ -336,7 +339,6 @@ public abstract class WebComponent implements BjjEireComponent {
     }
 
     protected void defaultCheck() {
-
         this.toExist().toBeClickable().waitToBe();
         if (!getWrappedElement().isSelected()) {
             clickInternal();
@@ -345,7 +347,6 @@ public abstract class WebComponent implements BjjEireComponent {
 
 
     protected void defaultUncheck() {
-
         toExist().toBeClickable().waitToBe();
         if (getWrappedElement().isSelected()) {
             clickInternal();
@@ -363,24 +364,18 @@ public abstract class WebComponent implements BjjEireComponent {
     protected boolean defaultGetDisabledAttribute() {
         try {
             var valueAttr = Optional.ofNullable(getAttribute("disabled")).orElse("false");
-            return valueAttr.toLowerCase(Locale.ROOT).equals("true");
+            return valueAttr.equalsIgnoreCase("true");
         } catch (StaleElementReferenceException e) {
             var valueAttr = Optional.ofNullable(findElement().getAttribute("disabled")).orElse("false");
-            return valueAttr.toLowerCase(Locale.ROOT).equals("true");
+            return valueAttr.equalsIgnoreCase("true");
         }
     }
     protected String defaultGetInnerHtmlAttribute() {
-//        if (this instanceof ShadowRoot) {
-//            return ShadowDomService.getShadowHtml(this, true);
-//        } else if (this.inShadowContext()) {
-//            return ShadowDomService.getShadowHtml(this, false);
-//        } else {
         try {
             return Optional.ofNullable(getAttribute("innerHTML")).orElse("");
         } catch (StaleElementReferenceException e) {
             return Optional.ofNullable(findElement().getAttribute("innerHTML")).orElse("");
         }
-        // }
     }
 
     @SneakyThrows
@@ -430,7 +425,6 @@ public abstract class WebComponent implements BjjEireComponent {
     }
 
     protected void defaultSetText(String value) {
-
         getWrappedElement().clear();
         getWrappedElement().sendKeys(value);
     }

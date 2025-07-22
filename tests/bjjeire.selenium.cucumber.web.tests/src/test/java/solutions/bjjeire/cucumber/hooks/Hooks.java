@@ -14,9 +14,10 @@ import solutions.bjjeire.selenium.web.infrastructure.BrowserConfiguration;
 import solutions.bjjeire.selenium.web.infrastructure.DriverService;
 import solutions.bjjeire.selenium.web.infrastructure.Lifecycle;
 
+
 public class Hooks {
 
-    private static final Logger logger = LoggerFactory.getLogger(Hooks.class);
+    private static final Logger log = LoggerFactory.getLogger(Hooks.class);
 
     @Autowired
     private DriverService driverService;
@@ -26,7 +27,7 @@ public class Hooks {
 
     @Before
     public void beforeScenario(Scenario scenario) {
-        logger.info("Starting Scenario: '{}'", scenario.getName());
+        log.info("Starting Scenario: '{}'", scenario.getName());
 
         BrowserConfiguration defaultConfig = new BrowserConfiguration(
                 webSettings.getDefaultBrowserEnum(),
@@ -36,32 +37,31 @@ public class Hooks {
         );
         defaultConfig.setTestName(scenario.getName());
 
-        logger.info("Starting browser with default configuration for scenario.");
+        log.info("Starting browser with default configuration for scenario.");
         driverService.start(defaultConfig);
     }
 
     @After
     public void afterScenario(Scenario scenario) {
-        logger.info("Finished Scenario: '{}' with status: {}", scenario.getName(), scenario.getStatus());
+        log.info("Finished Scenario: '{}' with status: {}", scenario.getName(), scenario.getStatus());
 
         try {
-            WebDriver driver = driverService.getWrappedDriver();
-            if (driver != null && scenario.isFailed()) {
-                logger.error("Scenario failed! Capturing screenshot...");
-
+            if (scenario.isFailed()) {
+                log.error("Scenario failed! Capturing screenshot...");
+                WebDriver driver = driverService.getWrappedDriver();
                 if (driver instanceof TakesScreenshot) {
                     final byte[] screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.BYTES);
                     scenario.attach(screenshot, "image/png", "Screenshot on failure");
+                    log.info("Screenshot attached to Cucumber report.");
                 } else {
-                    logger.warn("WebDriver does not support taking screenshots.");
+                    log.warn("WebDriver does not support taking screenshots.");
                 }
             }
         } catch (Exception e) {
-            logger.error("Failed to take screenshot or get driver on scenario failure.", e);
+            log.error("Failed to take screenshot or get driver on scenario failure.", e);
         } finally {
-            logger.info("Closing browser after scenario.");
+            log.info("Closing browser after scenario.");
             driverService.close();
         }
     }
 }
-

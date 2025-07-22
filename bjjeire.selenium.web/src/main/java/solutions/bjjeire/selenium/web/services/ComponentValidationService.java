@@ -18,7 +18,7 @@ import java.util.function.Supplier;
 @Service
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ComponentValidationService {
-    private static final Logger logger = LoggerFactory.getLogger(ComponentValidationService.class);
+    private static final Logger log = LoggerFactory.getLogger(ComponentValidationService.class);
 
     private final DriverService driverService;
     private final WebSettings webSettings;
@@ -32,6 +32,7 @@ public class ComponentValidationService {
 
     public void setComponent(WebComponent component) {
         this.component = component;
+        log.trace("Validation service configured for component: {}", component.getComponentName());
     }
 
     public <T> AttributeValidation<T> attribute(Supplier<T> attributeSupplier, String attributeName) {
@@ -95,7 +96,7 @@ public class ComponentValidationService {
                 component.findElement();
                 return condition.getAsBoolean();
             });
-            logger.info("Validation successful for component '{}': attribute '{}' did {} '{}'",
+            log.info("Validation successful for component '{}': attribute '{}' did {} '{}'",
                     component.getComponentName(), attributeName, verb, expectedValue);
 
         } catch (TimeoutException ex) {
@@ -110,7 +111,7 @@ public class ComponentValidationService {
                     attributeName, verb, expectedValue, actualValue,
                     driverService.getWrappedDriver().getCurrentUrl());
 
-            logger.error(errorMessage);
+            log.error(errorMessage);
             throw new AssertionError(errorMessage, ex);
         }
     }

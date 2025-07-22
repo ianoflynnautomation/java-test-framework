@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- This appender outputs logs to the console -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <!-- Standard human-readable pattern for local development -->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- This appender outputs logs to a file in a structured JSON format -->
+    <appender name="JSON_FILE" class="ch.qos.logback.core.FileAppender">
+        <file>target/logs/test-execution.log</file>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <!-- This encoder requires the 'logstash-logback-encoder' dependency -->
+            <!--
+            <dependency>
+                <groupId>net.logstash.logback</groupId>
+                <artifactId>logstash-logback-encoder</artifactId>
+                <version>7.4</version>
+            </dependency>
+            -->
+        </encoder>
+    </appender>
+
+    <!--
+        Set the log level for your application's packages.
+        'DEBUG' is useful for test runs to get detailed information.
+        For production, you might set this to 'INFO'.
+    -->
+    <logger name="solutions.bjjeire" level="DEBUG" />
+
+    <!--
+        Set the log level for third-party libraries to avoid excessive noise.
+        'INFO' or 'WARN' is usually sufficient.
+    -->
+    <logger name="org.springframework" level="INFO" />
+    <logger name="org.openqa.selenium" level="WARN" />
+    <logger name="io.cucumber" level="INFO" />
+
+
+    <!-- The root logger applies to all other logs -->
+    <root level="INFO">
+        <appender-ref ref="STDOUT" />
+        <appender-ref ref="JSON_FILE" />
+    </root>
+
+</configuration>

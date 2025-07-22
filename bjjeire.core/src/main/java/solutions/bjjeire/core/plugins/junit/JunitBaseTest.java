@@ -2,6 +2,8 @@ package solutions.bjjeire.core.plugins.junit;
 
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import solutions.bjjeire.core.plugins.PluginExecutionEngine;
@@ -14,6 +16,8 @@ import java.util.Arrays;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ExtendWith({TestResultWatcher.class, TestDurationWatcher.class})
 public abstract class JunitBaseTest {
+
+    private static final Logger log = LoggerFactory.getLogger(JunitBaseTest.class);
 
     @Autowired
     protected PluginExecutionEngine pluginExecutionEngine;
@@ -32,13 +36,13 @@ public abstract class JunitBaseTest {
             beforeAll();
             pluginExecutionEngine.postBeforeClass(testClass);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("An error occurred during the @BeforeAll execution phase.", e);
             pluginExecutionEngine.beforeClassFailed(e);
         }
     }
 
     @BeforeEach
-    public void beforeMethodCore(TestInfo testInfo) throws Exception {
+    public void beforeMethodCore(TestInfo testInfo) {
         this.testInfo = testInfo;
         try {
             var testClass = this.getClass();
@@ -50,7 +54,7 @@ public abstract class JunitBaseTest {
             beforeEach();
             pluginExecutionEngine.postBeforeTest(CURRENT_TEST_RESULT.get(), methodInfo);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("An error occurred during the @BeforeEach execution phase for test: {}", testInfo.getDisplayName(), e);
             onBeforeEachFailure();
             pluginExecutionEngine.beforeTestFailed(e);
         }
@@ -63,11 +67,8 @@ public abstract class JunitBaseTest {
             var methodInfo = testClass.getMethod(testInfo.getTestMethod().get().getName(), testInfo.getTestMethod().get().getParameterTypes());
             pluginExecutionEngine.preAfterTest(CURRENT_TEST_RESULT.get(), CURRENT_TEST_TIME_RECORD.get(), methodInfo);
             afterEach();
-            // The TestResultWatcher or another mechanism should now be responsible for getting the test exception
-            // and passing it to the postAfterTest method.
-            // pluginExecutionEngine.postAfterTest(...)
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("An error occurred during the @AfterEach execution phase for test: {}", testInfo.getDisplayName(), e);
             pluginExecutionEngine.afterTestFailed(e);
         }
     }
@@ -80,7 +81,7 @@ public abstract class JunitBaseTest {
             afterClass();
             pluginExecutionEngine.postAfterClass(testClass);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("An error occurred during the @AfterAll execution phase.", e);
             pluginExecutionEngine.afterClassFailed(e);
         }
     }

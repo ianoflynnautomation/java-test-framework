@@ -1,5 +1,6 @@
 package solutions.bjjeire.core.utilities;
 
+import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -8,14 +9,16 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
- * Refactored as a Spring bean. It now uses @PreDestroy for graceful shutdown,
- * which is the standard Spring way to handle cleanup logic.
+ * Manages graceful shutdown of resources. As a Spring bean, it leverages
+ * the @PreDestroy annotation to automatically run cleanup tasks when the
+ * Spring context is closed.
  */
 @Component
 public class ShutdownManager {
-    private static final Logger logger = LoggerFactory.getLogger(ShutdownManager.class);
+    private static final Logger log = LoggerFactory.getLogger(ShutdownManager.class);
     private final List<Runnable> instructions = new CopyOnWriteArrayList<>();
     private final ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
@@ -23,18 +26,18 @@ public class ShutdownManager {
         instructions.add(runnable);
     }
 
-    //@PreDestroy
+    @PreDestroy
     public void runAllInstructions() {
         if (instructions.isEmpty()) {
             return;
         }
-        logger.info("Executing {} shutdown instructions...", instructions.size());
+        log.info("Executing {} shutdown instructions...", instructions.size());
         for (var instruction : instructions) {
             executor.submit(() -> {
                 try {
                     instruction.run();
                 } catch (Exception ex) {
-                    logger.warn("Shutdown instruction failed.", ex);
+                    log.warn("Shutdown instruction failed.", ex);
                 }
             });
         }
@@ -42,6 +45,21 @@ public class ShutdownManager {
     }
 
     private void shutdownAndAwaitTermination(ExecutorService pool) {
-        // (Implementation from your original code is good)
+        pool.shutdown();
+        try {
+            // Wait a while for existing tasks to terminate
+            if (!pool.awaitTermination(60, TimeUnit.SECONDS)) {
+                pool.shutdownNow(); // Cancel currently executing tasks
+                // Wait a while for tasks to respond to being cancelled
+                if (!pool.awaitTermination(60, TimeUnit.SECONDS)) {
+                    log.error("Executor service did not terminate.");
+                }
+            }
+        } catch (InterruptedException ie) {
+            // (Re-)Cancel if current thread also interrupted
+            pool.shutdownNow();
+            // Preserve interrupt status
+            Thread.currentThread().interrupt();
+        }
     }
 }

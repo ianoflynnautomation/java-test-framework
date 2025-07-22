@@ -24,7 +24,6 @@ public abstract class WaitStrategy {
         this.sleepInterval = sleepInterval;
     }
 
-    // FIX: Pass the WebDriver instance directly instead of relying on a static service.
     public abstract void waitUntil(DriverService driverService, SearchContext searchContext, By by);
 
     protected void waitUntil(DriverService driverService, Function<WebDriver, Boolean> waitCondition) {
