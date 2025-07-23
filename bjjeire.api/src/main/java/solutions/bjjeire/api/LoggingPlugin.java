@@ -1,24 +1,38 @@
 package solutions.bjjeire.api;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 import solutions.bjjeire.api.models.MeasuredResponse;
 import okhttp3.Request;
 
+/**
+ * A default plugin that logs API requests and responses using SLF4J.
+ * As a Spring @Component, it is automatically detected and registered with the ApiClient.
+ */
+@Component
 public class LoggingPlugin implements ApiClientPlugin {
+
+    private static final Logger logger = LoggerFactory.getLogger(LoggingPlugin.class);
+
     @Override
     public void onMakingRequest(Request request) {
-        System.out.printf("--> %s %s%n", request.method(), request.url());
+        logger.info("--> {} {}", request.method(), request.url());
     }
 
     @Override
-    public void onRequestMade(MeasuredResponse<?> response) {
-        System.out.printf("<-- %d %s (%d ms)%n", response.getStatusCode(), response.getRawResponse().request().url(), response.getExecutionTime().toMillis());
-    }
-
-    @Override
-    public void onRequestFailed(MeasuredResponse<?> response) {
-        System.err.printf("!!! FAILED REQUEST: %d %s%nBody: %s%n",
-                response.getStatusCode(),
-                response.getRawResponse().request().url(),
-                response.getResponseBodyAsString());
+    public void onRequestCompleted(MeasuredResponse response) {
+        if (response.rawResponse().isSuccessful()) {
+            logger.info("<-- {} {} ({}ms)",
+                    response.statusCode(),
+                    response.requestUrl(),
+                    response.executionTime().toMillis());
+        } else {
+            logger.error("<-- FAILED: {} {} ({}ms)\nResponse Body:\n{}",
+                    response.statusCode(),
+                    response.requestUrl(),
+                    response.executionTime().toMillis(),
+                    response.responseBodyAsString());
+        }
     }
 }

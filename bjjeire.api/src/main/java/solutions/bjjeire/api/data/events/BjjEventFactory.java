@@ -5,138 +5,94 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.javafaker.Faker;
 import org.bson.types.ObjectId;
+import solutions.bjjeire.api.data.common.County;
+import solutions.bjjeire.api.data.common.GeoCoordinates;
+import solutions.bjjeire.api.data.common.Location;
+import solutions.bjjeire.api.data.common.SocialMedia;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 
 public class BjjEventFactory {
 
     private static final Faker faker = new Faker();
-    // Register the JavaTimeModule and configure enum serialization
     private static final ObjectMapper objectMapper = new ObjectMapper()
-            .configure(SerializationFeature.WRITE_ENUMS_USING_INDEX, true)
             .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             .registerModule(new JavaTimeModule());
 
+    /**
+     * Creates a valid BjjEvent command with default data.
+     * @return A CreateBjjEventCommand instance.
+     */
     public static CreateBjjEventCommand getValidBjjEventCommand() {
         return new CreateBjjEventCommand(getValidBjjEvent());
     }
 
-    public static BjjEvent createBjjEvent() {
+    /**
+     * Creates a BjjEvent with default data.
+     * @return A BjjEvent instance.
+     */
+    public static BjjEvent getValidBjjEvent() {
         return createBjjEvent(null);
     }
 
-    public static BjjEvent getValidBjjEvent() {
-        return new BjjEvent(
-                new ObjectId().toString(),
-                LocalDateTime.now(), // Changed from Instant.now()
-                LocalDateTime.now(),
-                "Dublin BJJ Masterclass Series",
-                "Weekly BJJ seminars with Professor " + faker.name().fullName() + " at Dublin Grappling Hub.",
-                BjjEventType.Seminar,
-                new Organizer(
-                        "Dublin Grappling Hub",
-                        "https://www.dublingrappling.com"
-                ),
-                EventStatus.Upcoming,
-                "Event is coming soon",
-                new SocialMedia(
-                        "https://www.instagram.com/dublingrappling",
-                        "https://www.facebook.com/dublingrappling",
-                        "https://x.com/dublingrappling",
-                        "https://www.youtube.com/@dublingrappling"
-                ),
-                County.Dublin,
-                new Location(
-                        "45 O'Connell Street, Dublin 1, Ireland",
-                        "Dublin Grappling Hub",
-                        new GeoCoordinates(
-                                "Point",
-                                -6.260273,
-                                53.349805,
-                                "Dublin test",
-                                faker.random().hex(20)
-                        )
-                ),
-                new BjjEventSchedule(
-                        ScheduleType.FixedDate,
-                        LocalDate.now().plusDays(14),
-                        LocalDate.now().plusDays(14),
-                        List.of(new DailySchedule(
-//                                DayOfWeek.WEDNESDAY,
-                                "Wednesday",
-                                LocalTime.of(9, 0),
-                                LocalTime.of(13, 0)
-                        ))
-                ),
-                new PricingModel(
-                        PricingType.FlatRate,
-                        new BigDecimal("45.00"),
-                        1,
-                        "EUR"
-                ),
-                "https://www.dublingrappling.com/events",
-                "https://www.dublingrappling.com/images/event_poster.jpg"
-        );
-    }
-
+    /**
+     * Creates a BjjEvent using a builder, allowing for customization.
+     * The name is made unique by default to ensure test isolation.
+     * @param configure A consumer to configure the BjjEvent.Builder.
+     * @return A configured BjjEvent instance.
+     */
     public static BjjEvent createBjjEvent(Consumer<BjjEvent.Builder> configure) {
+        // Generate a unique name for the event to make it easy to find in tests
+        String uniqueEventName = faker.esports().event() + " " + UUID.randomUUID().toString().substring(0, 8);
+
         var builder = new BjjEvent.Builder()
                 .id(new ObjectId().toString())
-                .createdOnUtc(LocalDateTime.now()) // Changed from Instant.now()
-                .updatedOnUtc(LocalDateTime.now())
-                .name("Dublin BJJ Masterclass Series")
-                .description("Weekly BJJ seminars with Professor " + faker.name().fullName() + " at " + faker.company().name() + ".")
+                // Using UTC for consistency in tests
+                .createdOnUtc(LocalDateTime.now(ZoneOffset.UTC))
+                .updatedOnUtc(LocalDateTime.now(ZoneOffset.UTC))
+                .name(uniqueEventName)
+                .description("Weekly BJJ seminars with Professor " + faker.name().fullName() + " at Dublin Grappling Hub.")
                 .type(BjjEventType.Seminar)
                 .organiser(new Organizer(
-                        faker.company().name(),
-                        faker.internet().url()
+                        "Dublin Grappling Hub",
+                        "https://www.dublingrappling.com"
                 ))
                 .status(EventStatus.Upcoming)
                 .statusReason("Event is coming soon")
                 .socialMedia(new SocialMedia(
-                        "https://www.instagram.com/" + faker.lorem().word(),
-                        "https://www.facebook.com/" + faker.lorem().word(),
-                        "https://x.com/" + faker.lorem().word(),
-                        "https://www.youtube.com/@" + faker.lorem().word()
+                        "https://www.instagram.com/dublingrappling",
+                        "https://www.facebook.com/dublingrappling",
+                        "https://x.com/dublingrappling",
+                        "https://www.youtube.com/@dublingrappling"
                 ))
                 .county(County.Dublin)
                 .location(new Location(
-                        faker.address().fullAddress(),
-                        faker.company().name() + " Venue",
+                        "45 O'Connell Street, Dublin 1, Ireland",
+                        "Dublin Grappling Hub",
                         new GeoCoordinates(
-                                "Point",
-                                Double.parseDouble(faker.address().latitude()),
-                                Double.parseDouble(faker.address().longitude()),
-                                faker.address().streetName(),
-                                "ChIJ" + faker.random().hex(20)
+                                "Point", -6.260273, 53.349805, "Dublin test", faker.random().hex(20)
                         )
                 ))
                 .schedule(new BjjEventSchedule(
                         ScheduleType.FixedDate,
-                        LocalDate.now().plusDays(14),
-                        LocalDate.now().plusDays(14),
-                        List.of(new DailySchedule(
-//                          ß
-                                "Wednesday",
-                                LocalTime.of(9, 0),
-                                LocalTime.of(13, 0)
-                        ))
+                        LocalDate.now(ZoneOffset.UTC).plusDays(14),
+                        LocalDate.now(ZoneOffset.UTC).plusDays(14),
+                        List.of(new DailySchedule("Wednesday", LocalTime.of(9, 0), LocalTime.of(13, 0)))
                 ))
                 .pricing(new PricingModel(
-                        PricingType.FlatRate,
-                        new BigDecimal("45.00"),
-                        1,
-                        "EUR"
+                        PricingType.FlatRate, new BigDecimal("45.00"), 1, "EUR"
                 ))
-                .eventUrl(faker.internet().url())
-                .imageUrl(faker.internet().avatar());
+                .eventUrl("https://www.dublingrappling.com/events")
+                .imageUrl("https://www.dublingrappling.com/images/event_poster.jpg");
 
         if (configure != null) {
             configure.accept(builder);
@@ -147,24 +103,27 @@ public class BjjEventFactory {
 
     /**
      * Creates an invalid event payload based on a reason string.
-     * This is used for negative testing scenarios.
      * @param invalidReason A string describing why the payload is invalid.
      * @return A Map representing the invalid JSON payload.
      */
     @SuppressWarnings("unchecked")
     public static Map<String, Object> createInvalidEvent(String invalidReason) {
-        // Start with a valid object and then break it
         BjjEvent validEvent = getValidBjjEvent();
         Map<String, Object> payload = objectMapper.convertValue(validEvent, Map.class);
 
         switch (invalidReason) {
-            case "a missing name":
+            case "missing name":
                 payload.remove("name");
                 break;
-            case "a negative price":
-                // The structure is nested, so we need to navigate it.
+            case "negative price":
                 if (payload.get("pricing") instanceof Map) {
-                    ((Map<String, Object>) payload.get("pricing")).put("Amount", -10.00);
+                    ((Map<String, Object>) payload.get("pricing")).put("amount", -10.00);
+                }
+                break;
+            case "invalid date":
+                if (payload.get("schedule") instanceof Map) {
+                    // Set the date to the past to make it invalid
+                    ((Map<String, Object>) payload.get("schedule")).put("startDate", LocalDate.now().minusDays(1).toString());
                 }
                 break;
             default:
@@ -173,4 +132,3 @@ public class BjjEventFactory {
         return payload;
     }
 }
-

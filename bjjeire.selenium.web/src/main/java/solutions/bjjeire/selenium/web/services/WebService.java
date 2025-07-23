@@ -6,7 +6,6 @@ import org.openqa.selenium.WebDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import solutions.bjjeire.selenium.web.infrastructure.DriverService;
 
 /**
  * Abstract base class for all web-related services.

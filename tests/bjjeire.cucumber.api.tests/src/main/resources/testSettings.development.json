@@ -1,8 +1,0 @@
-{
-  "apiSettings": {
-    "baseUrl": "http://localhost:5003",
-    "clientTimeoutSeconds": 15,
-    "maxRetryAttempts": 2,
-    "pauseBetweenFailuresMillis": 500
-  }
-}

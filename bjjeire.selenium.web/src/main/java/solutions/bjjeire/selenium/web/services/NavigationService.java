@@ -2,7 +2,6 @@ package solutions.bjjeire.selenium.web.services;
 
 import lombok.SneakyThrows;
 import org.openqa.selenium.TimeoutException;
-import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.Logger;
@@ -10,7 +9,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import solutions.bjjeire.selenium.web.configuration.WebSettings;
-import solutions.bjjeire.selenium.web.infrastructure.DriverService;
 import solutions.bjjeire.selenium.web.pages.WebPage;
 
 import java.lang.reflect.Method;

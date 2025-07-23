@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import solutions.bjjeire.selenium.web.components.contracts.ComponentDisabled;
 import solutions.bjjeire.selenium.web.configuration.WebSettings;
-import solutions.bjjeire.selenium.web.infrastructure.DriverService;
+import solutions.bjjeire.selenium.web.services.DriverService;
 import solutions.bjjeire.selenium.web.services.BrowserService;
 import solutions.bjjeire.selenium.web.services.ComponentWaitService;
 import solutions.bjjeire.selenium.web.services.JavaScriptService;

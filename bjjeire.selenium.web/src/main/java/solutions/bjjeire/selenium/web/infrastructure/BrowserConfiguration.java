@@ -7,20 +7,17 @@
         import java.util.HashMap;
         import java.util.Objects;
 
+        @Getter
         public class BrowserConfiguration {
-            @Setter @Getter private Browser browser;
-            @Setter @Getter private DeviceName deviceName;
-            @Setter @Getter private Lifecycle lifecycle;
-            @Setter @Getter private int height;
-            @Setter @Getter private int width;
-            @Setter @Getter private int version;
-            @Setter @Getter private Platform platform;
-            @Setter @Getter private String testName;
+            @Setter private Browser browser;
+            @Setter private DeviceName deviceName;
+            @Setter private Lifecycle lifecycle;
+            @Setter private int height;
+            @Setter private int width;
+            @Setter private int version;
+            @Setter private Platform platform;
+            @Setter private String testName;
             final HashMap<String, Object> driverOptions;
-
-            public HashMap<String, Object> getDriverOptions() {
-                return driverOptions;
-            }
 
             public BrowserConfiguration(Browser browser, Lifecycle browserBehavior) {
                 this.browser = browser;

@@ -8,6 +8,7 @@ import solutions.bjjeire.core.plugins.Plugin;
 import solutions.bjjeire.core.plugins.TestResult;
 import solutions.bjjeire.core.plugins.TimeRecord;
 import solutions.bjjeire.selenium.web.configuration.WebSettings;
+import solutions.bjjeire.selenium.web.services.DriverService;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;

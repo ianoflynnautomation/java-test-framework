@@ -5,7 +5,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import solutions.bjjeire.selenium.web.components.WebComponent;
 import solutions.bjjeire.selenium.web.findstrategies.*;
-import solutions.bjjeire.selenium.web.infrastructure.DriverService;
 
 import java.util.ArrayList;
 import java.util.List;

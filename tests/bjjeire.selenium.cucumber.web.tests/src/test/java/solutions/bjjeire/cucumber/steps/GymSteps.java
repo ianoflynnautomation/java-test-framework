@@ -32,7 +32,7 @@ public class GymSteps {
         gymsPage.assertNoDataInList();
     }
 
-    @When("I filter the gyms list by {string} from the dropdown")
+    @When("I filter gyms by {string} from the dropdown")
     public void iFilterTheGymsListByFromTheDropdown(String county) {
         gymsPage.selectCounty(county);
     }

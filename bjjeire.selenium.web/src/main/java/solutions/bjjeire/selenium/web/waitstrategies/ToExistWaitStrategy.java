@@ -2,7 +2,7 @@ package solutions.bjjeire.selenium.web.waitstrategies;
 
 import org.openqa.selenium.*;
 import solutions.bjjeire.selenium.web.configuration.WebSettings;
-import solutions.bjjeire.selenium.web.infrastructure.DriverService;
+import solutions.bjjeire.selenium.web.services.DriverService;
 
 public class ToExistWaitStrategy extends WaitStrategy {
 

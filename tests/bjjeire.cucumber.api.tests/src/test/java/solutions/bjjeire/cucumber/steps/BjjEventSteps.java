@@ -1,181 +1,249 @@
 package solutions.bjjeire.cucumber.steps;
 
-import com.jayway.jsonpath.JsonPath;
+import com.github.javafaker.Faker;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.cucumber.spring.CucumberContextConfiguration;
-import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import solutions.bjjeire.api.configuration.CucumberTestConfiguration;
-import solutions.bjjeire.api.data.events.BjjEventFactory;
-import solutions.bjjeire.api.data.events.CreateBjjEventCommand;
-import solutions.bjjeire.api.data.events.CreateBjjEventResponse;
-import solutions.bjjeire.api.data.events.GenerateTokenResponse;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationContext;
+import solutions.bjjeire.api.configuration.ApiSettings;
+import solutions.bjjeire.api.configuration.TestConfiguration;
+import solutions.bjjeire.api.data.common.County;
+import solutions.bjjeire.api.data.common.GenerateTokenResponse;
+import solutions.bjjeire.api.data.events.*;
 import solutions.bjjeire.api.http.TestClient;
 import solutions.bjjeire.api.validation.ResponseAsserter;
 import solutions.bjjeire.cucumber.context.ScenarioContext;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Step definitions for BJJ event-related features.
- * This class is a Spring-managed bean, and its dependencies are injected by the Spring container.
- * The @CucumberContextConfiguration annotation tells Cucumber to use Spring.
- * The @ContextConfiguration annotation specifies which Spring configuration class to use.
+ * Step definitions for the BJJ Event Management feature.
+ * This class uses @SpringBootTest to load the full application context, ensuring
+ * that @ConfigurationProperties and other features work correctly.
  */
 @CucumberContextConfiguration
-@ContextConfiguration(classes = CucumberTestConfiguration.class)
+@SpringBootTest(classes = TestConfiguration.class)
 public class BjjEventSteps {
 
     private static final Logger logger = LoggerFactory.getLogger(BjjEventSteps.class);
 
     @Autowired
+    private ApplicationContext applicationContext;
+    @Autowired
     private ScenarioContext context;
     @Autowired
-    private TestClient testClient;
+    private ApiSettings settings;
+    @Autowired
+    private Faker faker;
 
-    // A public, no-argument constructor is required for Spring to instantiate this bean.
-    public BjjEventSteps() {}
+    private TestClient testClient() {
+        return applicationContext.getBean(TestClient.class);
+    }
 
-    @Given("I am an authenticated admin user")
-    public void i_am_an_authenticated_admin_user() {
+    @Given("I am authenticated as an admin user")
+    public void iAmAuthenticatedAsAnAdminUser() {
         logger.info("Authenticating as an admin user...");
-        ResponseAsserter<GenerateTokenResponse> tokenAsserter = testClient
+        GenerateTokenResponse tokenResponse = testClient()
                 .withQueryParams(Map.of("userId", "dev-user@example.com", "role", "Admin"))
-                .get("/generate-token", GenerateTokenResponse.class)
+                .get("/generate-token")
                 .then()
-                .hasStatusCode(200);
-
-        String token = tokenAsserter.getData()
-                .map(GenerateTokenResponse::token)
-                .orElseThrow(() -> new IllegalStateException("Token could not be retrieved from auth response."));
-
-        context.setAuthToken(token);
-        assertNotNull(context.getAuthToken(), "Dynamically fetched auth token should not be null");
-        assertFalse(context.getAuthToken().isBlank(), "Dynamically fetched auth token should not be blank");
+                .hasStatusCode(200)
+                .as(GenerateTokenResponse.class);
+        context.setAuthToken(tokenResponse.token());
+        assertNotNull(context.getAuthToken());
+        assertFalse(context.getAuthToken().isBlank());
         logger.info("Successfully authenticated and stored auth token.");
     }
 
-    @Given("the API service is available")
-    public void the_api_service_is_available() {
-        String baseUrl = testClient.getSettings().getBaseUrl();
-        logger.info("Precondition: API service is assumed to be available at {}", baseUrl);
-        Assertions.assertNotNull(baseUrl, "Base URL should be configured and available through the TestClient.");
+    @Given("the BJJ event API is available")
+    public void theBjjEventApiIsAvailable() {
+        logger.info("Precondition: API service is assumed to be available at {}", settings.getBaseUrl());
+        assertNotNull(settings.getBaseUrl());
     }
 
-    @Given("I have the details for a new event named {string}")
-    public void i_have_the_details_for_a_new_event_named(String eventName) {
+    @Given("I have valid details for a new BJJ event named {string}")
+    public void iHaveValidDetailsForANewBjjEventNamed(String eventName) {
         logger.debug("Creating a valid command payload for event: {}", eventName);
-        CreateBjjEventCommand command = BjjEventFactory.getValidBjjEventCommand();
+        // The factory now creates a unique name, but we can override it for specific scenarios.
+        BjjEvent event = BjjEventFactory.createBjjEvent(builder -> builder.name(eventName));
+        CreateBjjEventCommand command = new CreateBjjEventCommand(event);
         context.setRequestPayload(command);
         context.setEventName(eventName);
-        assertNotNull(context.getRequestPayload(), "Request payload should be set in the context.");
+        context.setCreatedEvent(null); // Clear context from previous runs
+        assertNotNull(context.getRequestPayload());
     }
 
-    @Given("a BJJ event already exists with the name {string}")
-    public void a_bjj_event_already_exists_with_the_name(String eventName) {
-        logger.info("Precondition: Ensuring event '{}' exists...", eventName);
-        CreateBjjEventCommand command = BjjEventFactory.getValidBjjEventCommand();
-        try {
-            testClient
-                    .withAuthToken(context.getAuthToken())
-                    .body(command)
-                    .post("/api/bjjevent", Void.class);
-            logger.debug("Pre-creation request for event '{}' sent.", eventName);
-        } catch (Exception e) {
-            logger.warn("Could not pre-create event, assuming it exists. Error: {}", e.getMessage());
+    @Given("a BJJ event exists with the name {string} in county {string}")
+    public void aBjjEventExistsWithTheNameInCounty(String eventName, String county) {
+        logger.info("Precondition: Creating event with specific name '{}' in county '{}' to ensure it exists...", eventName, county);
+        if (context.getAuthToken() == null) {
+            iAmAuthenticatedAsAnAdminUser();
         }
-        context.setEventName(eventName);
+        BjjEvent eventToCreate = BjjEventFactory.createBjjEvent(builder -> builder
+                .name(eventName) // Use the specific name from the feature file
+                .county(County.valueOf(county.replace(" ", "")))
+        );
+        CreateBjjEventCommand command = new CreateBjjEventCommand(eventToCreate);
+        CreateBjjEventResponse creationResponse = testClient()
+                .withAuthToken(context.getAuthToken())
+                .body(command)
+                .post("/api/bjjevent")
+                .then()
+                .hasStatusCode(201)
+                .as(CreateBjjEventResponse.class);
+
+        context.setCreatedEvent(creationResponse.data());
+        context.setEventName(creationResponse.data().name()); // Store the exact name
+        logger.info("Successfully created event '{}' with ID '{}' for test.", creationResponse.data().name(), creationResponse.data().id());
+        assertNotNull(context.getCreatedEvent());
     }
 
-    @Given("I have a BJJ event payload that is invalid because of {string}")
-    public void i_have_a_bjj_event_payload_that_is_invalid_because_of(String invalidReason) {
-        logger.debug("Creating an invalid payload for reason: {}", invalidReason);
-        Map<String, Object> invalidPayload = BjjEventFactory.createInvalidEvent(invalidReason);
-        context.setRequestPayload(invalidPayload);
-        assertNotNull(context.getRequestPayload(), "Invalid request payload should be set in the context.");
+    @Given("I have a BJJ event with invalid {string}")
+    public void iHaveABjjEventWithInvalid(String invalidField) {
+        logger.debug("Creating an invalid payload by making field '{}' invalid", invalidField);
+        Map<String, Object> invalidEventPayload = BjjEventFactory.createInvalidEvent(invalidField);
+        Map<String, Object> commandPayload = Map.of("data", invalidEventPayload);
+        context.setRequestPayload(commandPayload);
+        assertNotNull(context.getRequestPayload());
     }
 
-    @When("I create the new BJJ event")
-    public void i_create_the_new_bjj_event() {
+    @When("I create the BJJ event")
+    public void iCreateTheBjjEvent() {
         logger.info("Executing POST request to create a new BJJ event.");
-        ResponseAsserter<CreateBjjEventResponse> asserter = testClient
+        ResponseAsserter asserter = testClient()
                 .withAuthToken(context.getAuthToken())
                 .body(context.getRequestPayload())
-                .post("/api/bjjevent", CreateBjjEventResponse.class);
+                .post("/api/bjjevent");
         context.setResponseAsserter(asserter);
     }
 
-    @When("I attempt to create the event")
-    public void i_attempt_to_create_the_event() {
+    @When("I attempt to create the BJJ event")
+    public void iAttemptToCreateTheBjjEvent() {
         logger.info("Executing POST request to attempt event creation (expecting failure).");
-        i_create_the_new_bjj_event();
+        iCreateTheBjjEvent();
     }
 
-    @When("I request the details for the {string} event")
-    public void i_request_the_details_for_the_event(String eventName) {
-        String urlSafeName = eventName.replace(" ", "-").toLowerCase();
-        logger.info("Executing GET request for event: {}", urlSafeName);
-        ResponseAsserter<CreateBjjEventResponse> asserter = testClient
+    @When("I retrieve all BJJ events for county {string}")
+    public void iRetrieveAllBjjEventsForCounty(String county) {
+        logger.info("Executing GET request for events in county: {}", county);
+        context.setCreatedEvent(null); // Clear single-event context before making a list request
+
+        String eventName = context.getEventName();
+        assertNotNull(eventName, "Event name must be in context to perform a targeted search.");
+
+        logger.info("Performing a targeted search for event name '{}' in county '{}'", eventName, county);
+        ResponseAsserter asserter = testClient()
                 .withAuthToken(context.getAuthToken())
-                .get("/api/bjjevent/" + urlSafeName, CreateBjjEventResponse.class);
+                .withQueryParams(Map.of(
+                        "County", county.replace(" ", ""),
+                        "Name", eventName // Add name to query to avoid pagination issues
+                ))
+                .get("/api/bjjevent");
         context.setResponseAsserter(asserter);
     }
 
-    @Then("the system should confirm the event was created successfully")
-    public void the_system_should_confirm_the_event_was_created_successfully() {
-        context.getResponseAsserter().hasStatusCode(201);
+    @Then("the event is created successfully")
+    public void theEventIsCreatedSuccessfully() {
+        ResponseAsserter asserter = context.getResponseAsserter();
+        asserter.hasStatusCode(201);
         logger.debug("Verified status code is 201 Created.");
+        CreateBjjEventResponse response = asserter.as(CreateBjjEventResponse.class);
+        context.setCreatedEvent(response.data());
+        logger.debug("Successfully deserialized and stored the created event in context.");
     }
 
-    @Then("the API should respond with the complete details for that event")
-    public void the_api_should_respond_with_the_complete_details_for_that_event() {
+    @Then("the event details are returned successfully")
+    public void theEventDetailsAreReturnedSuccessfully() {
         context.getResponseAsserter().hasStatusCode(200);
         logger.debug("Verified status code is 200 OK.");
     }
 
-    @Then("the API should respond with a bad request error")
-    public void the_api_should_respond_with_a_bad_request_error() {
-        context.getResponseAsserter().hasStatusCode(400);
+    @Then("the API returns a bad request error with message {string}")
+    public void theApiReturnsABadRequestErrorMessage(String expectedErrorMessage) {
+        ResponseAsserter asserter = context.getResponseAsserter();
+        asserter.hasStatusCode(400);
         logger.debug("Verified status code is 400 Bad Request.");
-    }
-
-    @And("the event details in the response should contain:")
-    public void the_event_details_in_the_response_should_contain(DataTable dataTable) {
-        ResponseAsserter<?> asserter = context.getResponseAsserter();
-        Assertions.assertNotNull(asserter, "Response asserter is not set in context.");
-        String responseBody = asserter.getResponseBodyAsString();
-
-        for (Map<String, String> row : dataTable.asMaps(String.class, String.class)) {
-            String path = row.get("path");
-            String expectedValue = row.get("value");
-            logger.debug("Validating JSONPath '{}' has value '{}'", path, expectedValue);
-            Object actualValue = JsonPath.read(responseBody, "$." + path);
-            Assertions.assertEquals(expectedValue, String.valueOf(actualValue), "Validation failed for JSONPath: " + path);
+        String responseBody = asserter.getResponse().responseBodyAsString();
+        String actualErrorMessage;
+        try {
+            actualErrorMessage = com.jayway.jsonpath.JsonPath.read(responseBody, "$.errors[0].message");
+        } catch (Exception e) {
+            logger.warn("Could not find '$.errors[0].message'. Falling back to entire body.", e);
+            actualErrorMessage = responseBody;
         }
+
+        final String finalActualErrorMessage = actualErrorMessage;
+
+        assertTrue(finalActualErrorMessage.toLowerCase().contains(expectedErrorMessage.toLowerCase()),
+                () -> String.format("Error message mismatch.%nExpected to find: '%s'%nActual message: '%s'", expectedErrorMessage, finalActualErrorMessage));
     }
 
-    @And("the event's name in the response should be {string}")
-    public void the_event_s_name_in_the_response_should_be(String expectedName) {
-        context.getResponseAsserter().bodySatisfies(body -> {
-            String actualName = JsonPath.read(body, "$.data.name");
-            Assertions.assertEquals(expectedName, actualName, "Event name in response did not match expected value.");
-        });
+    @Then("the response contains the event {string}")
+    public void theResponseContainsTheEvent(String eventName) {
+        ResponseAsserter asserter = context.getResponseAsserter();
+        asserter.hasStatusCode(200);
+        GetBjjEventPaginatedResponse paginatedResponse = asserter.as(GetBjjEventPaginatedResponse.class);
+
+        assertEquals(1, paginatedResponse.data().size(), "Expected exactly one event with the specified name, but found " + paginatedResponse.data().size());
+
+        boolean eventFound = paginatedResponse.data().stream()
+                .anyMatch(event -> event.name().equals(eventName));
+
+        assertTrue(eventFound, "The event with name '" + eventName + "' was not found in the API response.");
+        logger.info("Successfully found the unique event '{}' in the list.", eventName);
     }
 
-    @And("the error message should be {string}")
-    public void the_error_message_should_be(String expectedError) {
-        context.getResponseAsserter().bodySatisfies(body -> {
-            String actualError = JsonPath.read(body, "$.error");
-            Assertions.assertEquals(expectedError, actualError, "Error message in response did not match expected value.");
-        });
+    @And("the event details include:")
+    public void theEventDetailsInclude(DataTable dataTable) {
+        ResponseAsserter asserter = context.getResponseAsserter();
+        assertNotNull(asserter, "Response asserter is not set in context.");
+        String eventName = context.getEventName();
+        assertNotNull(eventName, "Event name must be set in the context for validation.");
+
+        BjjEvent eventToValidate;
+
+        if (context.getCreatedEvent() != null) {
+            logger.debug("Validating details against the single event stored in the context.");
+            eventToValidate = context.getCreatedEvent();
+        } else {
+            logger.debug("Validating details by finding the event in a list from the response.");
+            GetBjjEventPaginatedResponse paginatedResponse = asserter.as(GetBjjEventPaginatedResponse.class);
+            eventToValidate = paginatedResponse.data().stream()
+                    .filter(event -> event.name().equals(eventName))
+                    .findFirst()
+                    .orElse(null);
+        }
+
+        assertNotNull(eventToValidate, "Could not find event '" + eventName + "' in the response to validate details.");
+
+        for (List<String> row : dataTable.asLists(String.class)) {
+            String fieldName = row.get(0);
+            String expectedValue = row.get(1);
+
+            switch (fieldName) {
+                case "Name":
+                    assertEquals(expectedValue, eventToValidate.name(), "Validation failed for Name.");
+                    break;
+                case "Location":
+                    assertEquals(expectedValue, eventToValidate.location().venue(), "Validation failed for Location.");
+                    break;
+                case "Organiser":
+                    assertEquals(expectedValue, eventToValidate.organiser().name(), "Validation failed for Organiser.");
+                    break;
+                default:
+                    fail("Unknown field to validate in DataTable: " + fieldName);
+            }
+        }
+        logger.info("Successfully validated details for event '{}'.", eventName);
     }
 }

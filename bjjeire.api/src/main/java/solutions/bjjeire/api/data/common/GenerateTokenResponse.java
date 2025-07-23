@@ -1,4 +1,4 @@
-package solutions.bjjeire.api.data.events;
+package solutions.bjjeire.api.data.common;
 
 
 public record GenerateTokenResponse(

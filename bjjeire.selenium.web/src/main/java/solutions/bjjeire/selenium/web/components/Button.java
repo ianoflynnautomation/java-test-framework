@@ -8,7 +8,7 @@ import solutions.bjjeire.selenium.web.components.contracts.ComponentDisabled;
 import solutions.bjjeire.selenium.web.components.contracts.ComponentText;
 import solutions.bjjeire.selenium.web.components.contracts.ComponentValue;
 import solutions.bjjeire.selenium.web.configuration.WebSettings;
-import solutions.bjjeire.selenium.web.infrastructure.DriverService;
+import solutions.bjjeire.selenium.web.services.DriverService;
 import solutions.bjjeire.selenium.web.services.BrowserService;
 import solutions.bjjeire.selenium.web.services.ComponentWaitService;
 import solutions.bjjeire.selenium.web.services.JavaScriptService;

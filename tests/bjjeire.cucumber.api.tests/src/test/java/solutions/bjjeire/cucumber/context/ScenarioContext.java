@@ -4,6 +4,7 @@ import io.cucumber.spring.ScenarioScope;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
+import solutions.bjjeire.api.data.events.BjjEvent;
 import solutions.bjjeire.api.validation.ResponseAsserter;
 
 /**
@@ -19,6 +20,7 @@ public class ScenarioContext {
     private String authToken;
     private Object requestPayload;
     private String eventName;
-    private ResponseAsserter<?> responseAsserter;
+    private ResponseAsserter responseAsserter;
+    private BjjEvent createdEvent;
 
 }

@@ -1,4 +1,4 @@
-package solutions.bjjeire.api.validation;
+package solutions.bjjeire.api.models;
 
 public class ApiAssertionException extends AssertionError {
     public ApiAssertionException(String message, String url, String responseBody) {

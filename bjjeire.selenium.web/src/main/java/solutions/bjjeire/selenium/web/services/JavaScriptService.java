@@ -3,7 +3,6 @@ package solutions.bjjeire.selenium.web.services;
 import org.openqa.selenium.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import solutions.bjjeire.selenium.web.infrastructure.DriverService;
 
 @Service
 public class JavaScriptService extends WebService {

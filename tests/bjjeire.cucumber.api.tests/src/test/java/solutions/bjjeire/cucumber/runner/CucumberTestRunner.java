@@ -6,15 +6,10 @@ import org.junit.platform.suite.api.IncludeEngines;
 import org.junit.platform.suite.api.SelectClasspathResource;
 import org.junit.platform.suite.api.Suite;
 
-import static io.cucumber.core.options.Constants.GLUE_PROPERTY_NAME;
-import static io.cucumber.core.options.Constants.PLUGIN_PROPERTY_NAME;
-import static io.cucumber.core.options.Constants.SNIPPET_TYPE_PROPERTY_NAME;
-import static io.cucumber.core.options.Constants.OBJECT_FACTORY_PROPERTY_NAME;
 
 /**
- * This is the main test runner class for BDD tests. It uses the JUnit 5 Suite engine to run Cucumber.
- * With the cucumber-spring dependency, Cucumber will automatically find the @CucumberContextConfiguration
- * on the step definition classes and use Spring for dependency injection.
+ * Main test runner for BDD tests using the JUnit 5 Suite engine.
+ * It automatically discovers step definitions and hooks in the specified glue path.
  */
 @Suite
 @IncludeEngines("cucumber")
@@ -26,5 +21,4 @@ import static io.cucumber.core.options.Constants.OBJECT_FACTORY_PROPERTY_NAME;
 @ConfigurationParameter(key = "cucumber.filter.tags", value = "not @Ignore")
 public class CucumberTestRunner {
     // This class remains empty. It's used for configuration only.
-    // To run your tests, you can now right-click this file and select "Run CucumberTestRunner".
 }

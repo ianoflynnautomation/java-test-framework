@@ -17,7 +17,6 @@ import org.springframework.context.annotation.PropertySource;
         "solutions.bjjeire.core",
         "solutions.bjjeire.cucumber"
 })
-//@PropertySource("classpath:application.properties")
 @EnableConfigurationProperties({WebSettings.class, UrlSettings.class})
 public class SeleniumConfig {
 

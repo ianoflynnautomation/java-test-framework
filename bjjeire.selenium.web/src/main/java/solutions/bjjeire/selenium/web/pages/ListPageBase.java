@@ -5,7 +5,7 @@ import org.springframework.context.ApplicationContext;
 import solutions.bjjeire.selenium.web.components.custom.grid.ErrorState;
 import solutions.bjjeire.selenium.web.components.custom.grid.NoDataState;
 import solutions.bjjeire.selenium.web.configuration.WebSettings;
-import solutions.bjjeire.selenium.web.infrastructure.DriverService;
+import solutions.bjjeire.selenium.web.services.DriverService;
 import solutions.bjjeire.selenium.web.services.*;
 import solutions.bjjeire.selenium.web.waitstrategies.WaitStrategyFactory;
 

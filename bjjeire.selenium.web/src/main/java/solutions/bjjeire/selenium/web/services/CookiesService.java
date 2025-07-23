@@ -1,10 +1,8 @@
 package solutions.bjjeire.selenium.web.services;
 
 import org.openqa.selenium.Cookie;
-import org.openqa.selenium.WebDriver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import solutions.bjjeire.selenium.web.infrastructure.DriverService;
 
 import java.util.Set;
 

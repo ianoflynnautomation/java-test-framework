@@ -1,4 +1,4 @@
-package solutions.bjjeire.selenium.web.infrastructure;
+package solutions.bjjeire.selenium.web.services;
 
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -20,6 +20,7 @@ import solutions.bjjeire.selenium.web.configuration.GridSettings;
 import solutions.bjjeire.selenium.web.configuration.WebSettings;
 import solutions.bjjeire.core.utilities.SecretsResolver;
 import solutions.bjjeire.core.utilities.TimestampBuilder;
+import solutions.bjjeire.selenium.web.infrastructure.BrowserConfiguration;
 
 import java.net.MalformedURLException;
 import java.net.URI;

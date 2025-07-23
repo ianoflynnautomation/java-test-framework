@@ -19,7 +19,7 @@ import solutions.bjjeire.selenium.web.components.enums.AriaRole;
 import solutions.bjjeire.selenium.web.components.enums.ScrollPosition;
 import solutions.bjjeire.selenium.web.configuration.WebSettings;
 import solutions.bjjeire.selenium.web.findstrategies.*;
-import solutions.bjjeire.selenium.web.infrastructure.DriverService;
+import solutions.bjjeire.selenium.web.services.DriverService;
 import solutions.bjjeire.selenium.web.services.BrowserService;
 import solutions.bjjeire.selenium.web.services.ComponentValidationService;
 import solutions.bjjeire.selenium.web.services.ComponentWaitService;
@@ -32,7 +32,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 
 import static org.apache.commons.text.StringEscapeUtils.unescapeHtml4;

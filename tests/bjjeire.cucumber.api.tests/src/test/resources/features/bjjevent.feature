@@ -1,40 +1,40 @@
-@API @Feature:BJJ-Events
+@api @feature:BJJ-Events
 Feature: BJJ Event Management
-  As a user of the BJJ app,
-  I want to create and retrieve BJJ events
-  so that I can ensure the event listings are accurate and up-to-date.
+  As an event organizer,
+  I want to manage BJJ events through the API,
+  So that I can ensure event listings are accurate and up-to-date.
 
   Background:
-    Given I am an authenticated admin user
-    And the API service is available
+    Given I am authenticated as an admin user
+    And the BJJ event API is available
 
-  @Smoke @Regression @Priority:High @Requirement=345 @TestCase=789
-  Scenario: Successfully create a new, complex BJJ event
-    Given I have the details for a new event named "Berlin BJJ Seminar Series"
-    When I create the new BJJ event
-    Then the system should confirm the event was created successfully
-    And the event details in the response should contain:
-      | path                      | value                           |
-      | data.name                 | Dublin BJJ Masterclass Series   |
-      | data.location.venue       | Dublin Grappling Hub            |
-      | data.organiser.name       | Dublin Grappling Hub            |
+  @smoke @regression @priority:high @Requirement=345 @TestCase=789
+  Scenario: Create a new BJJ event successfully
+    Given I have valid details for a new BJJ event named "Dublin BJJ Seminar Series"
+    When I create the BJJ event
+    Then the event is created successfully
+    And the event details include:
+      | Name                     | Dublin BJJ Seminar Series |
+      | Location                 | Dublin Grappling Hub      |
+      | Organiser                | Dublin Grappling Hub      |
 
-  @Regression @Priority:High @Requirement=345 @TestCase=801 @Ignore
-  Scenario: Successfully retrieve an existing BJJ event
-    Given a BJJ event already exists with the name "IBJJF Pan Ams"
-    When I request the details for the "IBJJF Pan Ams" event
-    Then the API should respond with the complete details for that event
-    And the event's name in the response should be "IBJJF Pan Ams"
+  @regression @priority:high @Requirement=345 @TestCase=801
+  Scenario: Retrieve an existing BJJ event by county
+    Given a BJJ event exists with the name "IBJJF Pan Ams" in county "Dublin"
+    When I retrieve all BJJ events for county "Dublin"
+    Then the response contains the event "IBJJF Pan Ams"
+    And the event details include:
+      | Name                     | IBJJF Pan Ams             |
+      | Location                 | Orange County Arena       |
+      | Organiser                | IBJJF                     |
 
-  @Regression @Priority:Medium @Requirement=346 @Ignore
+  @Negative @regression @priority:medium @Requirement=346 @TestCase=790
   Scenario Outline: Attempt to create a BJJ event with invalid data
-    Given I have a BJJ event payload that is invalid because of "<InvalidReason>"
-    When I attempt to create the event
-    Then the API should respond with a bad request error
-    And the error message should be "<ExpectedError>"
+    Given I have a BJJ event with invalid "<InvalidField>"
+    When I attempt to create the BJJ event
+    Then the API returns a bad request error with message "<ErrorMessage>"
 
-    @TestCase=790 @Ignore
-    Examples: Invalid Data
-      | InvalidReason         | ExpectedError             |
-      |a missing name         | Event name is mandatory   |
-      | a negative price      | Price cannot be negative  |
+    Examples:
+      | InvalidField     | ErrorMessage                     |
+      | missing name     | Event name is required.          |
+      | negative price   | Amount must be greater than 0.   |

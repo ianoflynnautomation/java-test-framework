@@ -13,7 +13,7 @@ import solutions.bjjeire.core.plugins.TestResult;
 import solutions.bjjeire.selenium.web.configuration.WebSettings;
 import solutions.bjjeire.selenium.web.infrastructure.BrowserConfiguration;
 import solutions.bjjeire.selenium.web.infrastructure.BrowserLifecyclePlugin;
-import solutions.bjjeire.selenium.web.infrastructure.DriverService;
+import solutions.bjjeire.selenium.web.services.DriverService;
 import solutions.bjjeire.selenium.web.infrastructure.Lifecycle;
 
 
@@ -27,7 +27,6 @@ public class Hooks {
     @Autowired
     private WebSettings webSettings;
 
-    // Inject the BrowserLifecyclePlugin to delegate lifecycle decisions.
     @Autowired
     private BrowserLifecyclePlugin browserLifecyclePlugin;
 

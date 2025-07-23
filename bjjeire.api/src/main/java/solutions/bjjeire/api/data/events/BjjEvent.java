@@ -1,5 +1,9 @@
 package solutions.bjjeire.api.data.events;
 
+import solutions.bjjeire.api.data.common.County;
+import solutions.bjjeire.api.data.common.Location;
+import solutions.bjjeire.api.data.common.SocialMedia;
+
 import java.time.LocalDateTime;
 
 public record BjjEvent(
