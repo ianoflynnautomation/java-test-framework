@@ -38,12 +38,10 @@ public class ApiClient implements AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(ApiClient.class);
     private final OkHttpClient httpClient;
     private final Retry retry;
-
     @Getter
     private final ObjectMapper objectMapper;
     @Getter
     private final ApiSettings settings;
-
 
     @Autowired
     public ApiClient(ApiSettings settings) {
