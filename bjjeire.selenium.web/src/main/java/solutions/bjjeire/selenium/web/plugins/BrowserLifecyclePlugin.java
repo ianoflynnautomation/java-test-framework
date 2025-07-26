@@ -2,7 +2,6 @@ package solutions.bjjeire.selenium.web.infrastructure;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import solutions.bjjeire.core.plugins.Plugin;
 import solutions.bjjeire.core.plugins.TestResult;
@@ -11,7 +10,6 @@ import solutions.bjjeire.selenium.web.configuration.WebSettings;
 import solutions.bjjeire.selenium.web.services.DriverService;
 
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 
 /**
  * A Spring-managed plugin to control the browser lifecycle during test execution.
@@ -28,59 +26,65 @@ public class BrowserLifecyclePlugin implements Plugin {
     private final ThreadLocal<BrowserConfiguration> previousBrowserConfiguration = new ThreadLocal<>();
     private final ThreadLocal<Boolean> isBrowserStartedCorrectly = ThreadLocal.withInitial(() -> false);
 
-    @Autowired
     public BrowserLifecyclePlugin(DriverService driverService, WebSettings webSettings) {
         this.driverService = driverService;
         this.webSettings = webSettings;
     }
 
-    @Override
-    public void preBeforeClass(Class<?> type) {
-        log.debug("Executing pre-before-class hooks for class: {}", type.getSimpleName());
-        if ("regular".equalsIgnoreCase(webSettings.getExecutionType())) {
-            currentBrowserConfiguration.set(getBrowserConfiguration(type));
-            if (shouldRestartBrowser()) {
-                shutdownBrowser();
-                startBrowser();
-            }
-        }
-    }
-
-    @Override
-    public void postAfterClass(Class<?> type) {
-        log.debug("Executing post-after-class hooks for class: {}", type.getSimpleName());
-        shutdownBrowser();
-    }
-
+    // --- JUNIT-SPECIFIC HOOKS ---
     @Override
     public void preBeforeTest(TestResult testResult, Method memberInfo) {
-        log.debug("Executing pre-before-test hooks for method: {}", memberInfo.getName());
-        currentBrowserConfiguration.set(getBrowserConfiguration(memberInfo));
-        if (shouldRestartBrowser()) {
-            shutdownBrowser();
-            startBrowser();
-        }
-    }
-
-    @Override
-    public void beforeTestFailed(Exception ex) {
-        log.error("A failure occurred before the test method could execute.", ex);
+        log.debug("Executing pre-before-test hook for method: {}", memberInfo.getName());
+        BrowserConfiguration config = getBrowserConfiguration(memberInfo);
+        startBrowser(config);
     }
 
     @Override
     public void postAfterTest(TestResult testResult, TimeRecord timeRecord, Method memberInfo, Throwable failedTestException) {
-        // This method is now a simple delegate for JUnit-based tests.
-        handleBrowserShutdown(testResult);
+        log.debug("Executing post-after-test hook for method: {}", memberInfo.getName());
+        // For JUnit, the current config is already set in the thread-local from preBeforeTest
+        handleBrowserShutdown(testResult, this.currentBrowserConfiguration.get());
+    }
+
+    // --- CUCUMBER-SPECIFIC HOOKS (NEW) ---
+    @Override
+    public void preBeforeScenario(ScenarioContext context) {
+        log.debug("Executing pre-before-scenario hook for: {}", context.getScenarioName());
+        startBrowser(context.getBrowserConfiguration());
+    }
+
+    @Override
+    public void postAfterScenario(ScenarioContext context) {
+        log.debug("Executing post-after-scenario hook for: {}", context.getScenarioName());
+        handleBrowserShutdown(context.getTestResult(), context.getBrowserConfiguration());
     }
 
     /**
-     * Contains the reusable logic for deciding whether to shut down the browser.
-     * This can be called from any test framework's hook (JUnit, TestNG, Cucumber).
-     *
-     * @param testResult The result of the test execution (e.g., SUCCESS, FAILURE).
+     * Centralized logic to start a browser with a given configuration.
+     * @param config The configuration to use.
      */
-    public void handleBrowserShutdown(TestResult testResult) {
-        BrowserConfiguration config = currentBrowserConfiguration.get();
+    private void startBrowser(BrowserConfiguration config) {
+        currentBrowserConfiguration.set(config);
+        if (shouldRestartBrowser()) {
+            shutdownBrowser();
+            try {
+                driverService.start(currentBrowserConfiguration.get());
+                isBrowserStartedCorrectly.set(true);
+            } catch (Exception ex) {
+                log.error("Failed to start the browser. This is the root cause of the test failure.", ex);
+                isBrowserStartedCorrectly.set(false);
+                throw new RuntimeException("Failed to initialize WebDriver. Check logs for the original exception.", ex);
+            }
+            previousBrowserConfiguration.set(currentBrowserConfiguration.get());
+        }
+    }
+
+    /**
+     * Centralized logic to decide whether to shut down the browser.
+     * @param testResult The result of the test execution.
+     * @param config The configuration used for the test.
+     */
+    private void handleBrowserShutdown(TestResult testResult, BrowserConfiguration config) {
         if (config == null) {
             log.warn("Current browser configuration not found in post-test hook.");
             return;
@@ -104,18 +108,6 @@ public class BrowserLifecyclePlugin implements Plugin {
         previousBrowserConfiguration.remove();
     }
 
-    private void startBrowser() {
-        try {
-            driverService.start(currentBrowserConfiguration.get());
-            isBrowserStartedCorrectly.set(true);
-        } catch (Exception ex) {
-            log.error("Failed to start the browser. This is the root cause of the test failure.", ex);
-            isBrowserStartedCorrectly.set(false);
-            throw new RuntimeException("Failed to initialize WebDriver. Check logs for the original exception.", ex);
-        }
-        previousBrowserConfiguration.set(currentBrowserConfiguration.get());
-    }
-
     private boolean shouldRestartBrowser() {
         var previousConfig = previousBrowserConfiguration.get();
         var currentConfig = currentBrowserConfiguration.get();
@@ -124,6 +116,7 @@ public class BrowserLifecyclePlugin implements Plugin {
         return !previousConfig.equals(currentConfig);
     }
 
+    // --- Helper methods for parsing configurations ---
     private BrowserConfiguration getBrowserConfiguration(Method memberInfo) {
         BrowserConfiguration classConfig = getExecutionBrowserClassLevel(memberInfo.getDeclaringClass());
         BrowserConfiguration methodConfig = getExecutionBrowserMethodLevel(memberInfo);
@@ -133,13 +126,8 @@ public class BrowserLifecyclePlugin implements Plugin {
         return result;
     }
 
-    private BrowserConfiguration getBrowserConfiguration(Type classType) {
-        return getExecutionBrowserClassLevel((Class<?>) classType);
-    }
-
     private BrowserConfiguration getExecutionBrowserMethodLevel(Method memberInfo) {
         if (!memberInfo.isAnnotationPresent(ExecutionBrowser.class)) return null;
-
         ExecutionBrowser annotation = memberInfo.getAnnotation(ExecutionBrowser.class);
         return new BrowserConfiguration(annotation.browser(), annotation.deviceName(), annotation.lifecycle());
     }
@@ -156,7 +144,6 @@ public class BrowserLifecyclePlugin implements Plugin {
             if (annotation.lifecycle() != lifecycle) lifecycle = annotation.lifecycle();
             if (annotation.width() != 0) width = annotation.width();
             if (annotation.height() != 0) height = annotation.height();
-
             if (annotation.browser() == Browser.CHROME_MOBILE) {
                 return new BrowserConfiguration(annotation.deviceName(), lifecycle, clazz.getName());
             }
