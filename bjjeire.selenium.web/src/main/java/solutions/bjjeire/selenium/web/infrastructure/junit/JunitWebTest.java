@@ -7,6 +7,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ActiveProfiles;
 import solutions.bjjeire.core.plugins.junit.JunitBaseTest;
 import solutions.bjjeire.selenium.web.configuration.SeleniumConfig;
+import solutions.bjjeire.selenium.web.plugins.BrowserLifecyclePlugin;
 import solutions.bjjeire.selenium.web.services.DriverService;
 import solutions.bjjeire.selenium.web.pages.WebPage;
 
@@ -24,9 +25,12 @@ public abstract class JunitWebTest extends JunitBaseTest {
     @Autowired
     protected ApplicationContext applicationContext;
 
-    protected WebDriver getDriver() {
-        return driverService.getWrappedDriver();
+    @Override
+    protected void configure() {
+        super.configure();
+        addPlugin(BrowserLifecyclePlugin.class);
     }
+
 
     protected <T extends WebPage> T goTo(Class<T> pageClass) {
         T page = applicationContext.getBean(pageClass);

@@ -17,7 +17,6 @@ public class JavaScriptService extends WebService {
         return ((JavascriptExecutor) driver).executeScript(script, args);
     }
 
-
     public Object executeAsync(String script, Object... args) {
         WebDriver driver = getWrappedDriver();
         return ((JavascriptExecutor) driver).executeAsyncScript(script, args);

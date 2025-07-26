@@ -1,4 +1,4 @@
-package solutions.bjjeire.selenium.web.infrastructure;
+package solutions.bjjeire.core.plugins;
 
 import java.util.Arrays;
 

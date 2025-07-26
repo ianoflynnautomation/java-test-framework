@@ -7,10 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-/**
- * Abstract base class for all web-related services.
- * It provides a consistent way to access the WebDriver instance for the current thread.
- */
 public abstract class WebService {
     private static final Logger log = LoggerFactory.getLogger(WebService.class);
     protected final DriverService driverService;

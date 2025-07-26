@@ -4,7 +4,7 @@ import io.cucumber.spring.ScenarioScope;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
-import solutions.bjjeire.api.data.events.BjjEvent;
+import solutions.bjjeire.core.data.events.BjjEvent;
 import solutions.bjjeire.api.validation.ResponseAsserter;
 
 /**

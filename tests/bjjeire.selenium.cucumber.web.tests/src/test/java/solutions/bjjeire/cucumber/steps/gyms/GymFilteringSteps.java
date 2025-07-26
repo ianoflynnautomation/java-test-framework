@@ -1,4 +1,4 @@
-package solutions.bjjeire.cucumber.steps;
+package solutions.bjjeire.cucumber.steps.gyms;
 
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Given;

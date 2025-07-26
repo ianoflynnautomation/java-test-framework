@@ -1,5 +1,7 @@
 package solutions.bjjeire.selenium.web.pages.events.data;
 
+import solutions.bjjeire.core.data.events.BjjEventType;
+
 import java.util.List;
 
 public record EventCardDetails(

@@ -3,6 +3,7 @@ troubleshootingSettings:
 
 web-settings:
   baseUrl: "https://localhost:60743"
+  backendApiUrl: "http://localhost:5003"
   executionType: "regular"
   defaultBrowser: "firefox"
   defaultLifeCycle: "reuse if started"

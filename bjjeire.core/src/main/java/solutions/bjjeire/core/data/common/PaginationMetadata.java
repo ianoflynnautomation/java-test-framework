@@ -1,4 +1,4 @@
-package solutions.bjjeire.api.data.common;
+package solutions.bjjeire.core.data.common;
 
 /**
  * A record representing the metadata for a paginated response.

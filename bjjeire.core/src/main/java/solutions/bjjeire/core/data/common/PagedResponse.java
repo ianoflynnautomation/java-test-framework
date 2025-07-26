@@ -1,4 +1,4 @@
-package solutions.bjjeire.api.data.common;
+package solutions.bjjeire.core.data.common;
 
 import java.util.List;
 

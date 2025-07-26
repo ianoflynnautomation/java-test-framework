@@ -3,6 +3,7 @@ package solutions.bjjeire.selenium.web.infrastructure.testng;
 import org.springframework.test.context.ContextConfiguration;
 import solutions.bjjeire.core.plugins.testng.BaseTest;
 import solutions.bjjeire.selenium.web.configuration.SeleniumConfig;
+import solutions.bjjeire.selenium.web.plugins.BrowserLifecyclePlugin;
 
 /**
  * A specific base class for web tests using TestNG.
@@ -14,5 +15,6 @@ public abstract class WebTest extends BaseTest {
 
     @Override
     protected void configure() {
+        super.configure();
     }
 }

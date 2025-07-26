@@ -3,6 +3,7 @@ package solutions.bjjeire.core.plugins.testng;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.ITestResult;
 import org.testng.annotations.*;
 import solutions.bjjeire.core.plugins.PluginExecutionEngine;
@@ -14,12 +15,9 @@ import solutions.bjjeire.core.plugins.TimeRecord;
  * It integrates with the PluginExecutionEngine to provide lifecycle hooks.
  */
 @Listeners(TestResultListener.class)
-public abstract class BaseTest {
+public abstract class BaseTest extends AbstractTestNGSpringContextTests {
 
     private static final Logger log = LoggerFactory.getLogger(BaseTest.class);
-
-    @Autowired
-    protected PluginExecutionEngine pluginExecutionEngine;
 
     static final ThreadLocal<TestResult> CURRENT_TEST_RESULT = new ThreadLocal<>();
     static final ThreadLocal<TimeRecord> CURRENT_TEST_TIME_RECORD = ThreadLocal.withInitial(TimeRecord::new);
@@ -33,12 +31,12 @@ public abstract class BaseTest {
                 CONFIGURATION_EXECUTED.set(true);
             }
             var testClass = this.getClass();
-            pluginExecutionEngine.preBeforeClass(testClass);
+            PluginExecutionEngine.preBeforeClass(testClass);
             beforeAll();
-            pluginExecutionEngine.postBeforeClass(testClass);
+            // postBeforeClass was removed from the engine's public API for simplification.
         } catch (Exception e) {
             log.error("An error occurred during the @BeforeClass execution phase.", e);
-            pluginExecutionEngine.beforeClassFailed(e);
+            // beforeClassFailed was removed from the engine. Handle critical failures here if needed.
         }
     }
 
@@ -46,12 +44,12 @@ public abstract class BaseTest {
     public void beforeMethodCore(ITestResult result) {
         try {
             var methodInfo = this.getClass().getMethod(result.getMethod().getMethodName());
-            pluginExecutionEngine.preBeforeTest(CURRENT_TEST_RESULT.get(), methodInfo);
+            PluginExecutionEngine.preBeforeTest(CURRENT_TEST_RESULT.get(), methodInfo);
             beforeEach();
-            pluginExecutionEngine.postBeforeTest(CURRENT_TEST_RESULT.get(), methodInfo);
+            // postBeforeTest was removed from the engine's public API for simplification.
         } catch (Exception e) {
             log.error("An error occurred during the @BeforeMethod execution phase for test: {}", result.getName(), e);
-            pluginExecutionEngine.beforeTestFailed(e);
+            PluginExecutionEngine.beforeTestFailed(e);
         }
     }
 
@@ -60,12 +58,12 @@ public abstract class BaseTest {
         try {
             var testClass = this.getClass();
             var methodInfo = testClass.getMethod(result.getMethod().getMethodName());
-            pluginExecutionEngine.preAfterTest(CURRENT_TEST_RESULT.get(), CURRENT_TEST_TIME_RECORD.get(), methodInfo);
             afterEach();
-            pluginExecutionEngine.postAfterTest(CURRENT_TEST_RESULT.get(), CURRENT_TEST_TIME_RECORD.get(), methodInfo, result.getThrowable());
+            // preAfterTest was removed. All "after" logic is consolidated into postAfterTest.
+            PluginExecutionEngine.postAfterTest(CURRENT_TEST_RESULT.get(), CURRENT_TEST_TIME_RECORD.get(), methodInfo, result.getThrowable());
         } catch (Exception e) {
             log.error("An error occurred during the @AfterMethod execution phase for test: {}", result.getName(), e);
-            pluginExecutionEngine.afterTestFailed(e);
+            // afterTestFailed was removed. The exception is now passed directly to postAfterTest.
         }
     }
 
@@ -73,12 +71,11 @@ public abstract class BaseTest {
     public void afterClassCore() {
         try {
             var testClass = this.getClass();
-            pluginExecutionEngine.preAfterClass(testClass);
             afterAll();
-            pluginExecutionEngine.postAfterClass(testClass);
+            // preAfterClass was removed. All "after class" logic is in postAfterClass.
+            PluginExecutionEngine.postAfterClass(testClass);
         } catch (Exception e) {
             log.error("An error occurred during the @AfterClass execution phase.", e);
-            pluginExecutionEngine.afterClassFailed(e);
         }
     }
 

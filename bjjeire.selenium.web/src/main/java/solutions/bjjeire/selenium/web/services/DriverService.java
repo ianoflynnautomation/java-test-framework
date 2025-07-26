@@ -20,7 +20,7 @@ import solutions.bjjeire.selenium.web.configuration.GridSettings;
 import solutions.bjjeire.selenium.web.configuration.WebSettings;
 import solutions.bjjeire.core.utilities.SecretsResolver;
 import solutions.bjjeire.core.utilities.TimestampBuilder;
-import solutions.bjjeire.selenium.web.infrastructure.BrowserConfiguration;
+import solutions.bjjeire.core.plugins.BrowserConfiguration;
 
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -42,13 +42,7 @@ public class DriverService {
         this.webSettings = webSettings;
     }
 
-    /**
-     * Starts a new browser instance based on the provided configuration.
-     * This method is thread-safe.
-     *
-     * @param configuration The desired browser configuration.
-     * @return The initialized WebDriver instance.
-     */
+
     public WebDriver start(BrowserConfiguration configuration) {
         log.info("Starting new browser with configuration: {}", configuration);
         WebDriver driver;
@@ -78,9 +72,6 @@ public class DriverService {
         return driver;
     }
 
-    /**
-     * Closes the WebDriver instance for the current thread.
-     */
     public void close() {
         WebDriver driver = webDriverThreadLocal.get();
         if (driver != null) {

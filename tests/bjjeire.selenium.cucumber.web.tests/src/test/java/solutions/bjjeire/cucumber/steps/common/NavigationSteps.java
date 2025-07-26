@@ -1,4 +1,4 @@
-package solutions.bjjeire.cucumber.steps;
+package solutions.bjjeire.cucumber.steps.common;
 
 import io.cucumber.java.en.Given;
 import org.springframework.beans.factory.annotation.Autowired;

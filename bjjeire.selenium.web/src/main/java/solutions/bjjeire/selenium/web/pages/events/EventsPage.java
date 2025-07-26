@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import solutions.bjjeire.core.data.events.BjjEventType;
 import solutions.bjjeire.selenium.web.components.*;
 import solutions.bjjeire.selenium.web.components.Button;
 import solutions.bjjeire.selenium.web.components.Label;
@@ -13,7 +14,6 @@ import solutions.bjjeire.selenium.web.configuration.UrlSettings;
 import solutions.bjjeire.selenium.web.configuration.WebSettings;
 import solutions.bjjeire.selenium.web.services.DriverService;
 import solutions.bjjeire.selenium.web.pages.ListPageBase;
-import solutions.bjjeire.selenium.web.pages.events.data.BjjEventType;
 import solutions.bjjeire.selenium.web.pages.events.data.EventCardDetails;
 import solutions.bjjeire.selenium.web.services.BrowserService;
 import solutions.bjjeire.selenium.web.services.ComponentCreateService;
@@ -91,12 +91,19 @@ public class EventsPage extends ListPageBase {
         return this;
     }
 
+    public EventsPage assertEventCountInListIs(int expectedCount) {
+
+        assertEquals(expectedCount, eventCards().size(),
+                String.format("Expected to find %d event cards, but found %d.", expectedCount, eventCards().size()));
+        return this;
+    }
+
+
     public EventsPage assertAllEventsMatchCountyFilter(String expectedCounty) {
         List<EventArticle> cards = eventCards();
         assertFalse(cards.isEmpty(), "Expected to find event cards after filtering, but none were found.");
 
         for (EventArticle card : cards) {
-            // FIX: Corrected method call from county() to countyText()
             String actualCounty = card.county().getText();
             assertTrue(actualCounty.toLowerCase().contains(expectedCounty.toLowerCase()),
                     String.format("Event card '%s' should have county '%s' but was '%s'", card.headingText().getText(), expectedCounty, actualCounty));
@@ -109,7 +116,6 @@ public class EventsPage extends ListPageBase {
         assertFalse(cards.isEmpty(), "Expected to find event cards after filtering, but none were found.");
 
         for (EventArticle card : cards) {
-            // Assert Event Type
             boolean hasMatchingType = card.TypeLabels().stream()
                     .anyMatch(label -> label.getText().equalsIgnoreCase(expectedEventType.toString()));
             assertTrue(hasMatchingType,

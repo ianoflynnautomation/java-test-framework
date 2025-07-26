@@ -1,20 +1,15 @@
-package solutions.bjjeire.selenium.web.infrastructure;
+package solutions.bjjeire.selenium.web.plugins;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import solutions.bjjeire.core.plugins.Plugin;
-import solutions.bjjeire.core.plugins.TestResult;
-import solutions.bjjeire.core.plugins.TimeRecord;
+import solutions.bjjeire.core.plugins.*;
 import solutions.bjjeire.selenium.web.configuration.WebSettings;
+import solutions.bjjeire.selenium.web.infrastructure.*;
 import solutions.bjjeire.selenium.web.services.DriverService;
 
 import java.lang.reflect.Method;
 
-/**
- * A Spring-managed plugin to control the browser lifecycle during test execution.
- * It receives its dependencies via constructor injection.
- */
 @Component
 public class BrowserLifecyclePlugin implements Plugin {
 
@@ -31,7 +26,6 @@ public class BrowserLifecyclePlugin implements Plugin {
         this.webSettings = webSettings;
     }
 
-    // --- JUNIT-SPECIFIC HOOKS ---
     @Override
     public void preBeforeTest(TestResult testResult, Method memberInfo) {
         log.debug("Executing pre-before-test hook for method: {}", memberInfo.getName());
@@ -42,11 +36,9 @@ public class BrowserLifecyclePlugin implements Plugin {
     @Override
     public void postAfterTest(TestResult testResult, TimeRecord timeRecord, Method memberInfo, Throwable failedTestException) {
         log.debug("Executing post-after-test hook for method: {}", memberInfo.getName());
-        // For JUnit, the current config is already set in the thread-local from preBeforeTest
         handleBrowserShutdown(testResult, this.currentBrowserConfiguration.get());
     }
 
-    // --- CUCUMBER-SPECIFIC HOOKS (NEW) ---
     @Override
     public void preBeforeScenario(ScenarioContext context) {
         log.debug("Executing pre-before-scenario hook for: {}", context.getScenarioName());
@@ -59,10 +51,6 @@ public class BrowserLifecyclePlugin implements Plugin {
         handleBrowserShutdown(context.getTestResult(), context.getBrowserConfiguration());
     }
 
-    /**
-     * Centralized logic to start a browser with a given configuration.
-     * @param config The configuration to use.
-     */
     private void startBrowser(BrowserConfiguration config) {
         currentBrowserConfiguration.set(config);
         if (shouldRestartBrowser()) {
@@ -79,11 +67,7 @@ public class BrowserLifecyclePlugin implements Plugin {
         }
     }
 
-    /**
-     * Centralized logic to decide whether to shut down the browser.
-     * @param testResult The result of the test execution.
-     * @param config The configuration used for the test.
-     */
+
     private void handleBrowserShutdown(TestResult testResult, BrowserConfiguration config) {
         if (config == null) {
             log.warn("Current browser configuration not found in post-test hook.");
@@ -116,7 +100,6 @@ public class BrowserLifecyclePlugin implements Plugin {
         return !previousConfig.equals(currentConfig);
     }
 
-    // --- Helper methods for parsing configurations ---
     private BrowserConfiguration getBrowserConfiguration(Method memberInfo) {
         BrowserConfiguration classConfig = getExecutionBrowserClassLevel(memberInfo.getDeclaringClass());
         BrowserConfiguration methodConfig = getExecutionBrowserMethodLevel(memberInfo);

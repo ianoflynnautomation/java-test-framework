@@ -7,6 +7,5 @@ import solutions.bjjeire.selenium.web.configuration.SeleniumConfig;
 
 @CucumberContextConfiguration
 @SpringBootTest(classes = SeleniumConfig.class)
-@ActiveProfiles("development")
 public class CucumberSpringConfiguration {
 }

@@ -14,11 +14,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
 import solutions.bjjeire.api.configuration.ApiSettings;
 import solutions.bjjeire.api.configuration.TestConfiguration;
-import solutions.bjjeire.api.data.common.County;
-import solutions.bjjeire.api.data.common.GenerateTokenResponse;
-import solutions.bjjeire.api.data.events.*;
+import solutions.bjjeire.core.data.common.County;
+import solutions.bjjeire.core.data.common.GenerateTokenResponse;
 import solutions.bjjeire.api.http.TestClient;
 import solutions.bjjeire.api.validation.ResponseAsserter;
+import solutions.bjjeire.core.data.events.*;
 import solutions.bjjeire.cucumber.context.ScenarioContext;
 
 import java.util.List;

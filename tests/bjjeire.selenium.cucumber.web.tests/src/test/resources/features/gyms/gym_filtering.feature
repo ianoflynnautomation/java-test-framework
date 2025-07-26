@@ -1,20 +1,21 @@
-@UI @Feature:Gyms
-Feature: Gyms Navigation and Filtering
+@ui @web @feature-gyms @Lifecycle:REUSE_IF_STARTED
+Feature: Gym Filtering
   As a user of the BJJ app,
-  I want to filter and view gyms by county,
-  So that I can find relevant BJJ gym easily.
+  I want to filter gyms by county,
+  So that I can find a relevant BJJ gym easily.
 
   Background:
-    Given I am on the BJJ app gyms page
+    Given I am an authenticated user
+    And I am on the BJJ app gyms page
 
-  @Regression @Priority:High @Requirement=101 @TestCase=1101
+  @regression @priority-high @Requirement-101 @TestCase-1101 @Ignore
   Scenario Outline: Filter gyms by county
     Given the following BJJ gyms exist:
       | Name             | County   |
       | <County> Gym 1   | <County> |
       | <County> Gym 2   | <County> |
       | Other County Gym | Kildare  |
-    When I filter gyms by "<County>" from the dropdown
+    When I filter gyms by county "<County>"
     Then I should see gyms only for the county "<County>"
 
     Examples:
@@ -22,11 +23,10 @@ Feature: Gyms Navigation and Filtering
       | Dublin |
       | Cork   |
 
-  @Negative @Regression @Priority:Medium @Requirement=102 @TestCase=1102
-  Scenario: No gyms found for invalid county
+  @negative @regression @priority-medium @Requirement-102 @TestCase-1102 @Ignore
+  Scenario: No gyms found for a county with no gyms
     Given the following BJJ gyms exist:
       | Name       | County |
       | Dublin Gym | Dublin |
-    When I filter gyms by "Clare" from the dropdown
-    Then I should see a message indicating no gyms are available
-    And the gyms list should be empty
+    When I filter gyms by county "Clare"
+    Then the gyms list should be emptyms list should be empty

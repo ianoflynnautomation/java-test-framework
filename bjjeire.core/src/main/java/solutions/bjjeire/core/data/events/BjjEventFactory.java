@@ -1,20 +1,17 @@
-package solutions.bjjeire.api.data.events;
+package solutions.bjjeire.core.data.events;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.javafaker.Faker;
 import org.bson.types.ObjectId;
-import solutions.bjjeire.api.data.common.County;
-import solutions.bjjeire.api.data.common.GeoCoordinates;
-import solutions.bjjeire.api.data.common.Location;
-import solutions.bjjeire.api.data.common.SocialMedia;
+import solutions.bjjeire.core.data.common.County;
+import solutions.bjjeire.core.data.common.GeoCoordinates;
+import solutions.bjjeire.core.data.common.Location;
+import solutions.bjjeire.core.data.common.SocialMedia;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.ZoneOffset;
+import java.time.*;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -61,7 +58,7 @@ public class BjjEventFactory {
                 .updatedOnUtc(LocalDateTime.now(ZoneOffset.UTC))
                 .name(uniqueEventName)
                 .description("Weekly BJJ seminars with Professor " + faker.name().fullName() + " at Dublin Grappling Hub.")
-                .type(BjjEventType.Seminar)
+                .type(BjjEventType.SEMINAR)
                 .organiser(new Organizer(
                         "Dublin Grappling Hub",
                         "https://www.dublingrappling.com"
@@ -86,7 +83,7 @@ public class BjjEventFactory {
                         ScheduleType.FixedDate,
                         LocalDate.now(ZoneOffset.UTC).plusDays(14),
                         LocalDate.now(ZoneOffset.UTC).plusDays(14),
-                        List.of(new DailySchedule("Wednesday", LocalTime.of(9, 0), LocalTime.of(13, 0)))
+                        List.of(new DailySchedule(DayOfWeek.WEDNESDAY, LocalTime.of(9, 0), LocalTime.of(13, 0)))
                 ))
                 .pricing(new PricingModel(
                         PricingType.FlatRate, new BigDecimal("45.00"), 1, "EUR"

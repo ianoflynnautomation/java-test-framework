@@ -45,11 +45,6 @@ public class TestResultWatcher implements TestWatcher {
     }
 
     private void executePostTestActions(ExtensionContext context, Throwable throwable) {
-        PluginExecutionEngine engine = getPluginExecutionEngine(context);
-        if (engine == null) {
-            log.error("Could not retrieve PluginExecutionEngine from Spring Context. Post-test actions will not run.");
-            return;
-        }
 
         Optional<Method> testMethod = context.getTestMethod();
         if (testMethod.isEmpty()) {
@@ -58,7 +53,7 @@ public class TestResultWatcher implements TestWatcher {
         }
 
         try {
-            engine.postAfterTest(
+            PluginExecutionEngine.postAfterTest(
                     JunitBaseTest.CURRENT_TEST_RESULT.get(),
                     JunitBaseTest.CURRENT_TEST_TIME_RECORD.get(),
                     testMethod.get(),
@@ -66,13 +61,10 @@ public class TestResultWatcher implements TestWatcher {
             );
         } catch (Exception e) {
             log.error("An exception occurred within the postAfterTest plugin execution for test: {}", context.getDisplayName(), e);
-            engine.afterTestFailed(e);
         }
     }
 
-    /**
-     * Retrieves the PluginExecutionEngine bean from the Spring ApplicationContext.
-     */
+
     private PluginExecutionEngine getPluginExecutionEngine(ExtensionContext context) {
         try {
             ApplicationContext springContext = SpringExtension.getApplicationContext(context);

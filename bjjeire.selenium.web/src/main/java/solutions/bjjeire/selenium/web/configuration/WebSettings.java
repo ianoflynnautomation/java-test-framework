@@ -4,8 +4,7 @@ import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
-import solutions.bjjeire.selenium.web.infrastructure.Browser;
+import solutions.bjjeire.core.plugins.Browser;
 
 @Getter @Setter
 @ConfigurationProperties(prefix = "web-settings")

@@ -4,9 +4,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
-import solutions.bjjeire.api.data.common.GenerateTokenResponse;
-import solutions.bjjeire.api.data.events.*;
+import solutions.bjjeire.core.data.common.GenerateTokenResponse;
 import solutions.bjjeire.api.infrastructure.junit.ApiTestBase;
+import solutions.bjjeire.core.data.events.BjjEvent;
+import solutions.bjjeire.core.data.events.BjjEventFactory;
+import solutions.bjjeire.core.data.events.CreateBjjEventCommand;
+import solutions.bjjeire.core.data.events.CreateBjjEventResponse;
+
 import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 

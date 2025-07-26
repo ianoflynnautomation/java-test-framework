@@ -1,4 +1,4 @@
-package solutions.bjjeire.cucumber.steps;
+package solutions.bjjeire.cucumber.steps.events;
 
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Given;

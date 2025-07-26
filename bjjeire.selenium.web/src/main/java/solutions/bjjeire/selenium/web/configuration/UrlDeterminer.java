@@ -21,20 +21,10 @@ public class UrlDeterminer {
         this.urlSettings = urlSettings;
     }
 
-    /**
-     * Constructs a full URL for an event page.
-     * @param urlPart The specific path or part to append to the base event URL.
-     * @return The complete, normalized URL as a string.
-     */
     public String getEventUrl(String urlPart) {
         return contactUrls(urlSettings.getEventUrl(), urlPart);
     }
 
-    /**
-     * Constructs a full URL for a gym page.
-     * @param urlPart The specific path or part to append to the base gym URL.
-     * @return The complete, normalized URL as a string.
-     */
     public String getGymUrl(String urlPart) {
         return contactUrls(urlSettings.getGymUrl(), urlPart);
     }

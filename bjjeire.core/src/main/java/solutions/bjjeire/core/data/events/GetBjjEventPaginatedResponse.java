@@ -1,6 +1,7 @@
-package solutions.bjjeire.api.data.events;
+package solutions.bjjeire.core.data.events;
 
-import solutions.bjjeire.api.data.common.PaginationMetadata;
+
+import solutions.bjjeire.core.data.common.PaginationMetadata;
 
 import java.util.List;
 

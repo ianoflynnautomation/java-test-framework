@@ -1,8 +1,9 @@
-package solutions.bjjeire.api.data.events;
+package solutions.bjjeire.core.data.events;
 
-import solutions.bjjeire.api.data.common.County;
-import solutions.bjjeire.api.data.common.Location;
-import solutions.bjjeire.api.data.common.SocialMedia;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import solutions.bjjeire.core.data.common.County;
+import solutions.bjjeire.core.data.common.Location;
+import solutions.bjjeire.core.data.common.SocialMedia;
 
 import java.time.LocalDateTime;
 

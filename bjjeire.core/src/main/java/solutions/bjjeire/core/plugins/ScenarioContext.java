@@ -1,10 +1,7 @@
-package solutions.bjjeire.selenium.web.infrastructure;
-
-import solutions.bjjeire.core.plugins.TestResult;
+package solutions.bjjeire.core.plugins;
 
 /**
  * A context object that holds information about the currently executing Cucumber Scenario.
- * This is passed to plugins to provide them with the necessary context to perform their actions.
  */
 public class ScenarioContext {
     private final String scenarioName;

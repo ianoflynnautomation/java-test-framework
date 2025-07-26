@@ -1,6 +1,9 @@
 package solutions.bjjeire.selenium.web.infrastructure;
 
 import org.openqa.selenium.Platform;
+import solutions.bjjeire.core.plugins.Browser;
+import solutions.bjjeire.core.plugins.DeviceName;
+import solutions.bjjeire.core.plugins.Lifecycle;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
