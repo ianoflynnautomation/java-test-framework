@@ -17,11 +17,15 @@ import solutions.bjjeire.selenium.web.waitstrategies.WaitStrategyFactory;
 
 @Component
 @Scope("prototype")
-public class Option extends WebComponent implements ComponentText, ComponentValue, ComponentDisabled, ComponentSelected {
+public class Option extends WebComponent
+        implements ComponentText, ComponentValue, ComponentDisabled, ComponentSelected {
 
     @Autowired
-    public Option(DriverService driverService, JavaScriptService javaScriptService, BrowserService browserService, ComponentWaitService componentWaitService, WebSettings webSettings, ApplicationContext applicationContext, WaitStrategyFactory waitStrategyFactory) {
-        super(driverService, javaScriptService, browserService, componentWaitService, webSettings, applicationContext, waitStrategyFactory);
+    public Option(DriverService driverService, JavaScriptService javaScriptService, BrowserService browserService,
+            ComponentWaitService componentWaitService, WebSettings webSettings, ApplicationContext applicationContext,
+            WaitStrategyFactory waitStrategyFactory) {
+        super(driverService, javaScriptService, browserService, componentWaitService, webSettings, applicationContext,
+                waitStrategyFactory);
     }
 
     @Override
@@ -29,22 +33,22 @@ public class Option extends WebComponent implements ComponentText, ComponentValu
         return getClass();
     }
 
-//    @Override
+    // @Override
     public boolean isDisabled() {
         return defaultGetDisabledAttribute();
     }
 
-//    @Override
+    // @Override
     public boolean isSelected() {
         return findElement().isSelected();
     }
 
-//    @Override
+    // @Override
     public String getText() {
         return defaultGetText();
     }
 
-//    @Override
+    // @Override
     public String getValue() {
         return defaultGetValue();
     }

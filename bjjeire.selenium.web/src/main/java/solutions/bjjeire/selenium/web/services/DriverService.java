@@ -29,7 +29,8 @@ import java.time.Duration;
 import java.util.*;
 
 /**
- * A Spring-managed service responsible for creating and managing WebDriver instances.
+ * A Spring-managed service responsible for creating and managing WebDriver
+ * instances.
  */
 @Service
 public class DriverService {
@@ -38,18 +39,43 @@ public class DriverService {
     private final ThreadLocal<WebDriver> webDriverThreadLocal = new ThreadLocal<>();
     private final WebSettings webSettings;
 
+    private static final List<WebDriver> ALL_DRIVERS = Collections.synchronizedList(new ArrayList<>());
+
+    static {
+        log.info("Registering JVM shutdown hook for global browser cleanup.");
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            log.info("JVM shutdown initiated. Closing all managed WebDriver instances...");
+            new ArrayList<>(ALL_DRIVERS).forEach(driver -> {
+                try {
+                    if (driver != null) {
+                        log.debug("Shutting down driver instance: {}", driver);
+                        driver.quit();
+                    }
+                } catch (Exception e) {
+                    log.error("Error while shutting down a WebDriver instance during JVM shutdown.", e);
+                }
+            });
+            log.info("Global browser cleanup complete. All WebDriver instances have been shut down.");
+        }));
+    }
+
     public DriverService(WebSettings webSettings) {
         this.webSettings = webSettings;
     }
 
-
     public WebDriver start(BrowserConfiguration configuration) {
         log.info("Starting new browser with configuration: {}", configuration);
+        if (webDriverThreadLocal.get() != null) {
+            log.warn("A WebDriver instance already exists for this thread. Closing it before starting a new one.");
+            close();
+        }
+
         WebDriver driver;
         String executionType = webSettings.getExecutionType();
 
         if (executionType == null) {
-            throw new IllegalStateException("The 'executionType' property is not set. Please check your configuration.");
+            throw new IllegalStateException(
+                    "The 'executionType' property is not set. Please check your configuration.");
         }
 
         switch (executionType.toLowerCase()) {
@@ -58,8 +84,10 @@ public class DriverService {
             default -> driver = initializeDriverCloudGridMode(configuration, executionType);
         }
 
-        driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(webSettings.getTimeoutSettings().getPageLoadTimeout()));
-        driver.manage().timeouts().scriptTimeout(Duration.ofSeconds(webSettings.getTimeoutSettings().getScriptTimeout()));
+        driver.manage().timeouts()
+                .pageLoadTimeout(Duration.ofSeconds(webSettings.getTimeoutSettings().getPageLoadTimeout()));
+        driver.manage().timeouts()
+                .scriptTimeout(Duration.ofSeconds(webSettings.getTimeoutSettings().getScriptTimeout()));
 
         if (configuration.getHeight() != 0 && configuration.getWidth() != 0) {
             driver.manage().window().setSize(new Dimension(configuration.getWidth(), configuration.getHeight()));
@@ -68,7 +96,10 @@ public class DriverService {
         }
 
         log.info("Window resized to dimensions: {}", driver.manage().window().getSize());
+
         webDriverThreadLocal.set(driver);
+        ALL_DRIVERS.add(driver);
+
         return driver;
     }
 
@@ -82,6 +113,7 @@ public class DriverService {
                 log.error("An error occurred during WebDriver quit.", e);
             } finally {
                 webDriverThreadLocal.remove();
+                ALL_DRIVERS.remove(driver);
             }
         }
     }
@@ -94,19 +126,23 @@ public class DriverService {
         log.debug("Initializing driver in 'regular' mode for browser: {}", config.getBrowser());
         return switch (config.getBrowser()) {
             case CHROME -> new ChromeDriver(applyCommonOptions(new ChromeOptions(), config));
-            case CHROME_HEADLESS -> new ChromeDriver(applyCommonOptions(new ChromeOptions().addArguments("--headless=new"), config));
+            case CHROME_HEADLESS ->
+                new ChromeDriver(applyCommonOptions(new ChromeOptions().addArguments("--headless=new"), config));
             case FIREFOX -> new FirefoxDriver(applyCommonOptions(new FirefoxOptions(), config));
-            case FIREFOX_HEADLESS -> new FirefoxDriver(applyCommonOptions(new FirefoxOptions().addArguments("--headless"), config));
+            case FIREFOX_HEADLESS ->
+                new FirefoxDriver(applyCommonOptions(new FirefoxOptions().addArguments("--headless"), config));
             case EDGE -> new EdgeDriver(applyCommonOptions(new EdgeOptions(), config));
-            case EDGE_HEADLESS -> new EdgeDriver(applyCommonOptions(new EdgeOptions().addArguments("--headless"), config));
+            case EDGE_HEADLESS ->
+                new EdgeDriver(applyCommonOptions(new EdgeOptions().addArguments("--headless"), config));
             case SAFARI -> new SafariDriver(applyCommonOptions(new SafariOptions(), config));
-            case INTERNET_EXPLORER -> new InternetExplorerDriver(applyCommonOptions(new InternetExplorerOptions(), config));
-            default -> throw new IllegalArgumentException("Unsupported browser for regular execution: " + config.getBrowser());
+            case INTERNET_EXPLORER ->
+                new InternetExplorerDriver(applyCommonOptions(new InternetExplorerOptions(), config));
+            default ->
+                throw new IllegalArgumentException("Unsupported browser for regular execution: " + config.getBrowser());
         };
     }
 
     private WebDriver initializeDriverGridMode(BrowserConfiguration config, String providerName) {
-        log.debug("Initializing driver in 'grid' mode for provider: {}", providerName);
         GridSettings gridSettings = findGridSettings(providerName);
         MutableCapabilities capabilities = switch (config.getBrowser()) {
             case CHROME, CHROME_HEADLESS -> applyCommonOptions(new ChromeOptions(), config);
@@ -114,44 +150,36 @@ public class DriverService {
             case EDGE, EDGE_HEADLESS -> applyCommonOptions(new EdgeOptions(), config);
             case SAFARI -> applyCommonOptions(new SafariOptions(), config);
             case INTERNET_EXPLORER -> applyCommonOptions(new InternetExplorerOptions(), config);
-            default -> throw new IllegalArgumentException("Unsupported browser for grid execution: " + config.getBrowser());
+            default ->
+                throw new IllegalArgumentException("Unsupported browser for grid execution: " + config.getBrowser());
         };
-
         addGridOptions(capabilities, gridSettings);
-
         try {
             String gridUrl = getUrl(gridSettings.getUrl());
-            log.info("Connecting to Grid URL: {}", gridUrl);
             return new RemoteWebDriver(new URI(gridUrl).toURL(), capabilities);
         } catch (MalformedURLException | URISyntaxException e) {
-            log.error("Invalid Grid URL specified: {}", gridSettings.getUrl(), e);
             throw new RuntimeException("Invalid Grid URL: " + gridSettings.getUrl(), e);
         }
     }
 
     private WebDriver initializeDriverCloudGridMode(BrowserConfiguration config, String providerName) {
-        log.debug("Initializing driver in cloud mode for provider: {}", providerName);
         GridSettings gridSettings = findGridSettings(providerName);
         MutableCapabilities capabilities = switch (config.getBrowser()) {
             case CHROME, CHROME_HEADLESS -> new ChromeOptions();
             case FIREFOX, FIREFOX_HEADLESS -> new FirefoxOptions();
             case EDGE, EDGE_HEADLESS -> new EdgeOptions();
             case SAFARI -> new SafariOptions();
-            default -> throw new IllegalArgumentException("Unsupported browser for cloud execution: " + config.getBrowser());
+            default ->
+                throw new IllegalArgumentException("Unsupported browser for cloud execution: " + config.getBrowser());
         };
-
         HashMap<String, Object> cloudOptions = new HashMap<>();
         cloudOptions.put("sessionName", config.getTestName());
         addCloudOptions(cloudOptions, gridSettings);
-
         capabilities.setCapability(gridSettings.getOptionsName(), cloudOptions);
-
         try {
             String gridUrl = getUrl(gridSettings.getUrl());
-            log.info("Connecting to Cloud Grid URL: {}", gridUrl);
             return new RemoteWebDriver(new URI(gridUrl).toURL(), capabilities);
         } catch (MalformedURLException | URISyntaxException e) {
-            log.error("Invalid Cloud Grid URL specified: {}", gridSettings.getUrl(), e);
             throw new RuntimeException("Invalid Cloud Grid URL: " + gridSettings.getUrl(), e);
         }
     }
@@ -165,10 +193,7 @@ public class DriverService {
     private void addGridOptions(MutableCapabilities capabilities, GridSettings gridSettings) {
         gridSettings.getArguments().stream()
                 .flatMap(map -> map.entrySet().stream())
-                .forEach(entry -> {
-                    Object value = resolveValue(entry.getValue());
-                    capabilities.setCapability(entry.getKey(), value);
-                });
+                .forEach(entry -> capabilities.setCapability(entry.getKey(), resolveValue(entry.getValue())));
     }
 
     private void addCloudOptions(Map<String, Object> options, GridSettings gridSettings) {
@@ -209,6 +234,7 @@ public class DriverService {
         return webSettings.getGridSettings().stream()
                 .filter(g -> providerName.equalsIgnoreCase(g.getProviderName()))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Grid settings for provider '" + providerName + "' not found in configuration."));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Grid settings for provider '" + providerName + "' not found."));
     }
 }

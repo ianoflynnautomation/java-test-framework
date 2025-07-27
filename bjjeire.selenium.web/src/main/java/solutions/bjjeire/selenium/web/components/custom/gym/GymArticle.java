@@ -19,33 +19,55 @@ import java.util.List;
 public class GymArticle extends WebComponent {
 
     @Autowired
-    public GymArticle(DriverService driverService, JavaScriptService javaScriptService, BrowserService browserService, ComponentWaitService componentWaitService, WebSettings webSettings, ApplicationContext applicationContext, WaitStrategyFactory waitStrategyFactory) {
-        super(driverService, javaScriptService, browserService, componentWaitService, webSettings, applicationContext, waitStrategyFactory);
+    public GymArticle(DriverService driverService, JavaScriptService javaScriptService, BrowserService browserService,
+            ComponentWaitService componentWaitService, WebSettings webSettings, ApplicationContext applicationContext,
+            WaitStrategyFactory waitStrategyFactory) {
+        super(driverService, javaScriptService, browserService, componentWaitService, webSettings, applicationContext,
+                waitStrategyFactory);
     }
 
-    public Heading headingText() {return createByDataTestId(Heading.class, "gym-card-name");}
+    public Heading headingText() {
+        return createByDataTestId(Heading.class, "gym-card-name");
+    }
 
-    public Paragraph county() {return createByDataTestId(Paragraph.class, "gym-card-county");}
+    public Paragraph county() {
+        return createByDataTestId(Paragraph.class, "gym-card-county");
+    }
 
-    public Div AddressText() {return createByDataTestId(Div.class, "gym-card-address");}
+    public Div AddressText() {
+        return createByDataTestId(Div.class, "gym-card-address");
+    }
 
-    public Anchor AddressLink() {return createByDataTestId(Anchor.class, "gym-card-address-link");}
+    public Anchor AddressLink() {
+        return createByDataTestId(Anchor.class, "gym-card-address-link");
+    }
 
-    public Div Affiliation() {return createByDataTestId(Div.class, "gym-card-affiliation");}
+    public Div Affiliation() {
+        return createByDataTestId(Div.class, "gym-card-affiliation");
+    }
 
-    public Anchor AffiliationLink() {return createByDataTestId(Anchor.class, "gym-card-affiliation-link");}
+    public Anchor AffiliationLink() {
+        return createByDataTestId(Anchor.class, "gym-card-affiliation-link");
+    }
 
-    public Div timeTable() {return createByDataTestId(Div.class, "gym-card-timetable");}
+    public Div timeTable() {
+        return createByDataTestId(Div.class, "gym-card-timetable");
+    }
 
-    public Anchor timeTableLink() {return createByDataTestId(Anchor.class, "gym-card-timetable-link");}
+    public Anchor timeTableLink() {
+        return createByDataTestId(Anchor.class, "gym-card-timetable-link");
+    }
 
-    public List<Span> offeredClasses() {return createAllByDataTestId(Span.class, "gym-card-classes-item");}
+    public List<Span> offeredClasses() {
+        return createAllByDataTestId(Span.class, "gym-card-classes-item");
+    }
 
-    public List<Anchor> socialMediaLinks() {return createAllByDataTestId(Anchor.class, "social-media-link");}
+    public List<Anchor> socialMediaLinks() {
+        return createAllByDataTestId(Anchor.class, "social-media-link");
+    }
 
-    public Anchor visitWebsiteLink() {return createByDataTestId(Anchor.class, "gym-card-website-link");}
-
-
-
+    public Anchor visitWebsiteLink() {
+        return createByDataTestId(Anchor.class, "gym-card-website-link");
+    }
 
 }

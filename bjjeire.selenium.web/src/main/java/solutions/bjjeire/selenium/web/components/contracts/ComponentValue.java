@@ -1,6 +1,6 @@
 package solutions.bjjeire.selenium.web.components.contracts;
 
-public interface ComponentValue extends BjjEireComponent{
+public interface ComponentValue extends BjjEireComponent {
 
     String getValue();
 

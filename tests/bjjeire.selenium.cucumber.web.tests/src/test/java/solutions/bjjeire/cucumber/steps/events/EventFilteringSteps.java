@@ -24,10 +24,14 @@ public class EventFilteringSteps {
 
     private static final Logger log = LoggerFactory.getLogger(EventFilteringSteps.class);
 
-    @Autowired private EventsPage eventsPage;
-    @Autowired private TestDataManager testDataManager;
-    @Autowired private BaseContext baseContext;
-    @Autowired private EventContext eventContext;
+    @Autowired
+    private EventsPage eventsPage;
+    @Autowired
+    private TestDataManager testDataManager;
+    @Autowired
+    private BaseContext baseContext;
+    @Autowired
+    private EventContext eventContext;
 
     @Given("the following BJJ events exist:")
     public void the_following_bjj_events_exist(DataTable dataTable) {
@@ -40,9 +44,12 @@ public class EventFilteringSteps {
                 String county = columns.get("County");
                 String type = columns.get("Type");
 
-                if (name != null) builder.name(name);
-                if (county != null) builder.county(County.valueOf(county.replace(" ", "")));
-                if (type != null) builder.type(BjjEventType.fromString(type));
+                if (name != null)
+                    builder.name(name);
+                if (county != null)
+                    builder.county(County.valueOf(county.replace(" ", "")));
+                if (type != null)
+                    builder.type(BjjEventType.fromString(type));
             });
             eventsToCreate.add(event);
         }

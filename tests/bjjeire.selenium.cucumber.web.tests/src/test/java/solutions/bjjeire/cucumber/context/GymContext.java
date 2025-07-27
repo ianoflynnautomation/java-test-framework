@@ -11,6 +11,11 @@ import java.util.List;
 public class GymContext extends BaseContext {
     private final List<String> createdGymIds = new ArrayList<>();
 
-    public List<String> getCreatedGymIds() { return createdGymIds; }
-    public void addAllCreatedGymIds(List<String> ids) { this.createdGymIds.addAll(ids); }
+    public List<String> getCreatedGymIds() {
+        return createdGymIds;
+    }
+
+    public void addAllCreatedGymIds(List<String> ids) {
+        this.createdGymIds.addAll(ids);
+    }
 }

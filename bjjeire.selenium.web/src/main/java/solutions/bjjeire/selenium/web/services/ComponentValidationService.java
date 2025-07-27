@@ -53,17 +53,19 @@ public class ComponentValidationService {
             }, String.valueOf(expectedValue), "be", () -> String.valueOf(actualValueSupplier.get()));
         }
 
-
         public void isNull() {
-            waitUntil(() -> actualValueSupplier.get() == null, "null", "be", () -> String.valueOf(actualValueSupplier.get()));
+            waitUntil(() -> actualValueSupplier.get() == null, "null", "be",
+                    () -> String.valueOf(actualValueSupplier.get()));
         }
 
         public void isTrue() {
-            waitUntil(() -> Boolean.TRUE.equals(actualValueSupplier.get()), "true", "be", () -> String.valueOf(actualValueSupplier.get()));
+            waitUntil(() -> Boolean.TRUE.equals(actualValueSupplier.get()), "true", "be",
+                    () -> String.valueOf(actualValueSupplier.get()));
         }
 
         public void isFalse() {
-            waitUntil(() -> Boolean.FALSE.equals(actualValueSupplier.get()), "false", "be", () -> String.valueOf(actualValueSupplier.get()));
+            waitUntil(() -> Boolean.FALSE.equals(actualValueSupplier.get()), "false", "be",
+                    () -> String.valueOf(actualValueSupplier.get()));
         }
 
         public void contains(String expectedValue) {
@@ -81,7 +83,8 @@ public class ComponentValidationService {
         }
     }
 
-    private void waitUntil(BooleanSupplier condition, String expectedValue, String verb, Supplier<String> actualValueSupplier) {
+    private void waitUntil(BooleanSupplier condition, String expectedValue, String verb,
+            Supplier<String> actualValueSupplier) {
         var timeoutSettings = webSettings.getTimeoutSettings();
         var validationTimeout = timeoutSettings.getValidationsTimeout();
         var sleepInterval = timeoutSettings.getSleepInterval();
@@ -115,4 +118,3 @@ public class ComponentValidationService {
         }
     }
 }
-

@@ -11,6 +11,11 @@ import java.util.List;
 public class EventContext extends BaseContext {
     private final List<String> createdEventIds = new ArrayList<>();
 
-    public List<String> getCreatedEventIds() { return createdEventIds; }
-    public void addAllCreatedEventIds(List<String> ids) { this.createdEventIds.addAll(ids); }
+    public List<String> getCreatedEventIds() {
+        return createdEventIds;
+    }
+
+    public void addAllCreatedEventIds(List<String> ids) {
+        this.createdEventIds.addAll(ids);
+    }
 }

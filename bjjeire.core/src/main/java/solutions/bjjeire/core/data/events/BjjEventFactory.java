@@ -17,7 +17,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-
 public class BjjEventFactory {
 
     private static final Faker faker = new Faker();
@@ -25,69 +24,49 @@ public class BjjEventFactory {
             .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             .registerModule(new JavaTimeModule());
 
-    /**
-     * Creates a valid BjjEvent command with default data.
-     * @return A CreateBjjEventCommand instance.
-     */
     public static CreateBjjEventCommand getValidBjjEventCommand() {
         return new CreateBjjEventCommand(getValidBjjEvent());
     }
 
-    /**
-     * Creates a BjjEvent with default data.
-     * @return A BjjEvent instance.
-     */
     public static BjjEvent getValidBjjEvent() {
         return createBjjEvent(null);
     }
 
-    /**
-     * Creates a BjjEvent using a builder, allowing for customization.
-     * The name is made unique by default to ensure test isolation.
-     * @param configure A consumer to configure the BjjEvent.Builder.
-     * @return A configured BjjEvent instance.
-     */
     public static BjjEvent createBjjEvent(Consumer<BjjEvent.Builder> configure) {
-        // Generate a unique name for the event to make it easy to find in tests
+
         String uniqueEventName = faker.esports().event() + " " + UUID.randomUUID().toString().substring(0, 8);
 
         var builder = new BjjEvent.Builder()
                 .id(new ObjectId().toString())
-                // Using UTC for consistency in tests
                 .createdOnUtc(LocalDateTime.now(ZoneOffset.UTC))
                 .updatedOnUtc(LocalDateTime.now(ZoneOffset.UTC))
                 .name(uniqueEventName)
-                .description("Weekly BJJ seminars with Professor " + faker.name().fullName() + " at Dublin Grappling Hub.")
+                .description(
+                        "Weekly BJJ seminars with Professor " + faker.name().fullName() + " at Dublin Grappling Hub.")
                 .type(BjjEventType.SEMINAR)
                 .organiser(new Organizer(
                         "Dublin Grappling Hub",
-                        "https://www.dublingrappling.com"
-                ))
+                        "https://www.dublingrappling.com"))
                 .status(EventStatus.Upcoming)
                 .statusReason("Event is coming soon")
                 .socialMedia(new SocialMedia(
                         "https://www.instagram.com/dublingrappling",
                         "https://www.facebook.com/dublingrappling",
                         "https://x.com/dublingrappling",
-                        "https://www.youtube.com/@dublingrappling"
-                ))
+                        "https://www.youtube.com/@dublingrappling"))
                 .county(County.Dublin)
                 .location(new Location(
                         "45 O'Connell Street, Dublin 1, Ireland",
                         "Dublin Grappling Hub",
                         new GeoCoordinates(
-                                "Point", -6.260273, 53.349805, "Dublin test", faker.random().hex(20)
-                        )
-                ))
+                                "Point", -6.260273, 53.349805, "Dublin test", faker.random().hex(20))))
                 .schedule(new BjjEventSchedule(
                         ScheduleType.FixedDate,
                         LocalDate.now(ZoneOffset.UTC).plusDays(14),
                         LocalDate.now(ZoneOffset.UTC).plusDays(14),
-                        List.of(new DailySchedule(DayOfWeek.WEDNESDAY, LocalTime.of(9, 0), LocalTime.of(13, 0)))
-                ))
+                        List.of(new DailySchedule(DayOfWeek.WEDNESDAY, LocalTime.of(9, 0), LocalTime.of(13, 0)))))
                 .pricing(new PricingModel(
-                        PricingType.FlatRate, new BigDecimal("45.00"), 1, "EUR"
-                ))
+                        PricingType.FlatRate, new BigDecimal("45.00"), 1, "EUR"))
                 .eventUrl("https://www.dublingrappling.com/events")
                 .imageUrl("https://www.dublingrappling.com/images/event_poster.jpg");
 
@@ -98,11 +77,6 @@ public class BjjEventFactory {
         return builder.build();
     }
 
-    /**
-     * Creates an invalid event payload based on a reason string.
-     * @param invalidReason A string describing why the payload is invalid.
-     * @return A Map representing the invalid JSON payload.
-     */
     @SuppressWarnings("unchecked")
     public static Map<String, Object> createInvalidEvent(String invalidReason) {
         BjjEvent validEvent = getValidBjjEvent();
@@ -120,11 +94,13 @@ public class BjjEventFactory {
             case "invalid date":
                 if (payload.get("schedule") instanceof Map) {
                     // Set the date to the past to make it invalid
-                    ((Map<String, Object>) payload.get("schedule")).put("startDate", LocalDate.now().minusDays(1).toString());
+                    ((Map<String, Object>) payload.get("schedule")).put("startDate",
+                            LocalDate.now().minusDays(1).toString());
                 }
                 break;
             default:
-                throw new IllegalArgumentException("Unsupported invalid reason for test data generation: " + invalidReason);
+                throw new IllegalArgumentException(
+                        "Unsupported invalid reason for test data generation: " + invalidReason);
         }
         return payload;
     }

@@ -4,7 +4,6 @@ import org.openqa.selenium.*;
 import solutions.bjjeire.selenium.web.configuration.WebSettings;
 import solutions.bjjeire.selenium.web.services.DriverService;
 
-
 public class ToBeClickableWaitStrategy extends WaitStrategy {
 
     public ToBeClickableWaitStrategy(WebSettings webSettings) {

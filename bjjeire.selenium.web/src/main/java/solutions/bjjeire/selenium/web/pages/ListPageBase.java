@@ -11,34 +11,39 @@ import solutions.bjjeire.selenium.web.waitstrategies.WaitStrategyFactory;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class ListPageBase extends WebPage{
+public class ListPageBase extends WebPage {
 
     @Autowired
-    public ListPageBase(DriverService driverService, JavaScriptService javaScriptService, BrowserService browserService, ComponentWaitService componentWaitService, WebSettings webSettings, ApplicationContext applicationContext, WaitStrategyFactory waitStrategyFactory, NavigationService navigationService, ComponentCreateService componentCreateService) {
-        super(driverService, javaScriptService, browserService, componentWaitService, webSettings, applicationContext, waitStrategyFactory, navigationService, componentCreateService);
+    public ListPageBase(DriverService driverService, JavaScriptService javaScriptService, BrowserService browserService,
+            ComponentWaitService componentWaitService, WebSettings webSettings, ApplicationContext applicationContext,
+            WaitStrategyFactory waitStrategyFactory, NavigationService navigationService,
+            ComponentCreateService componentCreateService) {
+        super(driverService, javaScriptService, browserService, componentWaitService, webSettings, applicationContext,
+                waitStrategyFactory, navigationService, componentCreateService);
     }
 
-    public NoDataState noDataState() {return create().byDataTestId(NoDataState.class, "no-data-state");}
+    public NoDataState noDataState() {
+        return create().byDataTestId(NoDataState.class, "no-data-state");
+    }
 
-    public ErrorState errorState() {return create().byDataTestId(ErrorState.class, "error-state");}
+    public ErrorState errorState() {
+        return create().byDataTestId(ErrorState.class, "error-state");
+    }
 
     @Override
     protected String getUrl() {
         return "";
     }
 
-    public void assertNoDataInList()
-    {
+    public void assertNoDataInList() {
         assertTrue(noDataState().isVisible());
 
     }
 
-    public ListPageBase assertErrorInList()
-    {
+    public ListPageBase assertErrorInList() {
         assertTrue(errorState().isVisible());
 
         return this;
     }
-
 
 }

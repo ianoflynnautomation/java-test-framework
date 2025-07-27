@@ -43,13 +43,17 @@ public abstract class WebComponent implements BjjEireComponent {
 
     @Setter(AccessLevel.PROTECTED)
     private WebElement wrappedElement;
-    @Getter @Setter
+    @Getter
+    @Setter
     protected WebComponent parentComponent;
-    @Getter @Setter
+    @Getter
+    @Setter
     private SearchContext parentWrappedElement;
-    @Getter @Setter
+    @Getter
+    @Setter
     private int elementIndex;
-    @Getter @Setter
+    @Getter
+    @Setter
     private FindStrategy findStrategy;
     private final DriverService driverService;
     @Getter
@@ -106,7 +110,6 @@ public abstract class WebComponent implements BjjEireComponent {
         return component;
     }
 
-
     public WebElement getWrappedElement() {
         try {
             if (wrappedElement != null) {
@@ -146,13 +149,15 @@ public abstract class WebComponent implements BjjEireComponent {
         return (TElementType) this;
     }
 
-    public <TElementType extends WebComponent, TWaitStrategy extends WaitStrategy> TElementType to(Class<TWaitStrategy> waitClass, TElementType element) {
+    public <TElementType extends WebComponent, TWaitStrategy extends WaitStrategy> TElementType to(
+            Class<TWaitStrategy> waitClass, TElementType element) {
         TWaitStrategy waitStrategy = applicationContext.getBean(waitClass);
         element.ensureState(waitStrategy);
         return element;
     }
 
-    protected <TComponent extends WebComponent, TFindStrategy extends FindStrategy> TComponent create(Class<TComponent> componentClass, TFindStrategy findStrategy) {
+    protected <TComponent extends WebComponent, TFindStrategy extends FindStrategy> TComponent create(
+            Class<TComponent> componentClass, TFindStrategy findStrategy) {
         findElement();
         TComponent component = applicationContext.getBean(componentClass);
         component.setFindStrategy(findStrategy);
@@ -161,7 +166,8 @@ public abstract class WebComponent implements BjjEireComponent {
         return component;
     }
 
-    protected <TComponent extends WebComponent, TFindStrategy extends FindStrategy> List<TComponent> createAll(Class<TComponent> componentClass, TFindStrategy findStrategy) {
+    protected <TComponent extends WebComponent, TFindStrategy extends FindStrategy> List<TComponent> createAll(
+            Class<TComponent> componentClass, TFindStrategy findStrategy) {
         findElement();
         List<TComponent> componentList = new ArrayList<>();
         var nativeElements = wrappedElement.findElements(findStrategy.convert());
@@ -189,10 +195,10 @@ public abstract class WebComponent implements BjjEireComponent {
             waitStrategies.clear();
         } catch (Exception ex) {
             var formattedException = String.format("The component: \n" +
-                            "     Type: %s" +
-                            "  Locator: %s" +
-                            "  URL: %s\"%n" +
-                            "Was not found on the page or didn't fulfill the specified conditions.%n%n",
+                    "     Type: %s" +
+                    "  Locator: %s" +
+                    "  URL: %s\"%n" +
+                    "Was not found on the page or didn't fulfill the specified conditions.%n%n",
                     getClass().getSimpleName(), findStrategy.toString(), getWrappedDriver().getCurrentUrl());
             throw new NotFoundException(formattedException, ex);
         }
@@ -232,15 +238,18 @@ public abstract class WebComponent implements BjjEireComponent {
         return getAttribute("title");
     }
 
-    public <TComponent extends WebComponent> TComponent createByRole(Class<TComponent> componentClass, AriaRole role, String... name) {
+    public <TComponent extends WebComponent> TComponent createByRole(Class<TComponent> componentClass, AriaRole role,
+            String... name) {
         return create(componentClass, new RoleFindStrategy(role, name));
     }
 
-    public <TComponent extends WebComponent> TComponent createByLabelText(Class<TComponent> componentClass, String labelText) {
+    public <TComponent extends WebComponent> TComponent createByLabelText(Class<TComponent> componentClass,
+            String labelText) {
         return create(componentClass, new LabelTextFindStrategy(labelText));
     }
 
-    public <TComponent extends WebComponent> TComponent createByPlaceholderText(Class<TComponent> componentClass, String placeholderText) {
+    public <TComponent extends WebComponent> TComponent createByPlaceholderText(Class<TComponent> componentClass,
+            String placeholderText) {
         return create(componentClass, new PlaceholderFindStrategy(placeholderText));
     }
 
@@ -248,11 +257,13 @@ public abstract class WebComponent implements BjjEireComponent {
         return create(componentClass, new TextFindStrategy(text));
     }
 
-    public <TComponent extends WebComponent> TComponent createByDataTestId(Class<TComponent> componentClass, String dataTestId) {
+    public <TComponent extends WebComponent> TComponent createByDataTestId(Class<TComponent> componentClass,
+            String dataTestId) {
         return create(componentClass, new DataTestIdFindStrategy(dataTestId));
     }
 
-    public <TComponent extends WebComponent> List<TComponent> createAllByDataTestId(Class<TComponent> componentClass, String dataTestId) {
+    public <TComponent extends WebComponent> List<TComponent> createAllByDataTestId(Class<TComponent> componentClass,
+            String dataTestId) {
         return createAll(componentClass, new DataTestIdFindStrategy(dataTestId));
     }
 
@@ -264,7 +275,8 @@ public abstract class WebComponent implements BjjEireComponent {
         return create(componentClass, new XPathFindStrategy(xpath));
     }
 
-    public <TComponent extends WebComponent> List<TComponent> createAllByXPath(Class<TComponent> componentClass, String xpath) {
+    public <TComponent extends WebComponent> List<TComponent> createAllByXPath(Class<TComponent> componentClass,
+            String xpath) {
         return createAll(componentClass, new XPathFindStrategy(xpath));
     }
 
@@ -281,7 +293,8 @@ public abstract class WebComponent implements BjjEireComponent {
 
     private void scrollToVisible(WebElement element, boolean shouldWait, ScrollPosition scrollPosition) {
         try {
-            javaScriptService.execute("arguments[0].scrollIntoView({ block: \"" + scrollPosition.getValue() + "\", behavior: \"instant\", inline: \"nearest\" });", element);
+            javaScriptService.execute("arguments[0].scrollIntoView({ block: \"" + scrollPosition.getValue()
+                    + "\", behavior: \"instant\", inline: \"nearest\" });", element);
             if (shouldWait) {
                 Thread.sleep(500);
             }
@@ -298,7 +311,6 @@ public abstract class WebComponent implements BjjEireComponent {
         }
     }
 
-
     private void clickInternal() {
         long toBeClickableTimeout = webSettings.getTimeoutSettings().getElementToBeClickableTimeout();
         long sleepInterval = webSettings.getTimeoutSettings().getSleepInterval();
@@ -310,7 +322,8 @@ public abstract class WebComponent implements BjjEireComponent {
         try {
             wait.until(x -> tryClick());
         } catch (TimeoutException e) {
-            log.warn("Default click timed out after {} seconds. Attempting JavaScript click as a fallback.", toBeClickableTimeout);
+            log.warn("Default click timed out after {} seconds. Attempting JavaScript click as a fallback.",
+                    toBeClickableTimeout);
             javaScriptService.execute("arguments[0].click()", findElement());
         }
     }
@@ -344,7 +357,6 @@ public abstract class WebComponent implements BjjEireComponent {
         }
     }
 
-
     protected void defaultUncheck() {
         toExist().toBeClickable().waitToBe();
         if (getWrappedElement().isSelected()) {
@@ -369,6 +381,7 @@ public abstract class WebComponent implements BjjEireComponent {
             return valueAttr.equalsIgnoreCase("true");
         }
     }
+
     protected String defaultGetInnerHtmlAttribute() {
         try {
             return Optional.ofNullable(getAttribute("innerHTML")).orElse("");
@@ -380,9 +393,11 @@ public abstract class WebComponent implements BjjEireComponent {
     @SneakyThrows
     protected String defaultGetHref() {
         try {
-            return unescapeHtml4(URLDecoder.decode(Optional.ofNullable(getAttribute("href")).orElse(""), StandardCharsets.UTF_8.name()));
+            return unescapeHtml4(URLDecoder.decode(Optional.ofNullable(getAttribute("href")).orElse(""),
+                    StandardCharsets.UTF_8.name()));
         } catch (StaleElementReferenceException e) {
-            return unescapeHtml4(URLDecoder.decode(Optional.ofNullable(findElement().getAttribute("href")).orElse(""), StandardCharsets.UTF_8.name()));
+            return unescapeHtml4(URLDecoder.decode(Optional.ofNullable(findElement().getAttribute("href")).orElse(""),
+                    StandardCharsets.UTF_8.name()));
         }
     }
 
@@ -409,7 +424,6 @@ public abstract class WebComponent implements BjjEireComponent {
             return Optional.ofNullable(findElement().getAttribute("target")).orElse("");
         }
     }
-
 
     protected String defaultGetValue() {
         try {

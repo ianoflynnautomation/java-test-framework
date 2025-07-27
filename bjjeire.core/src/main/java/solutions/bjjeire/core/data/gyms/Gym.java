@@ -1,27 +1,27 @@
-package solutions.bjjeire.core.data.events;
+package solutions.bjjeire.core.data.gyms;
 
 import solutions.bjjeire.core.data.common.County;
 import solutions.bjjeire.core.data.common.Location;
 import solutions.bjjeire.core.data.common.SocialMedia;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
-public record BjjEvent(
+public record Gym(
         String id,
         LocalDateTime createdOnUtc,
         LocalDateTime updatedOnUtc,
         String name,
         String description,
-        BjjEventType type,
-        Organizer organiser,
-        EventStatus status,
-        String statusReason,
-        SocialMedia socialMedia,
+        GymStatus status,
         County county,
+        Affiliation affiliation,
+        TrialOffer trialOffer,
         Location location,
-        BjjEventSchedule schedule,
-        PricingModel pricing,
-        String eventUrl,
+        SocialMedia socialMedia,
+        List<ClassCategory> offeredClasses,
+        String website,
+        String timetableUrl,
         String imageUrl) {
 
     public static class Builder {
@@ -30,16 +30,15 @@ public record BjjEvent(
         private LocalDateTime updatedOnUtc;
         private String name;
         private String description;
-        private BjjEventType type;
-        private Organizer organiser;
-        private EventStatus status;
-        private String statusReason;
-        private SocialMedia socialMedia;
+        private GymStatus status;
         private County county;
+        private Affiliation affiliation;
+        private TrialOffer trialOffer;
         private Location location;
-        private BjjEventSchedule schedule;
-        private PricingModel pricing;
-        private String eventUrl;
+        private SocialMedia socialMedia;
+        private List<ClassCategory> offeredClasses;
+        private String website;
+        private String timetableUrl;
         private String imageUrl;
 
         public Builder id(String id) {
@@ -67,28 +66,8 @@ public record BjjEvent(
             return this;
         }
 
-        public Builder type(BjjEventType type) {
-            this.type = type;
-            return this;
-        }
-
-        public Builder organiser(Organizer organiser) {
-            this.organiser = organiser;
-            return this;
-        }
-
-        public Builder status(EventStatus status) {
+        public Builder status(GymStatus status) {
             this.status = status;
-            return this;
-        }
-
-        public Builder statusReason(String statusReason) {
-            this.statusReason = statusReason;
-            return this;
-        }
-
-        public Builder socialMedia(SocialMedia socialMedia) {
-            this.socialMedia = socialMedia;
             return this;
         }
 
@@ -97,23 +76,38 @@ public record BjjEvent(
             return this;
         }
 
+        public Builder affiliation(Affiliation affiliation) {
+            this.affiliation = affiliation;
+            return this;
+        }
+
+        public Builder trialOffer(TrialOffer trialOffer) {
+            this.trialOffer = trialOffer;
+            return this;
+        }
+
         public Builder location(Location location) {
             this.location = location;
             return this;
         }
 
-        public Builder schedule(BjjEventSchedule schedule) {
-            this.schedule = schedule;
+        public Builder socialMedia(SocialMedia socialMedia) {
+            this.socialMedia = socialMedia;
             return this;
         }
 
-        public Builder pricing(PricingModel pricing) {
-            this.pricing = pricing;
+        public Builder offeredClasses(List<ClassCategory> offeredClasses) {
+            this.offeredClasses = offeredClasses;
             return this;
         }
 
-        public Builder eventUrl(String eventUrl) {
-            this.eventUrl = eventUrl;
+        public Builder website(String website) {
+            this.website = website;
+            return this;
+        }
+
+        public Builder timetableUrl(String timetableUrl) {
+            this.timetableUrl = timetableUrl;
             return this;
         }
 
@@ -122,10 +116,9 @@ public record BjjEvent(
             return this;
         }
 
-        public BjjEvent build() {
-            return new BjjEvent(id, createdOnUtc, updatedOnUtc, name, description, type, organiser, status,
-                    statusReason, socialMedia,
-                    county, location, schedule, pricing, eventUrl, imageUrl);
+        public Gym build() {
+            return new Gym(id, createdOnUtc, updatedOnUtc, name, description, status, county, affiliation, trialOffer,
+                    location, socialMedia, offeredClasses, website, timetableUrl, imageUrl);
         }
     }
 }

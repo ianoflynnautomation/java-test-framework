@@ -24,7 +24,8 @@ public class ComponentCreateService extends WebService {
         return by(componentClass, new CssFindStrategy(css));
     }
 
-    public <TComponent extends WebComponent> TComponent byDataTestId(Class<TComponent> componentClass, String dataTestId) {
+    public <TComponent extends WebComponent> TComponent byDataTestId(Class<TComponent> componentClass,
+            String dataTestId) {
         return by(componentClass, new DataTestIdFindStrategy(dataTestId));
     }
 
@@ -36,7 +37,8 @@ public class ComponentCreateService extends WebService {
         return by(componentClass, new TagFindStrategy(tag));
     }
 
-    public <TComponent extends WebComponent> TComponent byInnerTextContaining(Class<TComponent> componentClass, String innerText) {
+    public <TComponent extends WebComponent> TComponent byInnerTextContaining(Class<TComponent> componentClass,
+            String innerText) {
         return by(componentClass, new InnerTextContainingFindStrategy(innerText));
     }
 
@@ -44,7 +46,8 @@ public class ComponentCreateService extends WebService {
         return allBy(componentClass, new CssFindStrategy(css));
     }
 
-    public <TComponent extends WebComponent> List<TComponent> allByXPath(Class<TComponent> componentClass, String xpath) {
+    public <TComponent extends WebComponent> List<TComponent> allByXPath(Class<TComponent> componentClass,
+            String xpath) {
         return allBy(componentClass, new XPathFindStrategy(xpath));
     }
 
@@ -52,21 +55,25 @@ public class ComponentCreateService extends WebService {
         return allBy(componentClass, new TagFindStrategy(tag));
     }
 
-    public <TComponent extends WebComponent> List<TComponent> allByDataTestId(Class<TComponent> componentClass, String dataTestId) {
+    public <TComponent extends WebComponent> List<TComponent> allByDataTestId(Class<TComponent> componentClass,
+            String dataTestId) {
         return allBy(componentClass, new DataTestIdFindStrategy(dataTestId));
     }
 
-    public <TComponent extends WebComponent> List<TComponent> allByInnerTextContaining(Class<TComponent> componentClass, String innerText) {
+    public <TComponent extends WebComponent> List<TComponent> allByInnerTextContaining(Class<TComponent> componentClass,
+            String innerText) {
         return allBy(componentClass, new InnerTextContainingFindStrategy(innerText));
     }
 
-    private <TComponent extends WebComponent, TFindStrategy extends FindStrategy> TComponent by(Class<TComponent> componentClass, TFindStrategy findStrategy) {
+    private <TComponent extends WebComponent, TFindStrategy extends FindStrategy> TComponent by(
+            Class<TComponent> componentClass, TFindStrategy findStrategy) {
         var component = applicationContext.getBean(componentClass);
         component.setFindStrategy(findStrategy);
         return component;
     }
 
-    private <TComponent extends WebComponent, TFindStrategy extends FindStrategy> List<TComponent> allBy(Class<TComponent> componentClass, TFindStrategy findStrategy) {
+    private <TComponent extends WebComponent, TFindStrategy extends FindStrategy> List<TComponent> allBy(
+            Class<TComponent> componentClass, TFindStrategy findStrategy) {
         var nativeElements = getWrappedDriver().findElements(findStrategy.convert());
         List<TComponent> componentList = new ArrayList<>();
         for (int i = 0; i < nativeElements.size(); i++) {

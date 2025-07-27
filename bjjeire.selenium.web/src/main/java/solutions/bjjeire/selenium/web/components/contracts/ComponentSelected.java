@@ -1,6 +1,6 @@
 package solutions.bjjeire.selenium.web.components.contracts;
 
-public interface ComponentSelected extends BjjEireComponent  {
+public interface ComponentSelected extends BjjEireComponent {
 
     boolean isSelected();
 

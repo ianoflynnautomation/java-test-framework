@@ -6,7 +6,8 @@ import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import solutions.bjjeire.core.plugins.Browser;
 
-@Getter @Setter
+@Getter
+@Setter
 @ConfigurationProperties(prefix = "web-settings")
 public class WebSettings {
     private String baseUrl;

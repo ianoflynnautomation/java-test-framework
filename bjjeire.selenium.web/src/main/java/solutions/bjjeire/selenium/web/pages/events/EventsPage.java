@@ -32,8 +32,12 @@ public class EventsPage extends ListPageBase {
     private final UrlSettings urlSettings;
 
     @Autowired
-    public EventsPage(DriverService driverService, JavaScriptService javaScriptService, BrowserService browserService, ComponentWaitService componentWaitService, WebSettings webSettings, ApplicationContext applicationContext, WaitStrategyFactory waitStrategyFactory, NavigationService navigationService, ComponentCreateService componentCreateService, UrlSettings urlSettings) {
-        super(driverService, javaScriptService, browserService, componentWaitService, webSettings, applicationContext, waitStrategyFactory, navigationService, componentCreateService);
+    public EventsPage(DriverService driverService, JavaScriptService javaScriptService, BrowserService browserService,
+            ComponentWaitService componentWaitService, WebSettings webSettings, ApplicationContext applicationContext,
+            WaitStrategyFactory waitStrategyFactory, NavigationService navigationService,
+            ComponentCreateService componentCreateService, UrlSettings urlSettings) {
+        super(driverService, javaScriptService, browserService, componentWaitService, webSettings, applicationContext,
+                waitStrategyFactory, navigationService, componentCreateService);
         this.urlSettings = urlSettings;
     }
 
@@ -42,16 +46,25 @@ public class EventsPage extends ListPageBase {
         return urlSettings.getEventUrl();
     }
 
-    public Heading titleText() {return create().byDataTestId(Heading.class, "events-page-header-title");}
+    public Heading titleText() {
+        return create().byDataTestId(Heading.class, "events-page-header-title");
+    }
 
-    public Label foundEventsTotalText() {return create().byDataTestId(Label.class, "events-page-header-total");}
+    public Label foundEventsTotalText() {
+        return create().byDataTestId(Label.class, "events-page-header-total");
+    }
 
-    private Select countyDropdown() {return create().byDataTestId(Select.class, "select-filter-select");}
+    private Select countyDropdown() {
+        return create().byDataTestId(Select.class, "select-filter-select");
+    }
 
-    private Button eventTypeButton(String buttonText) {return create().byInnerTextContaining(Button.class, buttonText);}
+    private Button eventTypeButton(String buttonText) {
+        return create().byInnerTextContaining(Button.class, buttonText);
+    }
 
-    private List<EventArticle> eventCards() {return create().allByDataTestId(EventArticle.class, "events-list-item");}
-
+    private List<EventArticle> eventCards() {
+        return create().allByDataTestId(EventArticle.class, "events-list-item");
+    }
 
     public EventsPage selectCounty(String county) {
         countyDropdown().toBeClickable();
@@ -78,13 +91,12 @@ public class EventsPage extends ListPageBase {
         return this;
     }
 
-
-    public EventsPage assertEventIsInList(EventCardDetails eventCard)
-    {
+    public EventsPage assertEventIsInList(EventCardDetails eventCard) {
         EventArticle cardToAssert = eventCards().stream()
                 .filter(card -> card.headingText().getText().trim().equals(eventCard.name()))
                 .findFirst()
-                .orElseThrow(() -> new NoSuchElementException("Could not find an event card with the name: " + eventCard.name()));
+                .orElseThrow(() -> new NoSuchElementException(
+                        "Could not find an event card with the name: " + eventCard.name()));
 
         cardToAssert.headingText().validateTextIs(eventCard.name());
 
@@ -98,7 +110,6 @@ public class EventsPage extends ListPageBase {
         return this;
     }
 
-
     public EventsPage assertAllEventsMatchCountyFilter(String expectedCounty) {
         List<EventArticle> cards = eventCards();
         assertFalse(cards.isEmpty(), "Expected to find event cards after filtering, but none were found.");
@@ -106,7 +117,8 @@ public class EventsPage extends ListPageBase {
         for (EventArticle card : cards) {
             String actualCounty = card.county().getText();
             assertTrue(actualCounty.toLowerCase().contains(expectedCounty.toLowerCase()),
-                    String.format("Event card '%s' should have county '%s' but was '%s'", card.headingText().getText(), expectedCounty, actualCounty));
+                    String.format("Event card '%s' should have county '%s' but was '%s'", card.headingText().getText(),
+                            expectedCounty, actualCounty));
         }
         return this;
     }
@@ -119,12 +131,12 @@ public class EventsPage extends ListPageBase {
             boolean hasMatchingType = card.TypeLabels().stream()
                     .anyMatch(label -> label.getText().equalsIgnoreCase(expectedEventType.toString()));
             assertTrue(hasMatchingType,
-                    String.format("Event card '%s' should have event type '%s'", card.headingText().getText(), expectedEventType));
+                    String.format("Event card '%s' should have event type '%s'", card.headingText().getText(),
+                            expectedEventType));
         }
 
         return this;
     }
-
 
     public EventsPage assertAllEventsMatchFilter(String expectedCounty, BjjEventType expectedEventType) {
         assertAllEventsMatchCountyFilter(expectedCounty);

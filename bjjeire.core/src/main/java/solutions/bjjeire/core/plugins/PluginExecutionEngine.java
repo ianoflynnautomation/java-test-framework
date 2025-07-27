@@ -44,7 +44,8 @@ public final class PluginExecutionEngine {
         execute(p -> p.preBeforeTest(result, memberInfo));
     }
 
-    public static void postAfterTest(TestResult result, TimeRecord timeRecord, Method memberInfo, Throwable failedTestException) {
+    public static void postAfterTest(TestResult result, TimeRecord timeRecord, Method memberInfo,
+            Throwable failedTestException) {
         log.trace("Executing postAfterTest for method: {}", memberInfo.getName());
         execute(p -> p.postAfterTest(result, timeRecord, memberInfo, failedTestException));
     }

@@ -2,7 +2,7 @@ package solutions.bjjeire.selenium.web.findstrategies;
 
 import org.openqa.selenium.By;
 
-public class DataTestIdFindStrategy extends FindStrategy{
+public class DataTestIdFindStrategy extends FindStrategy {
 
     public DataTestIdFindStrategy(String value) {
         super(value);
@@ -10,7 +10,7 @@ public class DataTestIdFindStrategy extends FindStrategy{
 
     @Override
     public By convert() {
-        return By.cssSelector(String.format("[%s*='%s']","data-testid", getValue()));
+        return By.cssSelector(String.format("[%s*='%s']", "data-testid", getValue()));
     }
 
     @Override

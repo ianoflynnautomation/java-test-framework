@@ -19,33 +19,53 @@ import java.util.List;
 public class EventArticle extends WebComponent {
 
     @Autowired
-    public EventArticle(DriverService driverService, JavaScriptService javaScriptService, BrowserService browserService, ComponentWaitService componentWaitService, WebSettings webSettings, ApplicationContext applicationContext, WaitStrategyFactory waitStrategyFactory) {
-        super(driverService, javaScriptService, browserService, componentWaitService, webSettings, applicationContext, waitStrategyFactory);
+    public EventArticle(DriverService driverService, JavaScriptService javaScriptService, BrowserService browserService,
+            ComponentWaitService componentWaitService, WebSettings webSettings, ApplicationContext applicationContext,
+            WaitStrategyFactory waitStrategyFactory) {
+        super(driverService, javaScriptService, browserService, componentWaitService, webSettings, applicationContext,
+                waitStrategyFactory);
     }
 
-    public Heading headingText() {return createByDataTestId(Heading.class, "event-card-name");}
+    public Heading headingText() {
+        return createByDataTestId(Heading.class, "event-card-name");
+    }
 
-    public Span county() {return createByDataTestId(Span.class, "event-card-county");}
+    public Span county() {
+        return createByDataTestId(Span.class, "event-card-county");
+    }
 
-    public List<Span> TypeLabels() {return createAllByDataTestId(Span.class, "event-card-type");}
+    public List<Span> TypeLabels() {
+        return createAllByDataTestId(Span.class, "event-card-type");
+    }
 
-    public Div AddressText() {return createByDataTestId(Div.class, "event-card-address");}
+    public Div AddressText() {
+        return createByDataTestId(Div.class, "event-card-address");
+    }
 
-    public Anchor AddressLink() {return createByDataTestId(Anchor.class, "event-card-address-link");}
+    public Anchor AddressLink() {
+        return createByDataTestId(Anchor.class, "event-card-address-link");
+    }
 
-    public Div OrganiserText() {return createByDataTestId(Div.class, "event-card-organiser");}
+    public Div OrganiserText() {
+        return createByDataTestId(Div.class, "event-card-organiser");
+    }
 
-    public Anchor OrganiserLink() {return createByDataTestId(Anchor.class, "event-card-organiser-link");}
+    public Anchor OrganiserLink() {
+        return createByDataTestId(Anchor.class, "event-card-organiser-link");
+    }
 
-    public Div price() {return createByDataTestId(Div.class, "event-card-pricing");}
+    public Div price() {
+        return createByDataTestId(Div.class, "event-card-pricing");
+    }
 
-    public List<Anchor> socialMediaLinks() {return createAllByDataTestId(Anchor.class, "social-media-link");}
+    public List<Anchor> socialMediaLinks() {
+        return createAllByDataTestId(Anchor.class, "social-media-link");
+    }
 
     // TODO: Add event schedule once refactored
 
-    public Anchor moreInformationLink() {return createByDataTestId(Anchor.class, "event-card-button");}
-
-
-
+    public Anchor moreInformationLink() {
+        return createByDataTestId(Anchor.class, "event-card-button");
+    }
 
 }

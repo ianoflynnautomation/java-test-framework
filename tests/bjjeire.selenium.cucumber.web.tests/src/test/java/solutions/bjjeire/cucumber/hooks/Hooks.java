@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import solutions.bjjeire.core.plugins.*;
 import solutions.bjjeire.cucumber.context.BaseContext;
 import solutions.bjjeire.cucumber.context.EventContext;
+import solutions.bjjeire.cucumber.context.GymContext;
 import solutions.bjjeire.selenium.web.configuration.WebSettings;
 import solutions.bjjeire.selenium.web.data.TestDataManager;
 import solutions.bjjeire.selenium.web.plugins.BrowserLifecyclePlugin;
@@ -26,13 +27,22 @@ public class Hooks extends UsesPlugins {
 
     private static final Logger log = LoggerFactory.getLogger(Hooks.class);
 
-    @Autowired private DriverService driverService;
-    @Autowired private TestDataManager testDataManager;
-    @Autowired private BaseContext baseContext;
-    @Autowired private EventContext eventContext;
-    @Autowired private WebSettings webSettings;
-    @Autowired private CookiesService cookiesService;
-    @Autowired private BrowserService browserService;
+    @Autowired
+    private DriverService driverService;
+    @Autowired
+    private TestDataManager testDataManager;
+    @Autowired
+    private BaseContext baseContext;
+    @Autowired
+    private EventContext eventContext;
+    @Autowired
+    private GymContext gymContext;
+    @Autowired
+    private WebSettings webSettings;
+    @Autowired
+    private CookiesService cookiesService;
+    @Autowired
+    private BrowserService browserService;
 
     private static final String SCENARIO_ID = "scenarioId";
     private static final String SCENARIO_NAME = "scenarioName";
@@ -77,9 +87,16 @@ public class Hooks extends UsesPlugins {
                 log.info("Scenario finished. Status: {}", scenario.getStatus());
             }
 
+            // Teardown for Events
             if (baseContext.getAuthToken() != null && !eventContext.getCreatedEventIds().isEmpty()) {
-                testDataManager.teardown(eventContext.getCreatedEventIds(), baseContext.getAuthToken());
+                testDataManager.teardownEvents(eventContext.getCreatedEventIds(), baseContext.getAuthToken());
                 eventContext.getCreatedEventIds().clear();
+            }
+
+            // Teardown for Gyms
+            if (baseContext.getAuthToken() != null && !gymContext.getCreatedGymIds().isEmpty()) {
+                testDataManager.teardownGyms(gymContext.getCreatedGymIds(), baseContext.getAuthToken());
+                gymContext.getCreatedGymIds().clear();
             }
 
             TestResult result = scenario.isFailed() ? TestResult.FAILURE : TestResult.SUCCESS;

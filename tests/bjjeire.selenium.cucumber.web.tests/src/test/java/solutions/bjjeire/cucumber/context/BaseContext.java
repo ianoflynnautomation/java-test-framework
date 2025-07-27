@@ -14,8 +14,19 @@ public class BaseContext {
     private WebDriver driver;
     private String authToken;
 
-    public WebDriver getDriver() { return driver; }
-    public void setDriver(WebDriver driver) { this.driver = driver; }
-    public String getAuthToken() { return authToken; }
-    public void setAuthToken(String authToken) { this.authToken = authToken; }
+    public WebDriver getDriver() {
+        return driver;
+    }
+
+    public void setDriver(WebDriver driver) {
+        this.driver = driver;
+    }
+
+    public String getAuthToken() {
+        return authToken;
+    }
+
+    public void setAuthToken(String authToken) {
+        this.authToken = authToken;
+    }
 }

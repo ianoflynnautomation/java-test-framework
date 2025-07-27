@@ -30,14 +30,14 @@ public abstract class WebPage {
 
     @Autowired
     public WebPage(DriverService driverService,
-                   JavaScriptService javaScriptService,
-                   BrowserService browserService,
-                   ComponentWaitService componentWaitService,
-                   WebSettings webSettings,
-                   ApplicationContext applicationContext,
-                   WaitStrategyFactory waitStrategyFactory,
-                   NavigationService navigationService,
-                   ComponentCreateService componentCreateService) {
+            JavaScriptService javaScriptService,
+            BrowserService browserService,
+            ComponentWaitService componentWaitService,
+            WebSettings webSettings,
+            ApplicationContext applicationContext,
+            WaitStrategyFactory waitStrategyFactory,
+            NavigationService navigationService,
+            ComponentCreateService componentCreateService) {
         this.driverService = driverService;
         this.javaScriptService = javaScriptService;
         this.browserService = browserService;

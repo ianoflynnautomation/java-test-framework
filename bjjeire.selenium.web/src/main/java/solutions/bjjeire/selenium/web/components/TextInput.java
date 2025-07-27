@@ -19,8 +19,11 @@ import solutions.bjjeire.selenium.web.waitstrategies.WaitStrategyFactory;
 public class TextInput extends WebComponent implements ComponentDisabled, ComponentText, ComponentValue {
 
     @Autowired
-    public TextInput(DriverService driverService, JavaScriptService javaScriptService, BrowserService browserService, ComponentWaitService componentWaitService, WebSettings webSettings, ApplicationContext applicationContext, WaitStrategyFactory waitStrategyFactory) {
-        super(driverService, javaScriptService, browserService, componentWaitService, webSettings, applicationContext, waitStrategyFactory);
+    public TextInput(DriverService driverService, JavaScriptService javaScriptService, BrowserService browserService,
+            ComponentWaitService componentWaitService, WebSettings webSettings, ApplicationContext applicationContext,
+            WaitStrategyFactory waitStrategyFactory) {
+        super(driverService, javaScriptService, browserService, componentWaitService, webSettings, applicationContext,
+                waitStrategyFactory);
     }
 
     @Override
@@ -28,7 +31,7 @@ public class TextInput extends WebComponent implements ComponentDisabled, Compon
         return getClass();
     }
 
-//    @Override
+    // @Override
     public String getText() {
         String text = defaultGetText();
 
@@ -43,12 +46,13 @@ public class TextInput extends WebComponent implements ComponentDisabled, Compon
         defaultSetText(value);
     }
 
-//    @Override
+    // @Override
     public String getValue() {
         return defaultGetValue();
     }
 
-
     @Override
-    public boolean isDisabled() { return defaultGetDisabledAttribute(); }
+    public boolean isDisabled() {
+        return defaultGetDisabledAttribute();
+    }
 }

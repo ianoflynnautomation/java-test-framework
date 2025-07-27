@@ -15,7 +15,6 @@ public class ToBeVisibleWaitStrategy extends WaitStrategy {
         super(timeoutIntervalSeconds, sleepIntervalSeconds);
     }
 
-
     @Override
     public void waitUntil(DriverService driverService, SearchContext searchContext, By by) {
         waitUntil(driverService, (d) -> elementIsVisible(searchContext, by));

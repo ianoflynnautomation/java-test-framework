@@ -14,11 +14,15 @@ import solutions.bjjeire.selenium.web.waitstrategies.WaitStrategyFactory;
 
 @Component
 @Scope("prototype")
-public class Anchor extends WebComponent implements ComponentText, ComponentHref, ComponentTarget, ComponentRel, ComponentAriaLabel {
+public class Anchor extends WebComponent
+        implements ComponentText, ComponentHref, ComponentTarget, ComponentRel, ComponentAriaLabel {
 
     @Autowired
-    public Anchor(DriverService driverService, JavaScriptService javaScriptService, BrowserService browserService, ComponentWaitService componentWaitService, WebSettings webSettings, ApplicationContext applicationContext, WaitStrategyFactory waitStrategyFactory) {
-        super(driverService, javaScriptService, browserService, componentWaitService, webSettings, applicationContext, waitStrategyFactory);
+    public Anchor(DriverService driverService, JavaScriptService javaScriptService, BrowserService browserService,
+            ComponentWaitService componentWaitService, WebSettings webSettings, ApplicationContext applicationContext,
+            WaitStrategyFactory waitStrategyFactory) {
+        super(driverService, javaScriptService, browserService, componentWaitService, webSettings, applicationContext,
+                waitStrategyFactory);
     }
 
     public void click() {
@@ -45,5 +49,7 @@ public class Anchor extends WebComponent implements ComponentText, ComponentHref
         return defaultGetRelAttribute();
     }
 
-    public String getAriaLabel() { return defaultGetAriaLabel();}
+    public String getAriaLabel() {
+        return defaultGetAriaLabel();
+    }
 }

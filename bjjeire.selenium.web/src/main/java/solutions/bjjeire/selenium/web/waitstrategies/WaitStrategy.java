@@ -17,7 +17,8 @@ public abstract class WaitStrategy {
     @Getter
     protected long sleepInterval;
 
-    public WaitStrategy() {}
+    public WaitStrategy() {
+    }
 
     public WaitStrategy(long timeoutInterval, long sleepInterval) {
         this.timeoutInterval = timeoutInterval;
@@ -27,7 +28,8 @@ public abstract class WaitStrategy {
     public abstract void waitUntil(DriverService driverService, SearchContext searchContext, By by);
 
     protected void waitUntil(DriverService driverService, Function<WebDriver, Boolean> waitCondition) {
-        WebDriverWait webDriverWait = new WebDriverWait(driverService.getWrappedDriver(), Duration.ofSeconds(timeoutInterval), Duration.ofSeconds(sleepInterval));
+        WebDriverWait webDriverWait = new WebDriverWait(driverService.getWrappedDriver(),
+                Duration.ofSeconds(timeoutInterval), Duration.ofSeconds(sleepInterval));
         webDriverWait.withMessage(Thread.currentThread().getStackTrace()[2].getMethodName());
         webDriverWait.until(waitCondition);
     }

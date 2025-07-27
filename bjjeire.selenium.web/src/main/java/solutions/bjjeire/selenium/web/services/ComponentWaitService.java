@@ -17,7 +17,8 @@ public class ComponentWaitService extends WebService {
         if (component.getParentWrappedElement() == null) {
             waitStrategy.waitUntil(driverService, getWrappedDriver(), component.getFindStrategy().convert());
         } else {
-            waitStrategy.waitUntil(driverService, component.getParentWrappedElement(), component.getFindStrategy().convert());
+            waitStrategy.waitUntil(driverService, component.getParentWrappedElement(),
+                    component.getFindStrategy().convert());
         }
     }
 }

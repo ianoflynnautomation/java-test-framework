@@ -34,7 +34,8 @@ public class BrowserLifecyclePlugin implements Plugin {
     }
 
     @Override
-    public void postAfterTest(TestResult testResult, TimeRecord timeRecord, Method memberInfo, Throwable failedTestException) {
+    public void postAfterTest(TestResult testResult, TimeRecord timeRecord, Method memberInfo,
+            Throwable failedTestException) {
         log.debug("Executing post-after-test hook for method: {}", memberInfo.getName());
         handleBrowserShutdown(testResult, this.currentBrowserConfiguration.get());
     }
@@ -61,12 +62,12 @@ public class BrowserLifecyclePlugin implements Plugin {
             } catch (Exception ex) {
                 log.error("Failed to start the browser. This is the root cause of the test failure.", ex);
                 isBrowserStartedCorrectly.set(false);
-                throw new RuntimeException("Failed to initialize WebDriver. Check logs for the original exception.", ex);
+                throw new RuntimeException("Failed to initialize WebDriver. Check logs for the original exception.",
+                        ex);
             }
             previousBrowserConfiguration.set(currentBrowserConfiguration.get());
         }
     }
-
 
     private void handleBrowserShutdown(TestResult testResult, BrowserConfiguration config) {
         if (config == null) {
@@ -95,8 +96,10 @@ public class BrowserLifecyclePlugin implements Plugin {
     private boolean shouldRestartBrowser() {
         var previousConfig = previousBrowserConfiguration.get();
         var currentConfig = currentBrowserConfiguration.get();
-        if (previousConfig == null) return true;
-        if (!isBrowserStartedCorrectly.get()) return true;
+        if (previousConfig == null)
+            return true;
+        if (!isBrowserStartedCorrectly.get())
+            return true;
         return !previousConfig.equals(currentConfig);
     }
 
@@ -110,7 +113,8 @@ public class BrowserLifecyclePlugin implements Plugin {
     }
 
     private BrowserConfiguration getExecutionBrowserMethodLevel(Method memberInfo) {
-        if (!memberInfo.isAnnotationPresent(ExecutionBrowser.class)) return null;
+        if (!memberInfo.isAnnotationPresent(ExecutionBrowser.class))
+            return null;
         ExecutionBrowser annotation = memberInfo.getAnnotation(ExecutionBrowser.class);
         return new BrowserConfiguration(annotation.browser(), annotation.deviceName(), annotation.lifecycle());
     }
@@ -123,10 +127,14 @@ public class BrowserLifecyclePlugin implements Plugin {
 
         if (clazz.isAnnotationPresent(ExecutionBrowser.class)) {
             ExecutionBrowser annotation = clazz.getAnnotation(ExecutionBrowser.class);
-            if (annotation.browser() != Browser.NOT_SET) browser = annotation.browser();
-            if (annotation.lifecycle() != lifecycle) lifecycle = annotation.lifecycle();
-            if (annotation.width() != 0) width = annotation.width();
-            if (annotation.height() != 0) height = annotation.height();
+            if (annotation.browser() != Browser.NOT_SET)
+                browser = annotation.browser();
+            if (annotation.lifecycle() != lifecycle)
+                lifecycle = annotation.lifecycle();
+            if (annotation.width() != 0)
+                width = annotation.width();
+            if (annotation.height() != 0)
+                height = annotation.height();
             if (annotation.browser() == Browser.CHROME_MOBILE) {
                 return new BrowserConfiguration(annotation.deviceName(), lifecycle, clazz.getName());
             }

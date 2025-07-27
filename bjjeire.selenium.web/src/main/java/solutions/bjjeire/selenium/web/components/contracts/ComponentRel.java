@@ -1,6 +1,6 @@
 package solutions.bjjeire.selenium.web.components.contracts;
 
-public interface ComponentRel extends BjjEireComponent{
+public interface ComponentRel extends BjjEireComponent {
 
     String getRel();
 

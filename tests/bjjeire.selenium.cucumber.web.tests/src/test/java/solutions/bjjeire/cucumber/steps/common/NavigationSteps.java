@@ -7,8 +7,10 @@ import solutions.bjjeire.selenium.web.pages.gyms.GymsPage;
 
 public class NavigationSteps {
 
-    @Autowired private EventsPage eventsPage;
-    @Autowired private GymsPage gymsPage;
+    @Autowired
+    private EventsPage eventsPage;
+    @Autowired
+    private GymsPage gymsPage;
 
     @Given("I am on the BJJ app events page")
     public void i_am_on_the_bjj_app_events_page() {

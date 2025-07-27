@@ -1,8 +1,8 @@
 @ui @web @feature-events @Lifecycle:REUSE_IF_STARTED
 Feature: Event Filtering
-  As a user of the BJJ app,
-  I want to filter events by county and type,
-  So that I can find relevant BJJ events easily.
+  In order to find relevant open mats, seminars and tournaments
+  As a user of the BJJ app
+  I want to filter events by county and type
 
   Background:
     Given I am an authenticated user
@@ -11,26 +11,26 @@ Feature: Event Filtering
   @smoke @regression @priority-high @Requirement-501 @TestCase-1002
   Scenario Outline: Filter BJJ events by county
     Given the following BJJ events exist:
-      | Name               | County   | Type    |
-      | <County> Seminar 1 | <County> | Seminar |
-      | <County> Seminar 2 | <County> | Seminar |
-      | Dublin Open Mat    | Dublin   | Open Mat|
+      | Name               | County   | Type       |
+      | <County> Seminar 1 | <County> | Seminar    |
+      | <County> Seminar 2 | <County> | Seminar    |
+      | Dublin IBJJF       | Dublin   | Tournament |
     When I filter events by county "<County>"
     Then the displayed events include only those for county "<County>"
     And the event list contains exactly <ExpectedCount> events
 
     Examples:
       | County  | ExpectedCount |
-      | Cork    | 2             |
-      | Kildare | 2             |
+      | Cork    |             2 |
+      | Kildare |             2 |
 
   @regression @priority-high @Requirement-502 @TestCase-1003
   Scenario: Filter BJJ events by event type
     Given the following BJJ events exist:
-      | Name           | County | Type     |
-      | Cork Seminar 1 | Cork   | Seminar  |
-      | Cork Seminar 2 | Cork   | Seminar  |
-      | Cork Open Mat  | Cork   | Open Mat |
+      | Name           | County | Type       |
+      | Cork Seminar 1 | Cork   | Seminar    |
+      | Cork Seminar 2 | Cork   | Seminar    |
+      | Cork IBJJF     | Cork   | Tournament |
     When I filter events by type "Seminar"
     Then the displayed events include only those of type "Seminar"
     And the event list contains exactly 2 events

@@ -1,9 +1,8 @@
 package solutions.bjjeire.selenium.web.components.contracts;
 
-public interface ComponentHref extends BjjEireComponent{
+public interface ComponentHref extends BjjEireComponent {
 
     String getHref();
-
 
     default void validateHrefIs(String value) {
         validator().attribute(this::getHref, "href").is(value);

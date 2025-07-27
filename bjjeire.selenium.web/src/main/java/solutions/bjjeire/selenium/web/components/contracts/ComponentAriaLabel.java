@@ -1,6 +1,5 @@
 package solutions.bjjeire.selenium.web.components.contracts;
 
-
 public interface ComponentAriaLabel extends BjjEireComponent {
     String getAriaLabel();
 

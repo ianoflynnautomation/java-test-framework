@@ -1,14 +1,14 @@
 @ui @web @feature-gyms @Lifecycle:REUSE_IF_STARTED
 Feature: Gym Filtering
-  As a user of the BJJ app,
-  I want to filter gyms by county,
-  So that I can find a relevant BJJ gym easily.
+  In order to find a local bjj gym to train
+  As a user of the BJJ app
+  I want to filter gyms by county
 
   Background:
     Given I am an authenticated user
     And I am on the BJJ app gyms page
 
-  @regression @priority-high @Requirement-101 @TestCase-1101 @Ignore
+  @regression @priority-high @Requirement-101 @TestCase-1101
   Scenario Outline: Filter gyms by county
     Given the following BJJ gyms exist:
       | Name             | County   |
@@ -23,10 +23,10 @@ Feature: Gym Filtering
       | Dublin |
       | Cork   |
 
-  @negative @regression @priority-medium @Requirement-102 @TestCase-1102 @Ignore
+  @negative @regression @priority-medium @Requirement-102 @TestCase-1102
   Scenario: No gyms found for a county with no gyms
     Given the following BJJ gyms exist:
       | Name       | County |
       | Dublin Gym | Dublin |
     When I filter gyms by county "Clare"
-    Then the gyms list should be emptyms list should be empty
+    Then the gyms list should be empty

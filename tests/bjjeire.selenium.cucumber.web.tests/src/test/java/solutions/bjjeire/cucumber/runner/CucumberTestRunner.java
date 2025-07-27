@@ -1,6 +1,5 @@
 package solutions.bjjeire.cucumber.runner;
 
-
 import org.junit.platform.suite.api.ConfigurationParameter;
 import org.junit.platform.suite.api.IncludeEngines;
 import org.junit.platform.suite.api.SelectClasspathResource;

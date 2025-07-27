@@ -58,11 +58,13 @@ public class NavigationService extends WebService {
         log.debug("Waiting up to {} seconds for URL to contain '{}'", waitForPartialTimeout, partialUrl);
 
         try {
-            var webDriverWait = new WebDriverWait(getWrappedDriver(), Duration.ofSeconds(waitForPartialTimeout), Duration.ofSeconds(sleepInterval));
+            var webDriverWait = new WebDriverWait(getWrappedDriver(), Duration.ofSeconds(waitForPartialTimeout),
+                    Duration.ofSeconds(sleepInterval));
             webDriverWait.until(ExpectedConditions.urlContains(partialUrl));
         } catch (TimeoutException ex) {
             String currentUrl = getWrappedDriver().getCurrentUrl();
-            log.error("TimeoutException: Waited for URL to contain '{}', but current URL is '{}'.", partialUrl, currentUrl, ex);
+            log.error("TimeoutException: Waited for URL to contain '{}', but current URL is '{}'.", partialUrl,
+                    currentUrl, ex);
             throw ex;
         }
     }

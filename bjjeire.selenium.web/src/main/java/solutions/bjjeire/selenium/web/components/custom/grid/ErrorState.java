@@ -20,16 +20,27 @@ import solutions.bjjeire.selenium.web.waitstrategies.WaitStrategyFactory;
 public class ErrorState extends WebComponent {
 
     @Autowired
-    public ErrorState(DriverService driverService, JavaScriptService javaScriptService, BrowserService browserService, ComponentWaitService componentWaitService, WebSettings webSettings, ApplicationContext applicationContext, WaitStrategyFactory waitStrategyFactory) {
-        super(driverService, javaScriptService, browserService, componentWaitService, webSettings, applicationContext, waitStrategyFactory);
+    public ErrorState(DriverService driverService, JavaScriptService javaScriptService, BrowserService browserService,
+            ComponentWaitService componentWaitService, WebSettings webSettings, ApplicationContext applicationContext,
+            WaitStrategyFactory waitStrategyFactory) {
+        super(driverService, javaScriptService, browserService, componentWaitService, webSettings, applicationContext,
+                waitStrategyFactory);
     }
 
-    public Heading stateTitle() {return createByDataTestId(Heading.class, "error-state-title");}
+    public Heading stateTitle() {
+        return createByDataTestId(Heading.class, "error-state-title");
+    }
 
-    public Paragraph messageLine1() {return createByDataTestId(Paragraph.class, "error-state-message-line1");}
+    public Paragraph messageLine1() {
+        return createByDataTestId(Paragraph.class, "error-state-message-line1");
+    }
 
-    public Paragraph messageLine2() {return createByDataTestId(Paragraph.class, "error-state-message-line2");}
+    public Paragraph messageLine2() {
+        return createByDataTestId(Paragraph.class, "error-state-message-line2");
+    }
 
-    private Button retryButton() {return createByDataTestId(Button.class, "error-state-button");}
+    private Button retryButton() {
+        return createByDataTestId(Button.class, "error-state-button");
+    }
 
 }

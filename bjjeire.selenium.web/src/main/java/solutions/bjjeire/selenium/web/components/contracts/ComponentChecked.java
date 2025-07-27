@@ -12,7 +12,6 @@ public interface ComponentChecked extends BjjEireComponent {
         validator().attribute(this::isChecked, "checked").isFalse();
     }
 
-
     default void validateIsChecked(boolean expectedState) {
         if (expectedState) {
             validateIsChecked();

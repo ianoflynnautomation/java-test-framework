@@ -11,8 +11,10 @@ public class AuthenticationSteps {
 
     private static final Logger log = LoggerFactory.getLogger(AuthenticationSteps.class);
 
-    @Autowired private TestDataManager testDataManager;
-    @Autowired private BaseContext baseContext;
+    @Autowired
+    private TestDataManager testDataManager;
+    @Autowired
+    private BaseContext baseContext;
 
     @Given("I am an authenticated user")
     public void i_am_an_authenticated_user() {

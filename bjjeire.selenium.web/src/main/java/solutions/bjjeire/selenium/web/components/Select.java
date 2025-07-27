@@ -17,8 +17,11 @@ import solutions.bjjeire.selenium.web.waitstrategies.WaitStrategyFactory;
 public class Select extends WebComponent implements ComponentDisabled {
 
     @Autowired
-    public Select(DriverService driverService, JavaScriptService javaScriptService, BrowserService browserService, ComponentWaitService componentWaitService, WebSettings webSettings, ApplicationContext applicationContext, WaitStrategyFactory waitStrategyFactory) {
-        super(driverService, javaScriptService, browserService, componentWaitService, webSettings, applicationContext, waitStrategyFactory);
+    public Select(DriverService driverService, JavaScriptService javaScriptService, BrowserService browserService,
+            ComponentWaitService componentWaitService, WebSettings webSettings, ApplicationContext applicationContext,
+            WaitStrategyFactory waitStrategyFactory) {
+        super(driverService, javaScriptService, browserService, componentWaitService, webSettings, applicationContext,
+                waitStrategyFactory);
     }
 
     @Override
@@ -46,5 +49,7 @@ public class Select extends WebComponent implements ComponentDisabled {
     }
 
     @Override
-    public boolean isDisabled() { return defaultGetDisabledAttribute(); }
+    public boolean isDisabled() {
+        return defaultGetDisabledAttribute();
+    }
 }

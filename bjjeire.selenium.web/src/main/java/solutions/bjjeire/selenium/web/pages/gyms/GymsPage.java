@@ -33,8 +33,12 @@ public class GymsPage extends ListPageBase {
     private final UrlSettings urlSettings;
 
     @Autowired
-    public GymsPage(DriverService driverService, JavaScriptService javaScriptService, BrowserService browserService, ComponentWaitService componentWaitService, WebSettings webSettings, ApplicationContext applicationContext, WaitStrategyFactory waitStrategyFactory, NavigationService navigationService, ComponentCreateService componentCreateService, UrlSettings urlSettings) {
-        super(driverService, javaScriptService, browserService, componentWaitService, webSettings, applicationContext, waitStrategyFactory, navigationService, componentCreateService);
+    public GymsPage(DriverService driverService, JavaScriptService javaScriptService, BrowserService browserService,
+            ComponentWaitService componentWaitService, WebSettings webSettings, ApplicationContext applicationContext,
+            WaitStrategyFactory waitStrategyFactory, NavigationService navigationService,
+            ComponentCreateService componentCreateService, UrlSettings urlSettings) {
+        super(driverService, javaScriptService, browserService, componentWaitService, webSettings, applicationContext,
+                waitStrategyFactory, navigationService, componentCreateService);
         this.urlSettings = urlSettings;
     }
 
@@ -43,14 +47,21 @@ public class GymsPage extends ListPageBase {
         return urlSettings.getGymUrl();
     }
 
-    public Heading titleText() {return create().byDataTestId(Heading.class, "gyms-page-header-title");}
+    public Heading titleText() {
+        return create().byDataTestId(Heading.class, "gyms-page-header-title");
+    }
 
-    public Label gymsListTotalText() {return create().byDataTestId(Label.class, "gyms-page-header-total");}
+    public Label gymsListTotalText() {
+        return create().byDataTestId(Label.class, "gyms-page-header-total");
+    }
 
-    private Select countyDropdown() {return create().byDataTestId(Select.class, "select-filter-select");}
+    private Select countyDropdown() {
+        return create().byDataTestId(Select.class, "select-filter-select");
+    }
 
-    private List<GymArticle> gymCards() {return create().allByDataTestId(GymArticle.class, "gyms-list-item");}
-
+    private List<GymArticle> gymCards() {
+        return create().allByDataTestId(GymArticle.class, "gyms-list-item");
+    }
 
     public GymsPage selectCounty(String county) {
         countyDropdown().selectByText(county);
@@ -64,7 +75,8 @@ public class GymsPage extends ListPageBase {
         for (GymArticle card : cards) {
             String actualCounty = card.county().getText();
             assertTrue(actualCounty.toLowerCase().contains(expectedCounty.toLowerCase()),
-                    String.format("Gym card '%s' should have county '%s' but was '%s'", card.headingText().getText(), expectedCounty, actualCounty));
+                    String.format("Gym card '%s' should have county '%s' but was '%s'", card.headingText().getText(),
+                            expectedCounty, actualCounty));
         }
         return this;
     }
@@ -82,12 +94,12 @@ public class GymsPage extends ListPageBase {
         return this;
     }
 
-    public GymsPage assertGymIsInList(GymCardDetails gymCard)
-    {
+    public GymsPage assertGymIsInList(GymCardDetails gymCard) {
         GymArticle cardToAssert = gymCards().stream()
                 .filter(card -> card.headingText().getText().trim().equals(gymCard.name()))
                 .findFirst()
-                .orElseThrow(() -> new NoSuchElementException("Could not find an gym card with the name: " + gymCard.name()));
+                .orElseThrow(() -> new NoSuchElementException(
+                        "Could not find an gym card with the name: " + gymCard.name()));
 
         cardToAssert.headingText().validateTextIs(gymCard.name());
 

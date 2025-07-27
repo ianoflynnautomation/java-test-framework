@@ -17,8 +17,11 @@ import solutions.bjjeire.selenium.web.waitstrategies.WaitStrategyFactory;
 public class Paragraph extends WebComponent implements ComponentText {
 
     @Autowired
-    public Paragraph(DriverService driverService, JavaScriptService javaScriptService, BrowserService browserService, ComponentWaitService componentWaitService, WebSettings webSettings, ApplicationContext applicationContext, WaitStrategyFactory waitStrategyFactory) {
-        super(driverService, javaScriptService, browserService, componentWaitService, webSettings, applicationContext, waitStrategyFactory);
+    public Paragraph(DriverService driverService, JavaScriptService javaScriptService, BrowserService browserService,
+            ComponentWaitService componentWaitService, WebSettings webSettings, ApplicationContext applicationContext,
+            WaitStrategyFactory waitStrategyFactory) {
+        super(driverService, javaScriptService, browserService, componentWaitService, webSettings, applicationContext,
+                waitStrategyFactory);
     }
 
     @Override
@@ -26,7 +29,7 @@ public class Paragraph extends WebComponent implements ComponentText {
         return getClass();
     }
 
-    //    @Override
+    // @Override
     public String getText() {
         return defaultGetText();
     }

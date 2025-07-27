@@ -19,10 +19,12 @@ import solutions.bjjeire.selenium.web.waitstrategies.WaitStrategyFactory;
 public class RadioButton extends WebComponent implements ComponentDisabled, ComponentValue, ComponentChecked {
 
     @Autowired
-    public RadioButton(DriverService driverService, JavaScriptService javaScriptService, BrowserService browserService, ComponentWaitService componentWaitService, WebSettings webSettings, ApplicationContext applicationContext, WaitStrategyFactory waitStrategyFactory) {
-        super(driverService, javaScriptService, browserService, componentWaitService, webSettings, applicationContext, waitStrategyFactory);
+    public RadioButton(DriverService driverService, JavaScriptService javaScriptService, BrowserService browserService,
+            ComponentWaitService componentWaitService, WebSettings webSettings, ApplicationContext applicationContext,
+            WaitStrategyFactory waitStrategyFactory) {
+        super(driverService, javaScriptService, browserService, componentWaitService, webSettings, applicationContext,
+                waitStrategyFactory);
     }
-
 
     @Override
     public Class<?> getComponentClass() {

@@ -1,6 +1,6 @@
 package solutions.bjjeire.selenium.web.components.contracts;
 
-public interface ComponentTarget extends BjjEireComponent{
+public interface ComponentTarget extends BjjEireComponent {
     String getTarget();
 
     default void validateTargetIs(String value) {

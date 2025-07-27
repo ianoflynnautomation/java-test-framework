@@ -19,13 +19,22 @@ import solutions.bjjeire.selenium.web.waitstrategies.WaitStrategyFactory;
 public class NoDataState extends WebComponent {
 
     @Autowired
-    public NoDataState(DriverService driverService, JavaScriptService javaScriptService, BrowserService browserService, ComponentWaitService componentWaitService, WebSettings webSettings, ApplicationContext applicationContext, WaitStrategyFactory waitStrategyFactory) {
-        super(driverService, javaScriptService, browserService, componentWaitService, webSettings, applicationContext, waitStrategyFactory);
+    public NoDataState(DriverService driverService, JavaScriptService javaScriptService, BrowserService browserService,
+            ComponentWaitService componentWaitService, WebSettings webSettings, ApplicationContext applicationContext,
+            WaitStrategyFactory waitStrategyFactory) {
+        super(driverService, javaScriptService, browserService, componentWaitService, webSettings, applicationContext,
+                waitStrategyFactory);
     }
 
-    public Heading stateTitle() {return createByDataTestId(Heading.class, "no-data-state-title");}
+    public Heading stateTitle() {
+        return createByDataTestId(Heading.class, "no-data-state-title");
+    }
 
-    public Paragraph messageLine1() {return createByDataTestId(Paragraph.class, "no-data-state-message-line1");}
+    public Paragraph messageLine1() {
+        return createByDataTestId(Paragraph.class, "no-data-state-message-line1");
+    }
 
-    public Paragraph messageLine2() {return createByDataTestId(Paragraph.class, "no-data-state-message-line2");}
+    public Paragraph messageLine2() {
+        return createByDataTestId(Paragraph.class, "no-data-state-message-line2");
+    }
 }

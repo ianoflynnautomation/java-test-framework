@@ -4,9 +4,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.web.client.RestTemplate;
-
 
 @Configuration
 @ComponentScan(basePackages = {
@@ -14,7 +12,7 @@ import org.springframework.web.client.RestTemplate;
         "solutions.bjjeire.core",
         "solutions.bjjeire.cucumber"
 })
-@EnableConfigurationProperties({WebSettings.class, UrlSettings.class})
+@EnableConfigurationProperties({ WebSettings.class, UrlSettings.class })
 public class SeleniumConfig {
 
     @Bean

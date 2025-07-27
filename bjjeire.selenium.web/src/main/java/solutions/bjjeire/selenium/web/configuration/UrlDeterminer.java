@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-
 @Component
 public class UrlDeterminer {
 

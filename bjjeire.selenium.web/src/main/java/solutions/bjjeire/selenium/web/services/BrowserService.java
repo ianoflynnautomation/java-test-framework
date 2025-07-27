@@ -44,7 +44,8 @@ public class BrowserService extends WebService {
         log.debug("Waiting up to {} seconds for document.readyState to be 'complete'.", pageLoadTimeout);
         try {
             WebDriverWait wait = new WebDriverWait(getWrappedDriver(), Duration.ofSeconds(pageLoadTimeout));
-            wait.until(driver -> ((JavascriptExecutor) driver).executeScript("return document.readyState").equals("complete"));
+            wait.until(driver -> ((JavascriptExecutor) driver).executeScript("return document.readyState")
+                    .equals("complete"));
         } catch (ScriptTimeoutException ex) {
             log.warn("Timed out waiting for page to load completely.", ex);
         }
@@ -53,11 +54,11 @@ public class BrowserService extends WebService {
     public void clearLocalStorage() {
         javaScriptService.execute("localStorage.clear()");
     }
+
     public void clearSessionStorage() {
 
         javaScriptService.execute("sessionStorage.clear()");
     }
-
 
     public void waitForPartialUrl(String partialUrl) {
         long timeout = webSettings.getTimeoutSettings().getWaitForPartialUrl();
@@ -71,7 +72,8 @@ public class BrowserService extends WebService {
         String currentBrowserUrl = getUrl().toLowerCase();
         log.info("Asserting that current URL '{}' contains '{}'", currentBrowserUrl, partialUrl.toLowerCase());
         Assert.assertTrue(currentBrowserUrl.contains(partialUrl.toLowerCase()),
-                String.format("The expected partialUrl: '%s' was not found in the PageUrl: '%s'", partialUrl, currentBrowserUrl));
+                String.format("The expected partialUrl: '%s' was not found in the PageUrl: '%s'", partialUrl,
+                        currentBrowserUrl));
     }
 
     public void assertUrl(String fullUrl) {
