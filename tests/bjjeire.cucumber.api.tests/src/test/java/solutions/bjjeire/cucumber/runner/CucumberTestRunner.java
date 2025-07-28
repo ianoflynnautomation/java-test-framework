@@ -20,5 +20,5 @@ import org.junit.platform.suite.api.Suite;
 @ConfigurationParameter(key = "cucumber.execution.strict", value = "true")
 @ConfigurationParameter(key = "cucumber.filter.tags", value = "not @Ignore")
 public class CucumberTestRunner {
-    // This class remains empty. It's used for configuration only.
+
 }

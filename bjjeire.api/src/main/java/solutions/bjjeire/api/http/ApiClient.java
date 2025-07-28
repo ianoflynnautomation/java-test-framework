@@ -1,8 +1,10 @@
 package solutions.bjjeire.api.http;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.github.resilience4j.core.IntervalFunction;
 import io.github.resilience4j.retry.Retry;
@@ -49,10 +51,12 @@ public class ApiClient implements AutoCloseable {
         logger.info("Initializing ApiClient with base URL '{}', timeout of {}s, and {} retry attempts.",
                 settings.getBaseUrl(), settings.getClientTimeoutSeconds(), settings.getMaxRetryAttempts());
 
-        this.objectMapper = new ObjectMapper()
-                .registerModule(new JavaTimeModule())
+        this.objectMapper = JsonMapper.builder()
+                .enable(SerializationFeature.INDENT_OUTPUT)
                 .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+                .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS)
+                .addModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule())
+                .build();
 
         this.httpClient = new OkHttpClient.Builder()
                 .connectTimeout(Duration.ofSeconds(settings.getClientTimeoutSeconds()))

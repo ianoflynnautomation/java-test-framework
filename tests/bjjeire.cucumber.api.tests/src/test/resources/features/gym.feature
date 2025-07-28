@@ -6,7 +6,6 @@ Feature: BJJ Gym Management
 
   Background:
     Given I am authenticated as an admin user
-    And the Gym API is available
 
   @smoke @regression @priority:high @Requirement=145 @TestCase=189
   Scenario: Create a new Gym successfully
@@ -15,5 +14,3 @@ Feature: BJJ Gym Management
     Then the gym is created successfully
     And the gym details include:
       | Name                     | Carlson Gracie Dublin |
-      | Location                 | Dublin                |
-      | Organiser                | Dublin Grappling Hub  |

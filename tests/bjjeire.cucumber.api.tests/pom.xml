@@ -20,6 +20,13 @@
             <artifactId>bjjeire.api</artifactId>
         </dependency>
 
+        <!-- Spring Boot -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <!-- Provided -->
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -63,6 +70,11 @@
             <artifactId>json-path</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.github.javafaker</groupId>
+            <artifactId>javafaker</artifactId>
+            <scope>test</scope>
+        </dependency>
 
         <!-- Logging -->
         <dependency>
@@ -73,11 +85,6 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.github.javafaker</groupId>
-            <artifactId>javafaker</artifactId>
-            <scope>compile</scope>
         </dependency>
     </dependencies>
 

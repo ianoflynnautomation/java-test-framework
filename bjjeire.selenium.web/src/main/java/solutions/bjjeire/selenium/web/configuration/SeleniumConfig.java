@@ -4,6 +4,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.web.client.RestTemplate;
 
 @Configuration
@@ -13,6 +14,7 @@ import org.springframework.web.client.RestTemplate;
         "solutions.bjjeire.cucumber"
 })
 @EnableConfigurationProperties({ WebSettings.class, UrlSettings.class })
+@Import(WebClientConfig.class)
 public class SeleniumConfig {
 
     @Bean

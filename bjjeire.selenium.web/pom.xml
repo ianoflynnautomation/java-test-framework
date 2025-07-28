@@ -29,12 +29,12 @@
 
         <!-- Spring -->
         <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-context</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
-            <artifactId>spring-web</artifactId> <!-- Contains RestTemplate -->
+            <artifactId>spring-context</artifactId>
         </dependency>
         <dependency>
             <groupId>jakarta.annotation</groupId>
@@ -54,10 +54,6 @@
         <dependency>
             <groupId>net.lightbody.bmp</groupId>
             <artifactId>browsermob-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
         </dependency>
 
         <!-- JSON -->

@@ -84,7 +84,7 @@ public class BjjEventFactory {
 
         switch (invalidReason) {
             case "missing name":
-                payload.remove("name");
+                payload.put("name", "");
                 break;
             case "negative price":
                 if (payload.get("pricing") instanceof Map) {

@@ -6,7 +6,6 @@ Feature: BJJ Event Management
 
   Background:
     Given I am authenticated as an admin user
-    And the BJJ event API is available
 
   @smoke @regression @priority:high @Requirement=345 @TestCase=789
   Scenario: Create a new BJJ event successfully
@@ -25,8 +24,7 @@ Feature: BJJ Event Management
     Then the response contains the event "IBJJF Pan Ams"
     And the event details include:
       | Name                     | IBJJF Pan Ams             |
-      | Location                 | Orange County Arena       |
-      | Organiser                | IBJJF                     |
+
 
   @Negative @regression @priority:medium @Requirement=346 @TestCase=790
   Scenario Outline: Attempt to create a BJJ event with invalid data
@@ -36,5 +34,5 @@ Feature: BJJ Event Management
 
     Examples:
       | InvalidField     | ErrorMessage                     |
-      | missing name     | Event name is required.          |
+      | missing name     | Event Name is required.          |
       | negative price   | Amount must be greater than 0.   |

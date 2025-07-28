@@ -1,14 +1,16 @@
 package solutions.bjjeire.selenium.web.configuration;
 
-import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-
+/**
+ * Determines and constructs URL paths for API endpoints.
+ * This class uses Spring's UriComponentsBuilder for safe and reliable path construction,
+ * making it compatible with WebClient.
+ */
 @Component
 public class UrlDeterminer {
 
@@ -20,26 +22,40 @@ public class UrlDeterminer {
         this.urlSettings = urlSettings;
     }
 
-    public String getEventUrl(String urlPart) {
-        return contactUrls(urlSettings.getEventUrl(), urlPart);
+    /**
+     * Constructs a URL path for the event endpoint.
+     * @param pathSuffix The part of the path to append, e.g., an event ID.
+     * @return A complete path string for the event resource.
+     */
+    public String getEventUrl(String pathSuffix) {
+        return buildUrl(urlSettings.getEventUrl(), pathSuffix);
     }
 
-    public String getGymUrl(String urlPart) {
-        return contactUrls(urlSettings.getGymUrl(), urlPart);
+    /**
+     * Constructs a URL path for the gym endpoint.
+     * @param pathSuffix The part of the path to append, e.g., a gym ID.
+     * @return A complete path string for the gym resource.
+     */
+    public String getGymUrl(String pathSuffix) {
+        return buildUrl(urlSettings.getGymUrl(), pathSuffix);
     }
 
-    private String contactUrls(String baseUrl, String pathPart) {
-        try {
-            URIBuilder uriBuilder = new URIBuilder(baseUrl);
-            URI uri = uriBuilder.setPath(uriBuilder.getPath() + pathPart)
-                    .build()
-                    .normalize();
-            String fullUrl = uri.toString();
-            log.debug("Constructed URL: {}", fullUrl);
-            return fullUrl;
-        } catch (URISyntaxException ex) {
-            log.error("Failed to construct URL from base: '{}' and part: '{}'", baseUrl, pathPart, ex);
-            throw new IllegalArgumentException("Failed to construct URL.", ex);
-        }
+    /**
+     * Safely combines a base path from settings with a suffix path.
+     * This method correctly handles leading or trailing slashes.
+     *
+     * @param basePath The base path from UrlSettings (e.g., "/api/event").
+     * @param pathSuffix The additional path segment (e.g., "/123").
+     * @return The combined path string (e.g., "/api/event/123").
+     */
+    private String buildUrl(String basePath, String pathSuffix) {
+        // UriComponentsBuilder is part of Spring and handles URL/URI construction robustly.
+        String fullPath = UriComponentsBuilder.fromPath(basePath)
+                .path(pathSuffix)
+                .build()
+                .toUriString();
+
+        log.debug("Constructed URL path: {}", fullPath);
+        return fullPath;
     }
 }
