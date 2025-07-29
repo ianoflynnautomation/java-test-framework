@@ -8,59 +8,53 @@ import io.cucumber.java.en.When;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import solutions.bjjeire.api.actions.GymApiActions;
-import solutions.bjjeire.api.http.TestClient;
-import solutions.bjjeire.api.validation.ResponseAsserter;
+import solutions.bjjeire.api.validation.ValidatableResponse;
 import solutions.bjjeire.core.data.gyms.CreateGymCommand;
 import solutions.bjjeire.core.data.gyms.CreateGymResponse;
 import solutions.bjjeire.core.data.gyms.Gym;
 import solutions.bjjeire.core.data.gyms.GymFactory;
 import solutions.bjjeire.cucumber.context.ScenarioContext;
+import solutions.bjjeire.cucumber.steps.CucumberTestBase;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Map;
 
-public class GymCreateSteps {
+public class GymCreateSteps extends CucumberTestBase {
     private static final Logger logger = LoggerFactory.getLogger(GymCreateSteps.class);
-    @Autowired private ApplicationContext applicationContext;
-    @Autowired private ScenarioContext context;
-    private final GymApiActions gymApi = new GymApiActions();
-    private TestClient testClient() { return applicationContext.getBean(TestClient.class); }
+
+    @Autowired
+    private ScenarioContext context;
 
     @Given("I have valid details for a new Bjj Gym named {string}")
     public void iHaveValidDetailsForANewBjjGymNamed(String gymName) {
         Gym gymToCreate = GymFactory.createGym(builder -> builder.name(gymName));
-        context.setRequestPayload(gymToCreate);
+        context.setRequestPayload(new CreateGymCommand(gymToCreate));
+        context.setGymName(gymName);
     }
 
     @When("I create the Bjj Gym")
     public void iCreateTheBjjGym() {
-        // FIX: Wrap the Gym object in a CreateGymCommand
-        Gym gymPayload = (Gym) context.getRequestPayload();
-        CreateGymCommand command = new CreateGymCommand(gymPayload);
-
-        ResponseAsserter asserter = testClient()
+        ValidatableResponse response = given()
                 .withAuthToken(context.getAuthToken())
-                .body(command) // Send the command object
+                .withBody(context.getRequestPayload())
                 .post("/api/gym");
-        context.setResponseAsserter(asserter);
+        context.setValidatableResponse(response);
     }
 
     @Then("the gym is created successfully")
     public void theGymIsCreatedSuccessfully() {
-        ResponseAsserter asserter = context.getResponseAsserter();
-        assertNotNull(asserter, "ResponseAsserter was not found in the context.");
+        ValidatableResponse response = context.getValidatableResponse();
+        assertNotNull(response, "ValidatableResponse was not found in the context.");
 
-        asserter.hasStatusCode(201);
-        Gym createdGym = asserter.as(CreateGymResponse.class).data();
+        response.hasStatusCode(201);
+        Gym createdGym = response.as(CreateGymResponse.class).data();
         context.setCreatedGym(createdGym);
 
         final String gymId = createdGym.id();
-        context.addCleanupAction(client -> {
+        context.addCleanupAction(() -> {
             logger.info("CLEANUP: Deleting gym with ID: {}", gymId);
-            client.withAuthToken(context.getAuthToken())
+            given().withAuthToken(context.getAuthToken())
                     .delete("/api/gym/" + gymId)
                     .then().hasStatusCode(204);
         });
@@ -84,5 +78,4 @@ public class GymCreateSteps {
             }
         });
     }
-
 }

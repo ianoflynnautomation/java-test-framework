@@ -6,16 +6,15 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.springframework.beans.factory.annotation.Autowired;
 import solutions.bjjeire.api.actions.AuthApiActions;
 import solutions.bjjeire.api.actions.EventApiActions;
-import solutions.bjjeire.api.http.TestClient;
 import solutions.bjjeire.api.infrastructure.junit.ApiTestBase;
 import solutions.bjjeire.core.data.events.BjjEvent;
 import solutions.bjjeire.core.data.events.BjjEventFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -27,24 +26,26 @@ import static org.junit.jupiter.api.Assertions.*;
 @Execution(ExecutionMode.CONCURRENT)
 public class EventsTests extends ApiTestBase {
 
-    private final EventApiActions eventApi = new EventApiActions();
+    @Autowired
+    private EventApiActions eventApi;
 
-    private final AuthApiActions authApi = new AuthApiActions();
+    @Autowired
+    private AuthApiActions authApi;
 
-    private final List<Consumer<TestClient>> cleanupActions = new ArrayList<>();
-
+    private final List<Runnable> cleanupActions = new ArrayList<>();
     private String authToken;
 
     @BeforeEach
     void setup() {
-        this.authToken = authApi.authenticateAsAdmin(testClient());
+        this.authToken = authApi.authenticateAsAdmin();
     }
 
     @AfterEach
     void teardown() {
         if (!cleanupActions.isEmpty()) {
-            System.out.println("--- JUnit Teardown: Executing cleanup actions ---");
-            cleanupActions.forEach(action -> action.accept(testClient()));
+            System.out.println("--- JUnit Teardown: Executing " + cleanupActions.size() + " cleanup action(s) ---");
+            cleanupActions.forEach(Runnable::run);
+            cleanupActions.clear();
         }
     }
 
@@ -55,9 +56,8 @@ public class EventsTests extends ApiTestBase {
         BjjEvent eventToCreate = BjjEventFactory.getValidBjjEvent();
 
         // Act
-        var result = eventApi.createEvent(testClient(), this.authToken, eventToCreate);
+        var result = eventApi.createEvent(this.authToken, eventToCreate);
         BjjEvent createdEvent = result.resource();
-
         cleanupActions.add(result.cleanupAction());
 
         // Assert

@@ -4,9 +4,8 @@ import io.cucumber.spring.ScenarioScope;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
-import solutions.bjjeire.api.http.TestClient;
+import solutions.bjjeire.api.validation.ValidatableResponse;
 import solutions.bjjeire.core.data.events.BjjEvent;
-import solutions.bjjeire.api.validation.ResponseAsserter;
 import solutions.bjjeire.core.data.gyms.Gym;
 
 import java.util.ArrayList;
@@ -22,18 +21,21 @@ import java.util.function.Consumer;
 @Getter
 @Setter
 public class ScenarioContext {
-
     private String authToken;
     private Object requestPayload;
     private String eventName;
     private String gymName;
-    private ResponseAsserter responseAsserter;
     private BjjEvent createdEvent;
     private Gym createdGym;
+    private ValidatableResponse validatableResponse;
+    private final List<Runnable> cleanupActions = new ArrayList<>();
 
-    private final List<Consumer<TestClient>> cleanupActions = new ArrayList<>();
-
-    public void addCleanupAction(Consumer<TestClient> action) {
+    public void addCleanupAction(Runnable action) {
         cleanupActions.add(action);
+    }
+
+    public void runCleanupActions() {
+        cleanupActions.forEach(Runnable::run);
+        cleanupActions.clear();
     }
 }

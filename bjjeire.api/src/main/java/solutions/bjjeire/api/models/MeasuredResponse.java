@@ -1,14 +1,12 @@
 package solutions.bjjeire.api.models;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.Getter;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * An immutable record that holds the results of an API call.

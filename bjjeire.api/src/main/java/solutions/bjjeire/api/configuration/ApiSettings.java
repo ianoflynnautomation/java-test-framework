@@ -8,15 +8,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Setter
 @ConfigurationProperties(prefix = "api-settings")
 public class ApiSettings {
-
     private String baseUrl;
-
-    private int clientTimeoutSeconds = 30;
-
-    private int maxRetryAttempts = 3;
-
+    private int connectTimeoutMillis = 5000;
+    private int responseTimeoutMillis = 10000;
+    private int maxRetryAttempts = 2;
     private long pauseBetweenFailuresMillis = 1000;
-
-    ApiSettings() {
-    }
 }

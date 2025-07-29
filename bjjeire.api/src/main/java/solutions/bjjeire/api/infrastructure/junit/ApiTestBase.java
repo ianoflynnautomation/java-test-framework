@@ -2,9 +2,11 @@ package solutions.bjjeire.api.infrastructure.junit;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.ApplicationContext;
 import solutions.bjjeire.api.configuration.TestConfiguration;
-import solutions.bjjeire.api.http.TestClient;
+import solutions.bjjeire.api.http.ApiClient;
+import solutions.bjjeire.api.http.RequestSpecification;
+
+import java.util.HashMap;
 
 /**
  * A Spring-enabled base class for all API test classes.
@@ -16,21 +18,13 @@ import solutions.bjjeire.api.http.TestClient;
 public abstract class ApiTestBase {
 
     @Autowired
-    private ApplicationContext applicationContext;
+    private ApiClient apiClient;
 
-    /**
-     * The main entry point for creating a fluent API request for a test.
-     * It retrieves a new prototype-scoped TestClient bean from the Spring context.
-     * This ensures each test gets a clean, isolated instance, which is crucial
-     * for parallel execution and preventing state leakage.
-     *
-     * @return A new, isolated TestClient instance for building and executing a request.
-     */
-    protected TestClient testClient() {
-        if (applicationContext == null) {
-            throw new IllegalStateException("Spring ApplicationContext is not initialized. Ensure the test class is annotated correctly.");
+    protected RequestSpecification given() {
+        if (apiClient == null) {
+            throw new IllegalStateException("ApiClient is not initialized. Ensure the test class is Spring-enabled.");
         }
-        // Retrieve a fresh, prototype-scoped instance of TestClient for each call.
-        return applicationContext.getBean(TestClient.class);
+        
+        return new RequestSpecification(apiClient, new HashMap<>(), new HashMap<>(), null, null);
     }
 }
