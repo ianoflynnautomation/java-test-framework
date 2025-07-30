@@ -13,12 +13,13 @@ public class AuthApiActions extends BaseApiActions {
 
     public String authenticateAsAdmin() {
         GenerateTokenResponse tokenResponse = runner.run(
-                        given()
-                                .withQueryParams(Map.of("userId", "dev-user@example.com", "role", "Admin"))
+                        request()
+                                .queryParams(Map.of("userId", "dev-user@example.com", "role", "Admin"))
                                 .get("/generate-token")
+                                .build()
                 )
-                .then().hasStatusCode(200)
-                .as(GenerateTokenResponse.class);
+                .then().statusCode(200)
+                .andReturn().as(GenerateTokenResponse.class);
 
         return tokenResponse.token();
     }

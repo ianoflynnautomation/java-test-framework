@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import solutions.bjjeire.api.actions.EventApiActions;
 import solutions.bjjeire.api.actions.GymApiActions;
-import solutions.bjjeire.api.validation.ValidatableResponse;
+import solutions.bjjeire.api.validation.ApiResponse;
 import solutions.bjjeire.core.data.events.BjjEvent;
 import solutions.bjjeire.core.data.gyms.Gym;
 import solutions.bjjeire.cucumber.context.ScenarioContext;
@@ -78,10 +78,10 @@ public class Hooks {
         failureContext.put("scenarioName", scenario.getName());
 
         if (scenarioContext.getLastResponse() != null) {
-            ValidatableResponse response = scenarioContext.getLastResponse();
+            ApiResponse response = scenarioContext.getLastResponse();
             failureContext.put("lastApiRequestUrl", response.getRequestPath());
             failureContext.put("lastApiResponseCode", response.getStatusCode());
-            failureContext.put("lastApiResponseBody", response.getBody());
+            failureContext.put("lastApiResponseBody", response.getBodyAsString());
         }
 
         if (scenarioContext.getRequestPayload() != null) {

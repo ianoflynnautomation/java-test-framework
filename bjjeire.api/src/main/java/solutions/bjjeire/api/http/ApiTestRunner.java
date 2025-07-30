@@ -9,7 +9,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
 import solutions.bjjeire.api.configuration.ApiSettings;
-import solutions.bjjeire.api.validation.ValidatableResponse;
+import solutions.bjjeire.api.validation.ApiResponse;
 
 import java.time.Duration;
 
@@ -27,7 +27,7 @@ public class ApiTestRunner {
         this.objectMapper = objectMapper;
     }
 
-    public ValidatableResponse run(RequestSpecification spec) {
+    public ApiResponse run(ApiRequest spec) {
         long startTime = System.nanoTime();
 
         WebClient.RequestBodySpec requestBodySpec = webClient
@@ -43,11 +43,11 @@ public class ApiTestRunner {
                 ? requestBodySpec.contentType(spec.getContentType()).bodyValue(spec.getBody())
                 : requestBodySpec;
 
-        Mono<ValidatableResponse> responseMono = finalRequestSpec
+        Mono<ApiResponse> responseMono = finalRequestSpec
                 .exchangeToMono(clientResponse -> clientResponse.toEntity(String.class).map(responseEntity -> {
                     long endTime = System.nanoTime();
                     Duration executionTime = Duration.ofNanos(endTime - startTime);
-                    return new ValidatableResponse(
+                    return new ApiResponse(
                             responseEntity,
                             executionTime,
                             objectMapper,

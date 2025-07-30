@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import solutions.bjjeire.api.actions.EventApiActions;
-import solutions.bjjeire.api.validation.ValidatableResponse;
+import solutions.bjjeire.api.validation.ApiResponse;
 import solutions.bjjeire.core.data.common.County;
 import solutions.bjjeire.core.data.events.BjjEvent;
 import solutions.bjjeire.core.data.events.BjjEventFactory;
@@ -85,7 +85,7 @@ public class EventCreateSteps extends CucumberTestBase {
 
     @When("I attempt to create the BJJ event")
     public void iAttemptToCreateTheBjjEvent() {
-        ValidatableResponse response = eventApi.attemptToCreateEventWithInvalidData(
+        ApiResponse response = eventApi.attemptToCreateEventWithInvalidData(
                 scenarioContext.getAuthToken(),
                 scenarioContext.getRequestPayload()
         );
@@ -100,17 +100,15 @@ public class EventCreateSteps extends CucumberTestBase {
 
     @Then("the API returns a validation error with the following details:")
     public void theApiReturnsAValidationErrorWithTheFollowingDetails(DataTable dataTable) {
-        ValidatableResponse response = scenarioContext.getLastResponse();
+        ApiResponse response = scenarioContext.getLastResponse();
         assertNotNull(response, "Response was not found in context.");
 
         Map<String, String> expectedErrors = dataTable.asMap();
 
         response.then()
-                .hasValidationError()
-                .and()
+                .validationError()
                 .containsAllErrors(expectedErrors)
-                .and()
-                .hasErrorCount(expectedErrors.size());
+                .errorCount(expectedErrors.size());
     }
 
     @And("the event details include:")

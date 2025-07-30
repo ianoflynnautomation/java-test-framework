@@ -1,7 +1,7 @@
 package solutions.bjjeire.api.actions;
 
 import solutions.bjjeire.api.http.auth.BearerTokenAuth;
-import solutions.bjjeire.api.validation.ValidatableResponse;
+import solutions.bjjeire.api.validation.ApiResponse;
 import solutions.bjjeire.core.data.events.*;
 import org.springframework.stereotype.Component;
 
@@ -13,31 +13,34 @@ public class EventApiActions extends BaseApiActions{
 
     public CreateBjjEventResponse createEvent(String authToken, CreateBjjEventCommand command) {
         return runner.run(
-                        given()
-                                .withAuth(new BearerTokenAuth(authToken))
-                                .withBody(command)
+                        request()
+                                .auth(new BearerTokenAuth(authToken))
+                                .body(command)
                                 .post("/api/bjjevent")
+                                .build()
                 )
-                .then().hasStatusCode(201)
-                .as(CreateBjjEventResponse.class);
+                .then().statusCode(201)
+                .andReturn().as(CreateBjjEventResponse.class);
     }
 
-    public ValidatableResponse attemptToCreateEvent(String authToken, Object payload) { // Changed here
+    public ApiResponse attemptToCreateEvent(String authToken, Object payload) { // Changed here
         return runner.run(
-                given()
-                        .withAuth(new BearerTokenAuth(authToken))
-                        .withBody(payload) // Now accepts any object
+                request()
+                        .auth(new BearerTokenAuth(authToken))
+                        .body(payload) // Now accepts any object
                         .post("/api/bjjevent")
+                        .build()
         );
     }
 
     public void deleteEvent(String authToken, String eventId) {
         System.out.printf("CLEANUP: Deleting event with ID: %s%n", eventId);
         runner.run(
-                given()
-                        .withAuth(new BearerTokenAuth(authToken))
+                request()
+                        .auth(new BearerTokenAuth(authToken))
                         .delete("/api/bjjevent/" + eventId)
-        ).then().hasStatusCode(204);
+                        .build()
+        ).then().statusCode(204);
     }
 
 
@@ -51,22 +54,24 @@ public class EventApiActions extends BaseApiActions{
         }
 
         return runner.run(
-                        given()
-                                .withAuth(new BearerTokenAuth(authToken))
-                                .withQueryParams(queryParams)
+                        request()
+                                .auth(new BearerTokenAuth(authToken))
+                                .queryParams(queryParams)
                                 .get("/api/bjjevent")
+                                .build()
                 )
-                .then().hasStatusCode(200)
-                .as(GetBjjEventPaginatedResponse.class);
+                .then().statusCode(200)
+                .andReturn().as(GetBjjEventPaginatedResponse.class);
     }
 
 
-    public ValidatableResponse attemptToCreateEventWithInvalidData(String authToken, Object invalidPayload) {
+    public ApiResponse attemptToCreateEventWithInvalidData(String authToken, Object invalidPayload) {
         return runner.run(
-                given()
-                        .withAuth(new BearerTokenAuth(authToken))
-                        .withBody(invalidPayload)
+                request()
+                        .auth(new BearerTokenAuth(authToken))
+                        .body(invalidPayload)
                         .post("/api/bjjevent")
+                        .build()
         );
     }
 }
