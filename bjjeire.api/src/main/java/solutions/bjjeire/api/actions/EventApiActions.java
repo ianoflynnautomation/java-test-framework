@@ -9,25 +9,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Component
-public class EventApiActions extends BaseApiActions{
+public class EventApiActions extends BaseApiActions {
 
-    public CreateBjjEventResponse createEvent(String authToken, CreateBjjEventCommand command) {
-        return runner.run(
-                        request()
-                                .auth(new BearerTokenAuth(authToken))
-                                .body(command)
-                                .post("/api/bjjevent")
-                                .build()
-                )
-                .then().statusCode(201)
-                .andReturn().as(CreateBjjEventResponse.class);
-    }
-
-    public ApiResponse attemptToCreateEvent(String authToken, Object payload) { // Changed here
+    public ApiResponse createEvent(String authToken, CreateBjjEventCommand command) {
         return runner.run(
                 request()
                         .auth(new BearerTokenAuth(authToken))
-                        .body(payload) // Now accepts any object
+                        .body(command)
                         .post("/api/bjjevent")
                         .build()
         );
@@ -43,8 +31,7 @@ public class EventApiActions extends BaseApiActions{
         ).then().statusCode(204);
     }
 
-
-    public GetBjjEventPaginatedResponse getEvents(String authToken, GetBjjEventPaginationQuery query) {
+    public ApiResponse getEvents(String authToken, GetBjjEventPaginationQuery query) {
         Map<String, Object> queryParams = new HashMap<>();
         if (query.getCounty() != null) {
             queryParams.put("county", query.getCounty().name());
@@ -54,16 +41,13 @@ public class EventApiActions extends BaseApiActions{
         }
 
         return runner.run(
-                        request()
-                                .auth(new BearerTokenAuth(authToken))
-                                .queryParams(queryParams)
-                                .get("/api/bjjevent")
-                                .build()
-                )
-                .then().statusCode(200)
-                .andReturn().as(GetBjjEventPaginatedResponse.class);
+                request()
+                        .auth(new BearerTokenAuth(authToken))
+                        .queryParams(queryParams)
+                        .get("/api/bjjevent")
+                        .build()
+        );
     }
-
 
     public ApiResponse attemptToCreateEventWithInvalidData(String authToken, Object invalidPayload) {
         return runner.run(

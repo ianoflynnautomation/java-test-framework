@@ -35,7 +35,6 @@ public class ApiTestRunner {
                 .uri(uriBuilder -> uriBuilder.path(spec.getPath()).queryParams(spec.getQueryParams()).build())
                 .headers(httpHeaders -> {
                     httpHeaders.addAll(spec.getHeaders());
-                    // REFACTOR: Apply the authentication strategy.
                     spec.getAuthentication().apply(httpHeaders);
                 });
 
@@ -66,7 +65,7 @@ public class ApiTestRunner {
                     .doBeforeRetry(retrySignal -> log.warn("Request failed, retrying... Attempt #{}. Cause: {}",
                             retrySignal.totalRetries() + 1, retrySignal.failure().getMessage()));
         }
-        return Retry.max(0); // No retries
+        return Retry.max(0);
     }
 
     private boolean isIdempotent(HttpMethod method) {

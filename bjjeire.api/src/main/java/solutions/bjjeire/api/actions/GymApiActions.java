@@ -12,19 +12,7 @@ import java.util.Map;
 @Component
 public class GymApiActions extends BaseApiActions {
 
-    public CreateGymResponse createGym(String authToken, CreateGymCommand command) {
-        return runner.run(
-                        request()
-                                .auth(new BearerTokenAuth(authToken))
-                                .body(command)
-                                .post("/api/gym")
-                                .build()
-                )
-                .then().statusCode(201)
-                .andReturn().as(CreateGymResponse.class);
-    }
-
-    public ApiResponse attemptToCreateGym(String authToken, CreateGymCommand command) {
+    public ApiResponse createGym(String authToken, CreateGymCommand command) {
         return runner.run(
                 request()
                         .auth(new BearerTokenAuth(authToken))
@@ -44,21 +32,19 @@ public class GymApiActions extends BaseApiActions {
         ).then().statusCode(204);
     }
 
-    public GetGymPaginatedResponse getGyms(String authToken, GetGymPaginationQuery query) {
+    public ApiResponse getGyms(String authToken, GetGymPaginationQuery query) {
         Map<String, Object> queryParams = new HashMap<>();
         if (query.getCounty() != null) {
             queryParams.put("county", query.getCounty().name());
         }
 
         return runner.run(
-                        request()
-                                .auth(new BearerTokenAuth(authToken))
-                                .queryParams(queryParams)
-                                .get("/api/gym")
-                                .build()
-                )
-                .then().statusCode(200)
-                .andReturn().as(GetGymPaginatedResponse.class);
+                request()
+                        .auth(new BearerTokenAuth(authToken))
+                        .queryParams(queryParams)
+                        .get("/api/gym")
+                        .build()
+        );
     }
 
     public ApiResponse attemptToCreateGymWithInvalidData(String authToken, Object invalidPayload) {

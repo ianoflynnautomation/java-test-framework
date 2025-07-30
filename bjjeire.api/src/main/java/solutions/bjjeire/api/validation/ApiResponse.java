@@ -6,6 +6,7 @@ import com.networknt.schema.JsonSchema;
 import com.networknt.schema.JsonSchemaFactory;
 import com.networknt.schema.SpecVersion;
 import com.networknt.schema.ValidationMessage;
+import lombok.Getter;
 import org.springframework.http.ResponseEntity;
 import solutions.bjjeire.api.models.ApiAssertionException;
 import solutions.bjjeire.api.models.errors.ValidationErrorResponse;
@@ -20,9 +21,9 @@ import java.util.stream.Collectors;
 
 public class ApiResponse {
     private final ResponseEntity<String> responseEntity;
-    private final Duration executionTime;
+    @Getter private final Duration executionTime;
     private final ObjectMapper objectMapper;
-    private final String requestPath;
+    @Getter private final String requestPath;
 
     public ApiResponse(ResponseEntity<String> responseEntity, Duration executionTime, ObjectMapper objectMapper, String requestPath) {
         this.responseEntity = responseEntity;
@@ -33,8 +34,6 @@ public class ApiResponse {
 
     public int getStatusCode() { return responseEntity.getStatusCode().value(); }
     public String getBodyAsString() { return responseEntity.getBody(); }
-    public String getRequestPath() { return requestPath; }
-    public Duration getExecutionTime() { return executionTime; }
 
     /**
      * Deserializes the response body into a given type.

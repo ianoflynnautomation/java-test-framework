@@ -84,10 +84,10 @@ public class BjjEventFactory {
         // Iterate over the map from the DataTable and apply the invalid/custom details
         invalidDetails.forEach((field, value) -> {
             switch (field) {
-                case "Name":
+                case "Data.Name":
                     builder.name(value); // Handles empty or null names
                     break;
-                case "Price":
+                case "Data.Pricing.Amount":
                     // Get the existing pricing model to modify just the price
                     PricingModel existingPricing = builder.build().pricing();
                     PricingModel invalidPricing = new PricingModel(

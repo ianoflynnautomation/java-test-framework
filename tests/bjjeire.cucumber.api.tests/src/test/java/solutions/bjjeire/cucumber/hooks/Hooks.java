@@ -12,21 +12,19 @@ import solutions.bjjeire.api.actions.GymApiActions;
 import solutions.bjjeire.api.validation.ApiResponse;
 import solutions.bjjeire.core.data.events.BjjEvent;
 import solutions.bjjeire.core.data.gyms.Gym;
-import solutions.bjjeire.cucumber.context.ScenarioContext;
+import solutions.bjjeire.cucumber.context.TestState;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Manages the lifecycle of a Cucumber scenario, including setup, teardown, and cleanup.
- */
+
 public class Hooks {
 
     private static final Logger logger = LoggerFactory.getLogger(Hooks.class);
 
-    @Autowired private ScenarioContext scenarioContext;
+    @Autowired private TestState testState;
     @Autowired private EventApiActions eventApi;
     @Autowired private GymApiActions gymApi;
     @Autowired private ObjectMapper objectMapper;
@@ -34,17 +32,11 @@ public class Hooks {
     @Before
     public void setup(Scenario scenario) {
         logger.info("--- Starting Scenario: '{}' ---", scenario.getName());
-        // Reset state at the beginning of each scenario
-        scenarioContext.getCreatedEntities().clear();
-        scenarioContext.setLastResponse(null);
-        scenarioContext.setRequestPayload(null);
-        scenarioContext.setAuthToken(null);
     }
 
     @After
     public void tearDown(Scenario scenario) {
-        // Execute cleanup actions in reverse order of creation.
-        List<Object> entitiesToClean = scenarioContext.getCreatedEntities();
+        List<Object> entitiesToClean = testState.getCreatedEntities();
         if (!entitiesToClean.isEmpty()) {
             logger.info("--- Executing {} cleanup action(s) for scenario: '{}' ---", entitiesToClean.size(), scenario.getName());
             Collections.reverse(entitiesToClean);
@@ -63,10 +55,10 @@ public class Hooks {
         try {
             if (entity instanceof BjjEvent) {
                 BjjEvent event = (BjjEvent) entity;
-                eventApi.deleteEvent(scenarioContext.getAuthToken(), event.id());
+                eventApi.deleteEvent(testState.getAuthToken(), event.id());
             } else if (entity instanceof Gym) {
                 Gym gym = (Gym) entity;
-                gymApi.deleteGym(scenarioContext.getAuthToken(), gym.id());
+                gymApi.deleteGym(testState.getAuthToken(), gym.id());
             }
         } catch (Exception e) {
             logger.error("Error during cleanup for entity [{}]: {}", entity, e.getMessage(), e);
@@ -77,16 +69,16 @@ public class Hooks {
         Map<String, Object> failureContext = new LinkedHashMap<>();
         failureContext.put("scenarioName", scenario.getName());
 
-        if (scenarioContext.getLastResponse() != null) {
-            ApiResponse response = scenarioContext.getLastResponse();
+        if (testState.getLastResponse() != null) {
+            ApiResponse response = testState.getLastResponse();
             failureContext.put("lastApiRequestUrl", response.getRequestPath());
             failureContext.put("lastApiResponseCode", response.getStatusCode());
             failureContext.put("lastApiResponseBody", response.getBodyAsString());
         }
 
-        if (scenarioContext.getRequestPayload() != null) {
+        if (testState.getRequestPayload() != null) {
             try {
-                failureContext.put("lastApiRequestPayload", objectMapper.writeValueAsString(scenarioContext.getRequestPayload()));
+                failureContext.put("lastApiRequestPayload", objectMapper.writeValueAsString(testState.getRequestPayload()));
             } catch (Exception e) {
                 failureContext.put("lastApiRequestPayload", "Could not serialize request payload.");
             }
