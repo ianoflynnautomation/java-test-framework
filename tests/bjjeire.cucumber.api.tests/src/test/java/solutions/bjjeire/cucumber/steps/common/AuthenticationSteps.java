@@ -18,9 +18,6 @@ public class AuthenticationSteps {
     @Autowired
     private AuthApiActions authApi;
 
-    /**
-     * Authenticates Admin Andy as an admin user and stores the authentication token.
-     */
     @Given("Admin is authenticated")
     public void adminAndyIsAuthenticated() {
         logger.info("Authenticating Admin Andy as an admin user...");

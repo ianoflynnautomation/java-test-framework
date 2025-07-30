@@ -24,10 +24,6 @@ public record BjjEvent(
         String eventUrl,
         String imageUrl) {
 
-    /**
-     * A manual toBuilder() method to create a mutable Builder from an immutable record instance.
-     * This is essential for creating variations of an object for testing.
-     */
     public Builder toBuilder() {
         return new Builder()
                 .id(this.id)

@@ -3,7 +3,6 @@ package solutions.bjjeire.api.http;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.With;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.util.LinkedMultiValueMap;
@@ -114,7 +113,8 @@ public class ApiRequest {
             if (method == null || path == null) {
                 throw new IllegalStateException("HTTP method and path must be set before building the request.");
             }
-            return new ApiRequest(method, path, headers, queryParams, body, contentType, acceptableMediaTypes, authentication);
+            return new ApiRequest(method, path, headers, queryParams, body, contentType, acceptableMediaTypes,
+                    authentication);
         }
     }
 }

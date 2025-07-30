@@ -17,8 +17,7 @@ public class EventApiActions extends BaseApiActions {
                         .auth(new BearerTokenAuth(authToken))
                         .body(command)
                         .post("/api/bjjevent")
-                        .build()
-        );
+                        .build());
     }
 
     public void deleteEvent(String authToken, String eventId) {
@@ -27,8 +26,8 @@ public class EventApiActions extends BaseApiActions {
                 request()
                         .auth(new BearerTokenAuth(authToken))
                         .delete("/api/bjjevent/" + eventId)
-                        .build()
-        ).then().statusCode(204);
+                        .build())
+                .then().statusCode(204);
     }
 
     public ApiResponse getEvents(String authToken, GetBjjEventPaginationQuery query) {
@@ -45,8 +44,7 @@ public class EventApiActions extends BaseApiActions {
                         .auth(new BearerTokenAuth(authToken))
                         .queryParams(queryParams)
                         .get("/api/bjjevent")
-                        .build()
-        );
+                        .build());
     }
 
     public ApiResponse attemptToCreateEventWithInvalidData(String authToken, Object invalidPayload) {
@@ -55,7 +53,6 @@ public class EventApiActions extends BaseApiActions {
                         .auth(new BearerTokenAuth(authToken))
                         .body(invalidPayload)
                         .post("/api/bjjevent")
-                        .build()
-        );
+                        .build());
     }
 }

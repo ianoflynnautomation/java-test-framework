@@ -50,8 +50,7 @@ public class ApiTestRunner {
                             responseEntity,
                             executionTime,
                             objectMapper,
-                            spec.getPath()
-                    );
+                            spec.getPath());
                 }))
                 .retryWhen(getRetrySpec(spec.getMethod()));
 
@@ -60,7 +59,9 @@ public class ApiTestRunner {
 
     private Retry getRetrySpec(HttpMethod method) {
         if (settings.getMaxRetryAttempts() > 0 && isIdempotent(method)) {
-            return Retry.backoff(settings.getMaxRetryAttempts(), Duration.ofMillis(settings.getPauseBetweenFailuresMillis()))
+            return Retry
+                    .backoff(settings.getMaxRetryAttempts(),
+                            Duration.ofMillis(settings.getPauseBetweenFailuresMillis()))
                     .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> retrySignal.failure())
                     .doBeforeRetry(retrySignal -> log.warn("Request failed, retrying... Attempt #{}. Cause: {}",
                             retrySignal.totalRetries() + 1, retrySignal.failure().getMessage()));

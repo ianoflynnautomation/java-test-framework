@@ -6,11 +6,6 @@ import org.junit.platform.suite.api.IncludeEngines;
 import org.junit.platform.suite.api.SelectClasspathResource;
 import org.junit.platform.suite.api.Suite;
 
-
-/**
- * Main test runner for BDD tests using the JUnit 5 Suite engine.
- * It automatically discovers step definitions and hooks in the specified glue path.
- */
 @Suite
 @IncludeEngines("cucumber")
 @SelectClasspathResource("features")

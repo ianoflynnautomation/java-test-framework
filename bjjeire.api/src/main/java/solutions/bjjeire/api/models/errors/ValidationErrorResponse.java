@@ -11,8 +11,7 @@ public record ValidationErrorResponse(
         int status,
         String detail,
         String instance,
-        List<FieldError> errors
-) {
+        List<FieldError> errors) {
     @JsonCreator
     public ValidationErrorResponse(
             @JsonProperty("type") String type,

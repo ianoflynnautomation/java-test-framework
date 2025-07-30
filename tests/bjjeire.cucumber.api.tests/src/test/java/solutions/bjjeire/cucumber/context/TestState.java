@@ -9,10 +9,6 @@ import solutions.bjjeire.api.validation.ApiResponse;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * A scenario-scoped bean to hold state within a single Cucumber scenario.
- * This ensures that data from one test does not leak into another.
- */
 @Component
 @ScenarioScope
 @Getter
@@ -29,5 +25,3 @@ public class TestState {
         }
     }
 }
-
-

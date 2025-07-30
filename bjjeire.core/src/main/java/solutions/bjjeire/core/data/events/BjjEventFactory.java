@@ -1,8 +1,5 @@
 package solutions.bjjeire.core.data.events;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.javafaker.Faker;
 import org.bson.types.ObjectId;
 import solutions.bjjeire.core.data.common.County;
@@ -20,9 +17,6 @@ import java.util.function.Consumer;
 public class BjjEventFactory {
 
     private static final Faker faker = new Faker();
-    private static final ObjectMapper objectMapper = new ObjectMapper()
-            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-            .registerModule(new JavaTimeModule());
 
     public static CreateBjjEventCommand getValidBjjEventCommand() {
         return new CreateBjjEventCommand(getValidBjjEvent());
@@ -94,8 +88,7 @@ public class BjjEventFactory {
                             existingPricing.type(),
                             new BigDecimal(value), // Set the invalid price from the DataTable
                             existingPricing.durationDays(),
-                            existingPricing.currency()
-                    );
+                            existingPricing.currency());
                     builder.pricing(invalidPricing);
                     break;
                 // Add other cases here for different fields you might want to make invalid
@@ -124,8 +117,7 @@ public class BjjEventFactory {
                         tempEventForPrice.pricing().type(),
                         new BigDecimal("-10.00"), // Set a negative price
                         tempEventForPrice.pricing().durationDays(),
-                        tempEventForPrice.pricing().currency()
-                );
+                        tempEventForPrice.pricing().currency());
                 builder.pricing(invalidPricing);
                 break;
             case "invalid date":
@@ -134,16 +126,13 @@ public class BjjEventFactory {
                         tempEventForDate.schedule().scheduleType(),
                         LocalDate.now().minusDays(1), // Set start date to the past
                         tempEventForDate.schedule().endDate(),
-                        tempEventForDate.schedule().hours()
-                );
+                        tempEventForDate.schedule().hours());
                 builder.schedule(invalidSchedule);
                 break;
             default:
                 throw new IllegalArgumentException(
                         "Unsupported invalid reason for test data generation: " + invalidReason);
         }
-
-        // Build the invalid event and wrap it in the command object
         return new CreateBjjEventCommand(builder.build());
     }
 }

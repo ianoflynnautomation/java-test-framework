@@ -17,17 +17,14 @@ import solutions.bjjeire.core.data.events.CreateBjjEventResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * Example test class for the BJJ Events API.
- * This class demonstrates parallel execution, a fluent API, and test isolation.
- * The @Execution(ExecutionMode.CONCURRENT) annotation enables parallel test runs.
- */
 @Execution(ExecutionMode.CONCURRENT)
 public class EventsTests extends ApiTestBase {
 
-    @Autowired private EventApiActions eventApi;
-    @Autowired private AuthApiActions authApi;
-        private String authToken;
+    @Autowired
+    private EventApiActions eventApi;
+    @Autowired
+    private AuthApiActions authApi;
+    private String authToken;
 
     @BeforeEach
     void setup() {

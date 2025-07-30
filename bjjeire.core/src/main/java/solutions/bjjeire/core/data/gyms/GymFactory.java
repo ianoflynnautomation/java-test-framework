@@ -1,8 +1,5 @@
 package solutions.bjjeire.core.data.gyms;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.javafaker.Faker;
 import org.bson.types.ObjectId;
 import solutions.bjjeire.core.data.common.County;
@@ -18,9 +15,6 @@ import java.util.function.Consumer;
 public class GymFactory {
 
     private static final Faker faker = new Faker();
-    private static final ObjectMapper objectMapper = new ObjectMapper()
-            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-            .registerModule(new JavaTimeModule());
 
     public static CreateGymCommand getValidCreateGymCommand() {
         return new CreateGymCommand(getValidGym());

@@ -8,7 +8,6 @@ import solutions.bjjeire.core.data.gyms.*;
 import java.util.HashMap;
 import java.util.Map;
 
-
 @Component
 public class GymApiActions extends BaseApiActions {
 
@@ -18,8 +17,7 @@ public class GymApiActions extends BaseApiActions {
                         .auth(new BearerTokenAuth(authToken))
                         .body(command)
                         .post("/api/gym")
-                        .build()
-        );
+                        .build());
     }
 
     public void deleteGym(String authToken, String gymId) {
@@ -28,8 +26,8 @@ public class GymApiActions extends BaseApiActions {
                 request()
                         .auth(new BearerTokenAuth(authToken))
                         .delete("/api/gym/" + gymId)
-                        .build()
-        ).then().statusCode(204);
+                        .build())
+                .then().statusCode(204);
     }
 
     public ApiResponse getGyms(String authToken, GetGymPaginationQuery query) {
@@ -43,8 +41,7 @@ public class GymApiActions extends BaseApiActions {
                         .auth(new BearerTokenAuth(authToken))
                         .queryParams(queryParams)
                         .get("/api/gym")
-                        .build()
-        );
+                        .build());
     }
 
     public ApiResponse attemptToCreateGymWithInvalidData(String authToken, Object invalidPayload) {
@@ -53,7 +50,6 @@ public class GymApiActions extends BaseApiActions {
                         .auth(new BearerTokenAuth(authToken))
                         .body(invalidPayload)
                         .post("/api/gym")
-                        .build()
-        );
+                        .build());
     }
 }

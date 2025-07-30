@@ -19,15 +19,18 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-
 public class Hooks {
 
     private static final Logger logger = LoggerFactory.getLogger(Hooks.class);
 
-    @Autowired private TestState testState;
-    @Autowired private EventApiActions eventApi;
-    @Autowired private GymApiActions gymApi;
-    @Autowired private ObjectMapper objectMapper;
+    @Autowired
+    private TestState testState;
+    @Autowired
+    private EventApiActions eventApi;
+    @Autowired
+    private GymApiActions gymApi;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Before
     public void setup(Scenario scenario) {
@@ -38,7 +41,8 @@ public class Hooks {
     public void tearDown(Scenario scenario) {
         List<Object> entitiesToClean = testState.getCreatedEntities();
         if (!entitiesToClean.isEmpty()) {
-            logger.info("--- Executing {} cleanup action(s) for scenario: '{}' ---", entitiesToClean.size(), scenario.getName());
+            logger.info("--- Executing {} cleanup action(s) for scenario: '{}' ---", entitiesToClean.size(),
+                    scenario.getName());
             Collections.reverse(entitiesToClean);
             entitiesToClean.forEach(this::cleanupEntity);
         }
@@ -78,7 +82,8 @@ public class Hooks {
 
         if (testState.getRequestPayload() != null) {
             try {
-                failureContext.put("lastApiRequestPayload", objectMapper.writeValueAsString(testState.getRequestPayload()));
+                failureContext.put("lastApiRequestPayload",
+                        objectMapper.writeValueAsString(testState.getRequestPayload()));
             } catch (Exception e) {
                 failureContext.put("lastApiRequestPayload", "Could not serialize request payload.");
             }
