@@ -1,12 +1,16 @@
 package solutions.bjjeire.api.infrastructure.junit;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import solutions.bjjeire.api.configuration.TestConfiguration;
-import solutions.bjjeire.api.http.ApiClient;
-import solutions.bjjeire.api.http.RequestSpecification;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * A Spring-enabled base class for all API test classes.
@@ -17,14 +21,25 @@ import java.util.HashMap;
 @SpringBootTest(classes = TestConfiguration.class)
 public abstract class ApiTestBase {
 
-    @Autowired
-    private ApiClient apiClient;
+    private final ConcurrentLinkedQueue<Runnable> cleanupActions = new ConcurrentLinkedQueue<>();
 
-    protected RequestSpecification given() {
-        if (apiClient == null) {
-            throw new IllegalStateException("ApiClient is not initialized. Ensure the test class is Spring-enabled.");
+    /**
+     * Registers a cleanup action (e.g., a resource deletion lambda) to be executed
+     * automatically after the test completes.
+     * @param cleanupAction The Runnable action to execute.
+     */
+    protected void registerForCleanup(Runnable cleanupAction) {
+        cleanupActions.add(cleanupAction);
+    }
+
+    @AfterEach
+    void runCleanup() {
+        if (!cleanupActions.isEmpty()) {
+            System.out.println("--- JUnit Teardown: Executing " + cleanupActions.size() + " cleanup action(s) for thread " + Thread.currentThread().getName() + " ---");
+            List<Runnable> actions = new ArrayList<>(cleanupActions);
+            Collections.reverse(actions);
+            actions.forEach(Runnable::run);
+            cleanupActions.clear();
         }
-        
-        return new RequestSpecification(apiClient, new HashMap<>(), new HashMap<>(), null, null);
     }
 }

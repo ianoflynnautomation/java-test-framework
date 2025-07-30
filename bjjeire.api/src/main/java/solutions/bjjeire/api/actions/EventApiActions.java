@@ -1,59 +1,62 @@
 package solutions.bjjeire.api.actions;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import solutions.bjjeire.api.http.ApiClient;
-import solutions.bjjeire.api.http.RequestSpecification;
 import solutions.bjjeire.api.validation.ValidatableResponse;
-import solutions.bjjeire.core.data.events.BjjEvent;
-import solutions.bjjeire.core.data.events.CreateBjjEventCommand;
-import solutions.bjjeire.core.data.events.CreateBjjEventResponse;
+import solutions.bjjeire.core.data.events.*;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.Map;
 
-/**
- * An API Actions class that encapsulates all business-level operations
- * for the BJJ Event resource. It hides the underlying TestClient implementation details.
- */
 @Component
-public class EventApiActions {
+public class EventApiActions extends BaseApiActions{
 
-    @Autowired
-    private ApiClient apiClient;
-
-    public record CreationResult<T>(T resource, Runnable cleanupAction) {}
-
-    public CreationResult<BjjEvent> createEvent(String authToken, BjjEvent event) {
+    public CreateBjjEventResponse createEvent(String authToken, BjjEvent event) {
         CreateBjjEventCommand command = new CreateBjjEventCommand(event);
 
-        CreateBjjEventResponse response = new RequestSpecification(apiClient, Map.of(), Map.of(), null, null)
-                .withAuthToken(authToken)
-                .withBody(command)
-                .post("/api/bjjevent")
+        return runner.run(
+                        given()
+                                .withAuthToken(authToken)
+                                .withBody(command)
+                                .post("/api/bjjevent")
+                )
                 .then().hasStatusCode(201)
                 .as(CreateBjjEventResponse.class);
-
-        BjjEvent createdEvent = response.data();
-        final String eventId = createdEvent.id();
-
-        Runnable cleanupAction = () -> {
-            System.out.printf("CLEANUP: Deleting event with ID: %s%n", eventId);
-            new RequestSpecification(apiClient, Map.of(), Map.of(), null, null)
-                    .withAuthToken(authToken)
-                    .delete("/api/bjjevent/" + eventId)
-                    .then().hasStatusCode(204);
-        };
-
-        return new CreationResult<>(createdEvent, cleanupAction);
+    }
+    public ValidatableResponse attemptToCreateEvent(String authToken, Object payload) { // Changed here
+        return runner.run(
+                given()
+                        .withAuthToken(authToken)
+                        .withBody(payload) // Now accepts any object
+                        .post("/api/bjjevent")
+        );
     }
 
-    public ValidatableResponse getEvents(String authToken, String county, String name) {
-        return new RequestSpecification(apiClient, Map.of(), Map.of(), null, null)
-                .withAuthToken(authToken)
-                .withQueryParams(Map.of(
-                        "County", county.replace(" ", ""),
-                        "Name", name
-                ))
-                .get("/api/bjjevent");
+    public void deleteEvent(String authToken, String eventId) {
+        System.out.printf("CLEANUP: Deleting event with ID: %s%n", eventId);
+        runner.run(
+                given()
+                        .withAuthToken(authToken)
+                        .delete("/api/bjjevent/" + eventId)
+        ).then().hasStatusCode(204);
+    }
+
+
+    public GetBjjEventPaginatedResponse getEvents(String authToken, GetBjjEventPaginationQuery query) {
+        Map<String, Object> queryParams = new HashMap<>();
+        if (query.getCounty() != null) {
+            queryParams.put("county", query.getCounty().name());
+        }
+        if (query.getType() != null) {
+            queryParams.put("type", query.getType().name());
+        }
+
+        return runner.run(
+                        given()
+                                .withAuthToken(authToken)
+                                .withQueryParams(queryParams)
+                                .get("/api/bjjevent")
+                )
+                .then().hasStatusCode(200)
+                .as(GetBjjEventPaginatedResponse.class);
     }
 }

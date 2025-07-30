@@ -1,6 +1,5 @@
 package junit;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -12,9 +11,7 @@ import solutions.bjjeire.api.actions.EventApiActions;
 import solutions.bjjeire.api.infrastructure.junit.ApiTestBase;
 import solutions.bjjeire.core.data.events.BjjEvent;
 import solutions.bjjeire.core.data.events.BjjEventFactory;
-
-import java.util.ArrayList;
-import java.util.List;
+import solutions.bjjeire.core.data.events.CreateBjjEventResponse;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -26,28 +23,15 @@ import static org.junit.jupiter.api.Assertions.*;
 @Execution(ExecutionMode.CONCURRENT)
 public class EventsTests extends ApiTestBase {
 
-    @Autowired
-    private EventApiActions eventApi;
-
-    @Autowired
-    private AuthApiActions authApi;
-
-    private final List<Runnable> cleanupActions = new ArrayList<>();
-    private String authToken;
+    @Autowired private EventApiActions eventApi;
+    @Autowired private AuthApiActions authApi;
+        private String authToken;
 
     @BeforeEach
     void setup() {
         this.authToken = authApi.authenticateAsAdmin();
     }
 
-    @AfterEach
-    void teardown() {
-        if (!cleanupActions.isEmpty()) {
-            System.out.println("--- JUnit Teardown: Executing " + cleanupActions.size() + " cleanup action(s) ---");
-            cleanupActions.forEach(Runnable::run);
-            cleanupActions.clear();
-        }
-    }
 
     @Test
     @DisplayName("Should create a BJJ event successfully with a valid auth token")
@@ -56,9 +40,10 @@ public class EventsTests extends ApiTestBase {
         BjjEvent eventToCreate = BjjEventFactory.getValidBjjEvent();
 
         // Act
-        var result = eventApi.createEvent(this.authToken, eventToCreate);
-        BjjEvent createdEvent = result.resource();
-        cleanupActions.add(result.cleanupAction());
+        CreateBjjEventResponse response = eventApi.createEvent(this.authToken, eventToCreate);
+        BjjEvent createdEvent = response.data();
+
+        registerForCleanup(() -> eventApi.deleteEvent(this.authToken, createdEvent.id()));
 
         // Assert
         assertNotNull(createdEvent, "Response should not be null");

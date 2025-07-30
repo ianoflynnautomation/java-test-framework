@@ -1,5 +1,7 @@
 package solutions.bjjeire.cucumber.steps.events;
 
+import io.cucumber.datatable.DataTable;
+import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
@@ -19,77 +21,84 @@ import solutions.bjjeire.cucumber.steps.CucumberTestBase;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Map;
+import java.util.Optional;
 
 public class EventCreateSteps extends CucumberTestBase {
     private static final Logger logger = LoggerFactory.getLogger(EventCreateSteps.class);
 
-    @Autowired private ScenarioContext context;
+    @Autowired private ScenarioContext scenarioContext;
     @Autowired private EventApiActions eventApi;
+
+    // Holds state specific to this step definition class
+    private BjjEvent createdEvent;
 
     @Given("I have valid details for a new BJJ event named {string}")
     public void iHaveValidDetailsForANewBjjEventNamed(String eventName) {
-        BjjEvent event = BjjEventFactory.createBjjEvent(builder -> builder.name(eventName));
-        context.setRequestPayload(new CreateBjjEventCommand(event));
-        context.setEventName(eventName);
+        BjjEvent eventToCreate = BjjEventFactory.createBjjEvent(builder -> builder.name(eventName));
+        scenarioContext.setRequestPayload(new CreateBjjEventCommand(eventToCreate));
     }
 
     @Given("I have a BJJ event with invalid {string}")
     public void iHaveABjjEventWithInvalid(String invalidField) {
-        Map<String, Object> invalidEventPayload = BjjEventFactory.createInvalidEvent(invalidField);
-        context.setRequestPayload(invalidEventPayload);
+        CreateBjjEventCommand invalidCommand = BjjEventFactory.createInvalidEvent(invalidField);
+        scenarioContext.setRequestPayload(invalidCommand);
     }
-
 
     @Given("a BJJ event exists with the name {string} in county {string}")
     public void aBjjEventExistsWithTheNameInCounty(String eventName, String county) {
-        BjjEvent eventToCreate = BjjEventFactory.createBjjEvent(b -> b.name(eventName).county(County.valueOf(county.replace(" ", ""))));
-        var result = eventApi.createEvent(context.getAuthToken(), eventToCreate);
-        context.setCreatedEvent(result.resource());
-        context.addCleanupAction(result.cleanupAction());
-        context.setEventName(result.resource().name());
+        BjjEvent eventToCreate = BjjEventFactory.createBjjEvent(builder -> builder.name(eventName).county(County.valueOf(county)));
+        CreateBjjEventResponse response = eventApi.createEvent(scenarioContext.getAuthToken(), eventToCreate);
+        this.createdEvent = response.data();
+        scenarioContext.getCreatedEntities().add(this.createdEvent);
     }
 
     @When("I create the BJJ event")
     public void iCreateTheBjjEvent() {
-        ValidatableResponse response = given()
-                .withAuthToken(context.getAuthToken())
-                .withBody(context.getRequestPayload())
-                .post("/api/bjjevent");
-        context.setValidatableResponse(response);
+        CreateBjjEventCommand command = (CreateBjjEventCommand) scenarioContext.getRequestPayload();
+        CreateBjjEventResponse response = eventApi.createEvent(scenarioContext.getAuthToken(), command.data());
+        this.createdEvent = response.data();
+        scenarioContext.getCreatedEntities().add(this.createdEvent);
     }
 
     @When("I attempt to create the BJJ event")
     public void iAttemptToCreateTheBjjEvent() {
-        ValidatableResponse response = given()
-                .withAuthToken(context.getAuthToken())
-                .withBody(context.getRequestPayload())
-                .post("/api/bjjevent");
-        context.setValidatableResponse(response);
+        ValidatableResponse response = eventApi.attemptToCreateEvent(scenarioContext.getAuthToken(), scenarioContext.getRequestPayload());
+        scenarioContext.setLastResponse(response);
     }
 
     @Then("the event is created successfully")
     public void theEventIsCreatedSuccessfully() {
-        ValidatableResponse response = context.getValidatableResponse();
-        assertNotNull(response, "ValidatableResponse was not found in the context.");
-
-        response.hasStatusCode(201);
-        BjjEvent createdEvent = response.as(CreateBjjEventResponse.class).data();
-        context.setCreatedEvent(createdEvent);
-
-        final String eventId = createdEvent.id();
-        context.addCleanupAction(() -> {
-            logger.info("CLEANUP: Deleting event with ID: {}", eventId);
-            given().withAuthToken(context.getAuthToken())
-                    .delete("/api/bjjevent/" + eventId)
-                    .then().hasStatusCode(204);
-        });
+        assertNotNull(this.createdEvent, "Event was not created successfully.");
+        assertNotNull(this.createdEvent.id(), "Created event ID is null.");
     }
 
     @Then("the API returns a bad request error with message {string}")
-    public void theApiReturnsABadRequestErrorMessage(String expectedErrorMessage) {
-        ValidatableResponse response = context.getValidatableResponse();
-        assertNotNull(response, "ValidatableResponse not found in context.");
-
-        response.hasStatusCode(400).contentContains(expectedErrorMessage);
+    public void theApiReturnsABadRequestErrorWithMessage(String errorMessage) {
+        ValidatableResponse response = scenarioContext.getLastResponse();
+        assertNotNull(response, "Response was not found in context.");
+        response.hasStatusCode(400).contentContains(errorMessage);
     }
+
+    @And("the event details include:")
+    public void theEventDetailsInclude(DataTable dataTable) {
+        assertNotNull(this.createdEvent, "Cannot verify details, no created event found in context.");
+        Map<String, String> expectedDetails = dataTable.asMap();
+
+        expectedDetails.forEach((field, expectedValue) -> {
+            switch (field) {
+                case "Name":
+                    assertEquals(expectedValue, this.createdEvent.name(), "Validation failed for Name.");
+                    break;
+                case "Location":
+                    assertEquals(expectedValue, this.createdEvent.location().venue(), "Validation failed for Location venue.");
+                    break;
+                case "Organiser":
+                    assertEquals(expectedValue, this.createdEvent.organiser().name(), "Validation failed for Organiser name.");
+                    break;
+                default:
+                    fail("Unknown field to validate in DataTable: " + field);
+            }
+        });
+    }
+
 }

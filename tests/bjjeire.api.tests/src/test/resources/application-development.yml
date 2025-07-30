@@ -1,6 +1,7 @@
 
   api-settings:
     baseUrl: "http://localhost:5003"
-    clientTimeoutSeconds: "15"
-    maxRetryAttempts: "2"
-    pauseBetweenFailuresMillis: "500"
+    connectTimeoutMillis: 5000
+    responseTimeoutMillis: 10000
+    maxRetryAttempts: 3
+    pauseBetweenFailuresMillis: 1000

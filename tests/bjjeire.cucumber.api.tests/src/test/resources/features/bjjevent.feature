@@ -15,7 +15,6 @@ Feature: BJJ Event Management
     And the event details include:
       | Name                     | Dublin BJJ Seminar Series |
       | Location                 | Dublin Grappling Hub      |
-      | Organiser                | Dublin Grappling Hub      |
 
   @regression @priority:high @Requirement=345 @TestCase=801
   Scenario: Retrieve an existing BJJ event by county

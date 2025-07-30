@@ -68,25 +68,28 @@ public class GymFactory {
     }
 
     @SuppressWarnings("unchecked")
-    public static Map<String, Object> createInvalidGym(String invalidReason) {
-        Gym validGym = getValidGym();
-        Map<String, Object> payload = objectMapper.convertValue(validGym, Map.class);
+    public static CreateGymCommand createInvalidGym(String invalidReason) {
+        // Start with a builder from a valid gym to make it mutable
+        Gym.Builder builder = getValidGym().toBuilder();
 
+        // Modify the builder to make the gym data invalid
         switch (invalidReason) {
             case "missing name":
-                payload.remove("name");
+                builder.name(null); // Set name to null to trigger validation
                 break;
             case "long description":
-                payload.put("description", faker.lorem().characters(1001));
+                builder.description(faker.lorem().characters(1001)); // Exceeds max length
                 break;
             case "invalid website":
-                payload.put("website", "not-a-valid-url");
+                builder.website("not-a-valid-url"); // Invalid URL format
                 break;
             default:
                 throw new IllegalArgumentException(
                         "Unsupported invalid reason for test data generation: " + invalidReason);
         }
-        return payload;
+
+        // Build the invalid gym and wrap it in the command object
+        return new CreateGymCommand(builder.build());
     }
 
 }

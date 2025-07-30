@@ -77,31 +77,41 @@ public class BjjEventFactory {
         return builder.build();
     }
 
-    @SuppressWarnings("unchecked")
-    public static Map<String, Object> createInvalidEvent(String invalidReason) {
-        BjjEvent validEvent = getValidBjjEvent();
-        Map<String, Object> payload = objectMapper.convertValue(validEvent, Map.class);
+    public static CreateBjjEventCommand createInvalidEvent(String invalidReason) {
+        // Start with a builder from a valid event to make it mutable
+        BjjEvent.Builder builder = getValidBjjEvent().toBuilder();
 
+        // Modify the builder to make the event data invalid
         switch (invalidReason) {
             case "missing name":
-                payload.put("name", "");
+                builder.name(""); // Set the name to be empty
                 break;
             case "negative price":
-                if (payload.get("pricing") instanceof Map) {
-                    ((Map<String, Object>) payload.get("pricing")).put("amount", -10.00);
-                }
+                BjjEvent tempEventForPrice = builder.build();
+                PricingModel invalidPricing = new PricingModel(
+                        tempEventForPrice.pricing().type(),
+                        new BigDecimal("-10.00"), // Set a negative price
+                        tempEventForPrice.pricing().durationDays(),
+                        tempEventForPrice.pricing().currency()
+                );
+                builder.pricing(invalidPricing);
                 break;
             case "invalid date":
-                if (payload.get("schedule") instanceof Map) {
-                    // Set the date to the past to make it invalid
-                    ((Map<String, Object>) payload.get("schedule")).put("startDate",
-                            LocalDate.now().minusDays(1).toString());
-                }
+                BjjEvent tempEventForDate = builder.build();
+                BjjEventSchedule invalidSchedule = new BjjEventSchedule(
+                        tempEventForDate.schedule().scheduleType(),
+                        LocalDate.now().minusDays(1), // Set start date to the past
+                        tempEventForDate.schedule().endDate(),
+                        tempEventForDate.schedule().hours()
+                );
+                builder.schedule(invalidSchedule);
                 break;
             default:
                 throw new IllegalArgumentException(
                         "Unsupported invalid reason for test data generation: " + invalidReason);
         }
-        return payload;
+
+        // Build the invalid event and wrap it in the command object
+        return new CreateBjjEventCommand(builder.build());
     }
 }

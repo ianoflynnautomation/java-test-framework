@@ -1,50 +1,70 @@
 package solutions.bjjeire.api.http;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.With;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
-import reactor.util.retry.Retry;
-import solutions.bjjeire.api.configuration.ApiSettings;
-import solutions.bjjeire.api.validation.ValidatableResponse;
-
-import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import java.util.*;
 import java.util.function.Consumer;
 
 
+@Getter
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class RequestSpecification {
-    private static final Logger log = LoggerFactory.getLogger(RequestSpecification.class);
 
-    private final ApiClient apiClient;
-    private final Map<String, String> headers;
-    private final Map<String, Object> queryParams;
-    private final Object body;
-    private final Consumer<HttpHeaders> authAction;
+    private final HttpMethod method;
+    private final String path;
+    @With private final MultiValueMap<String, String> headers;
+    private final MultiValueMap<String, String> queryParams;
+    @With private final Object body;
+    @With private final Consumer<HttpHeaders> authAction;
+    @With private final MediaType contentType;
+    @With private final List<MediaType> acceptableMediaTypes;
 
-    public RequestSpecification(ApiClient apiClient, Map<String, String> headers, Map<String, Object> queryParams, Object body, Consumer<HttpHeaders> authAction) {
-        this.apiClient = Objects.requireNonNull(apiClient);
-        this.headers = headers;
-        this.queryParams = queryParams;
-        this.body = body;
-        this.authAction = authAction;
+    /**
+     * Entry point for the fluent API.
+     */
+    public static RequestSpecification given() {
+        return new RequestSpecification(
+                null, "", new LinkedMultiValueMap<>(), new LinkedMultiValueMap<>(),
+                null, httpHeaders -> {}, MediaType.APPLICATION_JSON,
+                Collections.singletonList(MediaType.APPLICATION_JSON)
+        );
     }
 
+    // --- HTTP Method Setters ---
+    public RequestSpecification get(String path) { return setMethodAndPath(HttpMethod.GET, path); }
+    public RequestSpecification post(String path) { return setMethodAndPath(HttpMethod.POST, path); }
+    public RequestSpecification put(String path) { return setMethodAndPath(HttpMethod.PUT, path); }
+    public RequestSpecification delete(String path) { return setMethodAndPath(HttpMethod.DELETE, path); }
+    public RequestSpecification patch(String path) { return setMethodAndPath(HttpMethod.PATCH, path); }
+
+    private RequestSpecification setMethodAndPath(HttpMethod method, String path) {
+        return new RequestSpecification(method, path, headers, queryParams, body, authAction, contentType, acceptableMediaTypes);
+    }
+
+    // --- Fluent Modifiers ---
     public RequestSpecification withHeader(String name, String value) {
-        Map<String, String> newHeaders = new HashMap<>(this.headers);
-        newHeaders.put(name, value);
-        return new RequestSpecification(this.apiClient, newHeaders, this.queryParams, this.body, this.authAction);
+        MultiValueMap<String, String> newHeaders = new LinkedMultiValueMap<>(this.headers);
+        newHeaders.add(name, value);
+        return this.withHeaders(newHeaders);
+    }
+
+    public RequestSpecification withQueryParam(String name, Object value) {
+        MultiValueMap<String, String> newParams = new LinkedMultiValueMap<>(this.queryParams);
+        newParams.add(name, String.valueOf(value));
+        return new RequestSpecification(method, path, headers, newParams, body, authAction, contentType, acceptableMediaTypes);
     }
 
     public RequestSpecification withQueryParams(Map<String, ?> params) {
-        Map<String, Object> newParams = new HashMap<>(this.queryParams);
-        newParams.putAll(params);
-        return new RequestSpecification(this.apiClient, this.headers, newParams, this.body, this.authAction);
+        MultiValueMap<String, String> newParams = new LinkedMultiValueMap<>(this.queryParams);
+        params.forEach((key, value) -> newParams.add(key, String.valueOf(value)));
+        return new RequestSpecification(method, path, headers, newParams, body, authAction, contentType, acceptableMediaTypes);
     }
 
     public RequestSpecification withAuthToken(String token) {
@@ -53,73 +73,6 @@ public class RequestSpecification {
                 httpHeaders.setBearerAuth(token);
             }
         };
-        return new RequestSpecification(this.apiClient, this.headers, this.queryParams, this.body, newAuthAction);
-    }
-
-    public RequestSpecification withBody(Object body) {
-        return new RequestSpecification(this.apiClient, this.headers, this.queryParams, body, this.authAction);
-    }
-
-    public ValidatableResponse get(String path) { return send(HttpMethod.GET, path); }
-    public ValidatableResponse post(String path) { return send(HttpMethod.POST, path); }
-    public ValidatableResponse put(String path) { return send(HttpMethod.PUT, path); }
-    public ValidatableResponse delete(String path) { return send(HttpMethod.DELETE, path); }
-    public ValidatableResponse patch(String path) { return send(HttpMethod.PATCH, path); }
-
-    private ValidatableResponse send(HttpMethod method, String path) {
-        long startTime = System.nanoTime();
-
-        log.info("Sending {} request to path '{}' with query params: {}", method, path, queryParams);
-
-        WebClient.RequestBodySpec requestSpec = apiClient.getWebClient()
-                .method(method)
-                .uri(uriBuilder -> uriBuilder.path(path).queryParams(toMultiValueMap(queryParams)).build())
-                .accept(MediaType.APPLICATION_JSON)
-                .headers(httpHeaders -> {
-                    httpHeaders.setAll(headers);
-                    if (authAction != null) {
-                        authAction.accept(httpHeaders);
-                    }
-                });
-
-        WebClient.RequestHeadersSpec<?> finalRequestSpec;
-        if (body != null) {
-            finalRequestSpec = requestSpec
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(body);
-        } else {
-            finalRequestSpec = requestSpec;
-        }
-
-        Mono<ValidatableResponse> responseMono = finalRequestSpec
-                .exchangeToMono(clientResponse -> clientResponse.toEntity(String.class).map(responseEntity -> {
-                    long endTime = System.nanoTime();
-                    Duration executionTime = Duration.ofNanos(endTime - startTime);
-                    return new ValidatableResponse(
-                            responseEntity,
-                            executionTime,
-                            apiClient.getObjectMapper(),
-                            path
-                    );
-                }))
-                .retryWhen(getRetrySpec(method));
-
-        return responseMono.block();
-    }
-
-    private Retry getRetrySpec(HttpMethod method) {
-        ApiSettings settings = apiClient.getSettings();
-        if (method == HttpMethod.GET || method == HttpMethod.PUT || method == HttpMethod.DELETE) {
-            return Retry.backoff(settings.getMaxRetryAttempts(), Duration.ofMillis(settings.getPauseBetweenFailuresMillis()))
-                    .doBeforeRetry(retrySignal -> log.warn("Request failed, retrying... Attempt #{}. Cause: {}",
-                            retrySignal.totalRetries() + 1, retrySignal.failure().getMessage()));
-        }
-        return Retry.max(0);
-    }
-
-    private org.springframework.util.MultiValueMap<String, String> toMultiValueMap(Map<String, Object> source) {
-        org.springframework.util.LinkedMultiValueMap<String, String> map = new org.springframework.util.LinkedMultiValueMap<>();
-        source.forEach((key, value) -> map.add(key, String.valueOf(value)));
-        return map;
+        return this.withAuthAction(newAuthAction);
     }
 }
