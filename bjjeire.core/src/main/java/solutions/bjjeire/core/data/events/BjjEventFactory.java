@@ -77,6 +77,38 @@ public class BjjEventFactory {
         return builder.build();
     }
 
+    public static CreateBjjEventCommand createPayloadWithInvalidDetails(Map<String, String> invalidDetails) {
+        // Start with a valid builder to make it mutable
+        BjjEvent.Builder builder = getValidBjjEvent().toBuilder();
+
+        // Iterate over the map from the DataTable and apply the invalid/custom details
+        invalidDetails.forEach((field, value) -> {
+            switch (field) {
+                case "Name":
+                    builder.name(value); // Handles empty or null names
+                    break;
+                case "Price":
+                    // Get the existing pricing model to modify just the price
+                    PricingModel existingPricing = builder.build().pricing();
+                    PricingModel invalidPricing = new PricingModel(
+                            existingPricing.type(),
+                            new BigDecimal(value), // Set the invalid price from the DataTable
+                            existingPricing.durationDays(),
+                            existingPricing.currency()
+                    );
+                    builder.pricing(invalidPricing);
+                    break;
+                // Add other cases here for different fields you might want to make invalid
+                default:
+                    // It's often better to ignore unknown fields than to fail the test setup.
+                    System.out.println("WARN: Unknown field '" + field + "' in invalid data table. Ignoring.");
+            }
+        });
+
+        // Build the invalid event and wrap it in the command object
+        return new CreateBjjEventCommand(builder.build());
+    }
+
     public static CreateBjjEventCommand createInvalidEvent(String invalidReason) {
         // Start with a builder from a valid event to make it mutable
         BjjEvent.Builder builder = getValidBjjEvent().toBuilder();

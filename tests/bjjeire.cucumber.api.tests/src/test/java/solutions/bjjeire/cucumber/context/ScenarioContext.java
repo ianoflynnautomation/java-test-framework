@@ -5,13 +5,9 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
 import solutions.bjjeire.api.validation.ValidatableResponse;
-import solutions.bjjeire.core.data.events.BjjEvent;
-import solutions.bjjeire.core.data.events.GetBjjEventPaginatedResponse;
-import solutions.bjjeire.core.data.gyms.Gym;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * A scenario-scoped bean to hold state within a single Cucumber scenario.

@@ -25,13 +25,12 @@ Feature: BJJ Event Management
       | Name                     | IBJJF Pan Ams             |
 
 
-  @Negative @regression @priority:medium @Requirement=346 @TestCase=790
-  Scenario Outline: Attempt to create a BJJ event with invalid data
-    Given I have a BJJ event with invalid "<InvalidField>"
+  @negative @regression @priority:medium @Requirement=346 @TestCase=790
+  Scenario: Attempt to create a BJJ event with multiple invalid fields
+    Given I have a BJJ event with invalid data:
+      | Name  |        |
+      | Price | -10.00 |
     When I attempt to create the BJJ event
-    Then the API returns a bad request error with message "<ErrorMessage>"
-
-    Examples:
-      | InvalidField     | ErrorMessage                     |
-      | missing name     | Event Name is required.          |
-      | negative price   | Amount must be greater than 0.   |
+    Then the API returns a validation error with the following details:
+      | Data.Name            | Event Name is required.        |
+      | Data.Pricing.Amount  | Amount must be greater than 0. |

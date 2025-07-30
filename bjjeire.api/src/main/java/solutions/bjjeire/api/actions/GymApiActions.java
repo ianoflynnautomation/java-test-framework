@@ -1,8 +1,8 @@
 package solutions.bjjeire.api.actions;
 
 import org.springframework.stereotype.Component;
+import solutions.bjjeire.api.http.auth.BearerTokenAuth;
 import solutions.bjjeire.api.validation.ValidatableResponse;
-import solutions.bjjeire.core.data.events.CreateBjjEventCommand;
 import solutions.bjjeire.core.data.gyms.*;
 
 import java.util.HashMap;
@@ -12,11 +12,10 @@ import java.util.Map;
 @Component
 public class GymApiActions extends BaseApiActions {
 
-    public CreateGymResponse createGym(String authToken, Gym gym) {
-        CreateGymCommand command = new CreateGymCommand(gym);
+    public CreateGymResponse createGym(String authToken, CreateGymCommand command) {
         return runner.run(
                         given()
-                                .withAuthToken(authToken)
+                                .withAuth(new BearerTokenAuth(authToken))
                                 .withBody(command)
                                 .post("/api/gym")
                 )
@@ -27,7 +26,7 @@ public class GymApiActions extends BaseApiActions {
     public ValidatableResponse attemptToCreateGym(String authToken, CreateGymCommand command) {
         return runner.run(
                 given()
-                        .withAuthToken(authToken)
+                        .withAuth(new BearerTokenAuth(authToken))
                         .withBody(command)
                         .post("/api/gym")
         );
@@ -37,7 +36,7 @@ public class GymApiActions extends BaseApiActions {
         System.out.printf("CLEANUP: Deleting gym with ID: %s%n", gymId);
         runner.run(
                 given()
-                        .withAuthToken(authToken)
+                        .withAuth(new BearerTokenAuth(authToken))
                         .delete("/api/gym/" + gymId)
         ).then().hasStatusCode(204);
     }
@@ -50,11 +49,20 @@ public class GymApiActions extends BaseApiActions {
 
         return runner.run(
                         given()
-                                .withAuthToken(authToken)
+                                .withAuth(new BearerTokenAuth(authToken))
                                 .withQueryParams(queryParams)
                                 .get("/api/gym")
                 )
                 .then().hasStatusCode(200)
                 .as(GetGymPaginatedResponse.class);
+    }
+
+    public ValidatableResponse attemptToCreateGymWithInvalidData(String authToken, Object invalidPayload) {
+        return runner.run(
+                given()
+                        .withAuth(new BearerTokenAuth(authToken))
+                        .withBody(invalidPayload)
+                        .post("/api/gym")
+        );
     }
 }

@@ -8,10 +8,12 @@ import com.networknt.schema.SpecVersion;
 import com.networknt.schema.ValidationMessage;
 import org.springframework.http.ResponseEntity;
 import solutions.bjjeire.api.models.ApiAssertionException;
+import solutions.bjjeire.api.models.errors.ValidationErrorResponse;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -44,6 +46,10 @@ public class ValidatableResponse {
                     requestPath, getBody());
         }
         return this;
+    }
+
+    public ValidatableResponse hasValidationError() {
+        return hasStatusCode(400);
     }
 
     public ValidatableResponse contentContains(String expectedSubstring) {
@@ -82,6 +88,60 @@ public class ValidatableResponse {
         } catch (Exception e) {
             throw new ApiAssertionException("Failed during JSON schema validation.", requestPath, getBody(), e);
         }
+        return this;
+    }
+
+    /**
+     * Asserts that the validation error response contains a specific number of errors.
+     *
+     * @param expectedCount The exact number of errors expected in the 'errors' array.
+     * @return The current ValidatableResponse for further chaining.
+     */
+    public ValidatableResponse hasErrorCount(int expectedCount) {
+        ValidationErrorResponse errorResponse = as(ValidationErrorResponse.class);
+        int actualCount = errorResponse.errors().size();
+        if (actualCount != expectedCount) {
+            throw new ApiAssertionException(
+                    String.format("Expected <%d> validation errors but found <%d>.", expectedCount, actualCount),
+                    requestPath, getBody());
+        }
+        return this;
+    }
+
+    /**
+     * Asserts that the response contains a validation error for a specific field with a specific message.
+     * This check is order-independent.
+     *
+     * @param field The name of the field to check (e.g., "Data.Name").
+     * @param expectedMessage The exact error message expected for that field.
+     * @return The current ValidatableResponse for further chaining.
+     */
+    public ValidatableResponse containsErrorForField(String field, String expectedMessage) {
+        ValidationErrorResponse errorResponse = as(ValidationErrorResponse.class);
+        boolean matchFound = errorResponse.errors().stream()
+                .anyMatch(error -> field.equals(error.field()) && expectedMessage.equals(error.message()));
+
+        if (!matchFound) {
+            String availableErrors = errorResponse.errors().stream()
+                    .map(e -> String.format("  - Field: '%s', Message: '%s'", e.field(), e.message()))
+                    .collect(Collectors.joining("\n"));
+            throw new ApiAssertionException(
+                    String.format("Expected to find error for field '%s' with message '%s', but it was not found.\nAvailable errors:\n%s",
+                            field, expectedMessage, availableErrors),
+                    requestPath, getBody());
+        }
+        return this;
+    }
+
+    /**
+     * A powerful assertion that checks for a set of expected validation errors.
+     * This is ideal for integrating with tools like Cucumber that use DataTables.
+     *
+     * @param expectedErrors A map where the key is the field name and the value is the expected error message.
+     * @return The current ValidatableResponse for further chaining.
+     */
+    public ValidatableResponse containsAllErrors(Map<String, String> expectedErrors) {
+        expectedErrors.forEach(this::containsErrorForField);
         return this;
     }
 

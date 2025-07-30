@@ -20,16 +20,15 @@ import solutions.bjjeire.cucumber.steps.CucumberTestBase;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
+
 
 public class EventCreateSteps extends CucumberTestBase {
     private static final Logger logger = LoggerFactory.getLogger(EventCreateSteps.class);
 
     @Autowired private ScenarioContext scenarioContext;
     @Autowired private EventApiActions eventApi;
-
-    // Holds state specific to this step definition class
     private BjjEvent createdEvent;
 
     @Given("I have valid details for a new BJJ event named {string}")
@@ -44,10 +43,32 @@ public class EventCreateSteps extends CucumberTestBase {
         scenarioContext.setRequestPayload(invalidCommand);
     }
 
+    @Given("I have a BJJ event with invalid data:")
+    public void iHaveABjjEventWithInvalidData(DataTable dataTable) {
+        Map<String, String> invalidDetails = dataTable.asMap();
+
+        Map<String, String> processedDetails = new HashMap<>();
+        invalidDetails.forEach((key, value) -> {
+            if ("[empty]".equalsIgnoreCase(value)) {
+                processedDetails.put(key, "");
+            } else if ("[null]".equalsIgnoreCase(value)) {
+                processedDetails.put(key, null);
+            } else {
+                processedDetails.put(key, value);
+            }
+        });
+
+        CreateBjjEventCommand invalidPayload = BjjEventFactory.createPayloadWithInvalidDetails(processedDetails);
+        scenarioContext.setRequestPayload(invalidPayload);
+    }
+
     @Given("a BJJ event exists with the name {string} in county {string}")
     public void aBjjEventExistsWithTheNameInCounty(String eventName, String county) {
         BjjEvent eventToCreate = BjjEventFactory.createBjjEvent(builder -> builder.name(eventName).county(County.valueOf(county)));
-        CreateBjjEventResponse response = eventApi.createEvent(scenarioContext.getAuthToken(), eventToCreate);
+
+        CreateBjjEventCommand command = new CreateBjjEventCommand(eventToCreate);
+
+        CreateBjjEventResponse response = eventApi.createEvent(scenarioContext.getAuthToken(), command);
         this.createdEvent = response.data();
         scenarioContext.getCreatedEntities().add(this.createdEvent);
     }
@@ -55,14 +76,19 @@ public class EventCreateSteps extends CucumberTestBase {
     @When("I create the BJJ event")
     public void iCreateTheBjjEvent() {
         CreateBjjEventCommand command = (CreateBjjEventCommand) scenarioContext.getRequestPayload();
-        CreateBjjEventResponse response = eventApi.createEvent(scenarioContext.getAuthToken(), command.data());
+
+        CreateBjjEventResponse response = eventApi.createEvent(scenarioContext.getAuthToken(), command);
         this.createdEvent = response.data();
+
         scenarioContext.getCreatedEntities().add(this.createdEvent);
     }
 
     @When("I attempt to create the BJJ event")
     public void iAttemptToCreateTheBjjEvent() {
-        ValidatableResponse response = eventApi.attemptToCreateEvent(scenarioContext.getAuthToken(), scenarioContext.getRequestPayload());
+        ValidatableResponse response = eventApi.attemptToCreateEventWithInvalidData(
+                scenarioContext.getAuthToken(),
+                scenarioContext.getRequestPayload()
+        );
         scenarioContext.setLastResponse(response);
     }
 
@@ -72,11 +98,19 @@ public class EventCreateSteps extends CucumberTestBase {
         assertNotNull(this.createdEvent.id(), "Created event ID is null.");
     }
 
-    @Then("the API returns a bad request error with message {string}")
-    public void theApiReturnsABadRequestErrorWithMessage(String errorMessage) {
+    @Then("the API returns a validation error with the following details:")
+    public void theApiReturnsAValidationErrorWithTheFollowingDetails(DataTable dataTable) {
         ValidatableResponse response = scenarioContext.getLastResponse();
         assertNotNull(response, "Response was not found in context.");
-        response.hasStatusCode(400).contentContains(errorMessage);
+
+        Map<String, String> expectedErrors = dataTable.asMap();
+
+        response.then()
+                .hasValidationError()
+                .and()
+                .containsAllErrors(expectedErrors)
+                .and()
+                .hasErrorCount(expectedErrors.size());
     }
 
     @And("the event details include:")

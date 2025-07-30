@@ -5,11 +5,8 @@ import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import solutions.bjjeire.api.actions.GymApiActions;
-import solutions.bjjeire.api.validation.ValidatableResponse;
 import solutions.bjjeire.core.data.gyms.CreateGymCommand;
 import solutions.bjjeire.core.data.gyms.CreateGymResponse;
 import solutions.bjjeire.core.data.gyms.Gym;
@@ -18,7 +15,6 @@ import solutions.bjjeire.cucumber.context.ScenarioContext;
 import solutions.bjjeire.cucumber.steps.CucumberTestBase;
 
 import static org.junit.jupiter.api.Assertions.*;
-
 import java.util.Map;
 
 public class GymCreateSteps extends CucumberTestBase {
@@ -37,7 +33,8 @@ public class GymCreateSteps extends CucumberTestBase {
     @When("I create the Bjj Gym")
     public void iCreateTheBjjGym() {
         CreateGymCommand command = (CreateGymCommand) scenarioContext.getRequestPayload();
-        CreateGymResponse response = gymApi.createGym(scenarioContext.getAuthToken(), command.data());
+
+        CreateGymResponse response = gymApi.createGym(scenarioContext.getAuthToken(), command);
         this.createdGym = response.data();
         scenarioContext.getCreatedEntities().add(this.createdGym);
     }
