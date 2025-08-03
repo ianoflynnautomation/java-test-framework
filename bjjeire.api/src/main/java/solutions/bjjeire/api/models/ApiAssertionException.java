@@ -1,27 +1,26 @@
 package solutions.bjjeire.api.models;
 
 public class ApiAssertionException extends AssertionError {
+    private final String requestPath;
+    private final String responseBody;
 
     public ApiAssertionException(String message, String requestPath, String responseBody) {
-        super(buildDetailedMessage(message, requestPath, responseBody, null));
+        super(message + "\nRequest Path: " + requestPath + "\nResponse Body: " + responseBody);
+        this.requestPath = requestPath;
+        this.responseBody = responseBody;
     }
 
     public ApiAssertionException(String message, String requestPath, String responseBody, Throwable cause) {
-        super(buildDetailedMessage(message, requestPath, responseBody, cause), cause);
+        super(message + "\nRequest Path: " + requestPath + "\nResponse Body: " + responseBody, cause);
+        this.requestPath = requestPath;
+        this.responseBody = responseBody;
     }
 
-    private static String buildDetailedMessage(String message, String requestPath, String responseBody,
-            Throwable cause) {
-        StringBuilder detailedMessage = new StringBuilder();
-        detailedMessage.append("\n================ API Assertion Failed ================");
-        detailedMessage.append("\n=> Failure: ").append(message);
-        detailedMessage.append("\n=> Request Path: ").append(requestPath);
-        detailedMessage.append("\n=> Response Body:\n").append(responseBody != null ? responseBody : "[EMPTY]");
-        if (cause != null) {
-            detailedMessage.append("\n=> Cause: ").append(cause.getClass().getName()).append(" - ")
-                    .append(cause.getMessage());
-        }
-        detailedMessage.append("\n====================================================\n");
-        return detailedMessage.toString();
+    public String getRequestPath() {
+        return requestPath;
+    }
+
+    public String getResponseBody() {
+        return responseBody;
     }
 }

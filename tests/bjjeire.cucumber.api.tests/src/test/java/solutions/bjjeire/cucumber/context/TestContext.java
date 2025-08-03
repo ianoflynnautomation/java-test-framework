@@ -12,16 +12,17 @@ import java.util.List;
 @Component
 @ScenarioScope
 @Getter
-@Setter
-public class TestState {
-    private String authToken;
-    private Object requestPayload;
-    private ApiResponse lastResponse;
+public class TestContext {
+    @Setter private String authToken;
+    @Setter private Object requestPayload;
+    @Setter private ApiResponse lastResponse;
     private final List<Object> createdEntities = new ArrayList<>();
 
-    public void addEntity(Object entity) {
+    public void addEntityForCleanup(Object entity) {
         if (entity != null) {
             this.createdEntities.add(entity);
         }
     }
+
+
 }

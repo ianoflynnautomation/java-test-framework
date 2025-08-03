@@ -6,9 +6,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.springframework.beans.factory.annotation.Autowired;
-import solutions.bjjeire.api.actions.AuthApiActions;
-import solutions.bjjeire.api.actions.EventApiActions;
 import solutions.bjjeire.api.infrastructure.junit.ApiTestBase;
+import solutions.bjjeire.api.services.AuthService;
+import solutions.bjjeire.api.services.EventService;
 import solutions.bjjeire.api.validation.ApiResponse;
 import solutions.bjjeire.core.data.events.BjjEvent;
 import solutions.bjjeire.core.data.events.BjjEventFactory;
@@ -20,15 +20,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Execution(ExecutionMode.CONCURRENT)
 public class EventsTests extends ApiTestBase {
 
-    @Autowired
-    private EventApiActions eventApi;
-    @Autowired
-    private AuthApiActions authApi;
+    @Autowired private EventService eventService;
+    @Autowired private AuthService authService;
+
     private String authToken;
 
     @BeforeEach
     void setup() {
-        this.authToken = authApi.authenticateAsAdmin();
+        this.authToken = authService.authenticateAsAdmin();
     }
 
     @Test
@@ -39,12 +38,13 @@ public class EventsTests extends ApiTestBase {
         CreateBjjEventCommand command = new CreateBjjEventCommand(eventToCreate);
 
         // Act
-        ApiResponse apiResponse = eventApi.createEvent(this.authToken, command);
+        ApiResponse apiResponse = eventService.createEvent(authToken, command).block();
         assertThat(apiResponse.getStatusCode()).isEqualTo(201);
 
         CreateBjjEventResponse responseBody = apiResponse.as(CreateBjjEventResponse.class);
 
-        registerForCleanup(() -> eventApi.deleteEvent(this.authToken, responseBody.data().id()));
+        // Alternatively, direct cleanup after test
+        registerForCleanup(() -> eventService.deleteEvent(this.authToken, responseBody.data().id()));
 
         // Assert
         assertThat(responseBody).isNotNull();

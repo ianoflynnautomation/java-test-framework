@@ -8,6 +8,8 @@ import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
+import java.util.List;
+
 @ConfigurationProperties(prefix = "api-settings")
 @Getter
 @Setter
@@ -28,4 +30,12 @@ public class ApiSettings {
 
     @PositiveOrZero(message = "Pause between failures must be zero or positive")
     private long pauseBetweenFailuresMillis = 1000;
+
+    @NotBlank(message = "Tracing exporter must not be blank")
+    private String tracingExporter = "otlp";
+
+    private String jaegerEndpoint = "http://jaeger:4318";
+
+    @NotBlank(message = "OTLP log endpoint must not be blank")
+    private String otlpLogEndpoint = "http://otel-collector:4317";
 }

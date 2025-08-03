@@ -10,5 +10,5 @@ Feature: BJJ Gym Management
   @Type:Smoke @Type:Regression @Priority:High @TestCase:C189
   Scenario: Admin creates a new BJJ gym with valid details
     Given a new BJJ gym has been prepared
-    When Admin adds the new BJJ gym
+    When the Admin adds the new BJJ gym
     Then the gym should be successfully added

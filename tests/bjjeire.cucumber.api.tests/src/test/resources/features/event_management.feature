@@ -12,14 +12,14 @@ Feature: BJJ Event Management
 
   Scenario: Admin creates a new BJJ event with valid details
     Given a new event has been prepared
-    When Admin adds the new event
+    When the Admin adds the new event
     Then the event should be successfully added
 
   @Type:Negative @Type:Regression @Priority:Medium @TestCase:C790
   Scenario Outline: Admin attempts to create a BJJ event with invalid data
-    Given Admin has a BJJ event with "<Field>" set to "<InvalidValue>"
-    When Admin attempts to create the BJJ event
-    Then Admin is notified that the event creation failed for "<Field>" with message "<ErrorMessage>"
+    Given the Admin has an event with "<Field>" set to "<InvalidValue>"
+    When the Admin attempts to add the new event
+    Then the Admin should be notified that adding the event failed for "<Field>" with message "<ErrorMessage>"
 
     Examples:
       | Field               | InvalidValue | ErrorMessage                   |

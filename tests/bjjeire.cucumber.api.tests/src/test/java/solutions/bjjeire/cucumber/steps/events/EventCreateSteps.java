@@ -4,63 +4,69 @@ import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.springframework.beans.factory.annotation.Autowired;
-import solutions.bjjeire.api.actions.EventApiActions;
+import solutions.bjjeire.api.services.EventService;
+import solutions.bjjeire.api.validation.ApiResponse;
+import solutions.bjjeire.api.validation.ResponseValidatorFactory;
 import solutions.bjjeire.core.data.events.BjjEvent;
 import solutions.bjjeire.core.data.events.BjjEventFactory;
 import solutions.bjjeire.core.data.events.CreateBjjEventCommand;
 import solutions.bjjeire.core.data.events.CreateBjjEventResponse;
-import solutions.bjjeire.cucumber.context.TestState;
+import solutions.bjjeire.cucumber.context.TestContext;
 
 import java.util.Map;
 
 public class EventCreateSteps {
 
     @Autowired
-    private TestState testState;
+    private TestContext testContext;
     @Autowired
-    private EventApiActions eventApi;
+    private EventService eventService;
+    @Autowired // Inject the ResponseValidatorFactory
+    private ResponseValidatorFactory responseValidator;
+
 
     @Given("a new event has been prepared")
     public void aNewEventHasBeenPrepared() {
-        testState.setRequestPayload(new CreateBjjEventCommand(BjjEventFactory.getValidBjjEvent()));
+        testContext.setRequestPayload(new CreateBjjEventCommand(BjjEventFactory.getValidBjjEvent()));
     }
 
-    @Given("Admin has a BJJ event with {string} set to {string}")
-    public void adminAndyHasABjjEventWithFieldSetToInvalidValue(String field, String invalidValue) {
+    @Given("the Admin has an event with {string} set to {string}")
+    public void adminHasABjjEventWithFieldSetToInvalidValue(String field, String invalidValue) {
         Map<String, String> invalidDetails = Map.of(field, invalidValue);
         CreateBjjEventCommand invalidPayload = BjjEventFactory.createPayloadWithInvalidDetails(invalidDetails);
-        testState.setRequestPayload(invalidPayload);
+        testContext.setRequestPayload(invalidPayload);
     }
 
-    @When("Admin adds the new event")
-    public void adminAndyAddsTheNewEvent() {
-        CreateBjjEventCommand command = (CreateBjjEventCommand) testState.getRequestPayload();
-
-        var response = eventApi.createEvent(testState.getAuthToken(), command);
-        testState.setLastResponse(response);
+    @When("the Admin adds the new event")
+    public void adminAddsTheNewEvent() {
+        CreateBjjEventCommand command = (CreateBjjEventCommand) testContext.getRequestPayload();
+        ApiResponse response = eventService.createEvent(testContext.getAuthToken(), command).block();
+        testContext.setLastResponse(response);
 
         if (response.getStatusCode() == 201) {
             BjjEvent createdEvent = response.as(CreateBjjEventResponse.class).data();
-            testState.addEntity(createdEvent);
+            testContext.addEntityForCleanup(createdEvent);
         }
     }
 
-    @When("Admin attempts to create the BJJ event")
-    public void adminAndyAttemptsToCreateTheBjjEvent() {
-        var response = eventApi.attemptToCreateEventWithInvalidData(
-                testState.getAuthToken(),
-                testState.getRequestPayload());
-        testState.setLastResponse(response);
+    @When("the Admin attempts to add the new event")
+    public void adminAttemptsToCreateTheBjjEvent() {
+        ApiResponse response = eventService.attemptToCreateEvent(
+                testContext.getAuthToken(),
+                testContext.getRequestPayload()).block();
+        testContext.setLastResponse(response);
     }
 
     @Then("the event should be successfully added")
     public void theEventShouldBeSuccessfullyAdded() {
-        testState.getLastResponse().then().statusCode(201);
+        // Use the factory to create a ResponseValidator instance
+        responseValidator.validate(testContext.getLastResponse()).statusCode(201);
     }
 
-    @Then("Admin is notified that the event creation failed for {string} with message {string}")
+    @Then("the Admin should be notified that adding the event failed for {string} with message {string}")
     public void adminIsNotifiedThatTheEventCreationFailedForWithMessage(String field, String errorMessage) {
-        testState.getLastResponse().then()
+        // Use the factory to create a ResponseValidator instance
+        responseValidator.validate(testContext.getLastResponse())
                 .statusCode(400)
                 .validationError()
                 .containsErrorForField(field, errorMessage);

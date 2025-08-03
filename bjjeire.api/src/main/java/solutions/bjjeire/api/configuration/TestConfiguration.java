@@ -6,11 +6,29 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.javafaker.Faker;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
+import io.opentelemetry.context.propagation.ContextPropagators;
+import io.opentelemetry.sdk.OpenTelemetrySdk;
+import io.opentelemetry.sdk.resources.Resource;
+import io.opentelemetry.sdk.trace.SdkTracerProvider;
+import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
+import org.springframework.web.reactive.function.client.WebClient;
+import solutions.bjjeire.api.client.RequestBodyHandler;
+import solutions.bjjeire.api.client.RequestExecutor;
+import solutions.bjjeire.api.client.WebClientAdapter;
+import solutions.bjjeire.api.telemetry.MetricsCollector;
+import solutions.bjjeire.api.telemetry.TracingManager;
+import solutions.bjjeire.api.utils.CorrelationIdFilter;
+import solutions.bjjeire.api.utils.RetryPolicy;
 
 @Configuration
 @ComponentScan(basePackages = "solutions.bjjeire")
@@ -23,7 +41,6 @@ public class TestConfiguration {
     }
 
     @Bean
-    @Primary
     public ObjectMapper objectMapper() {
         return JsonMapper.builder()
                 .enable(SerializationFeature.INDENT_OUTPUT)
@@ -32,5 +49,84 @@ public class TestConfiguration {
                 .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS)
                 .addModule(new JavaTimeModule())
                 .build();
+    }
+
+    @Bean
+    public OpenTelemetry openTelemetry() {
+        // Define the resource with service name and deployment environment
+        Resource resource = Resource.getDefault()
+                .merge(Resource.create(Attributes.of(
+                        ResourceAttributes.SERVICE_NAME, "api-testing-framework",
+                        ResourceAttributes.DEPLOYMENT_ENVIRONMENT, "development",
+                        ResourceAttributes.SERVICE_VERSION, "1.0-SNAPSHOT"
+                )));
+
+        // Create a tracer provider with the resource
+        SdkTracerProvider tracerProvider = SdkTracerProvider.builder()
+                .setResource(resource)
+                .build();
+
+        // Build OpenTelemetry with the tracer provider
+        return OpenTelemetrySdk.builder()
+                .setTracerProvider(tracerProvider)
+                .build();
+    }
+
+    @Bean
+    public MeterRegistry meterRegistry() {
+        return new SimpleMeterRegistry(); // Or use Micrometer's Prometheus registry if needed
+    }
+
+    @Bean
+    public CorrelationIdFilter correlationIdFilter() {
+        return new CorrelationIdFilter();
+    }
+
+    @Bean
+    public WebClient webClient(WebClientConfig webClientConfig) {
+        return webClientConfig.buildWebClient(WebClient.builder());
+    }
+    @Bean
+    public WebClientConfig webClientConfig(ApiSettings apiSettings, ObjectMapper objectMapper) {
+        return new WebClientConfig(apiSettings, objectMapper);
+    }
+
+
+    @Bean
+    public Tracer tracer(OpenTelemetry openTelemetry) {
+        return openTelemetry.getTracer("test-tracer");
+    }
+
+    @Bean
+    public RetryPolicy retryPolicy(ApiSettings apiSettings, MeterRegistry meterRegistry) {
+        return new RetryPolicy(apiSettings, meterRegistry);
+    }
+
+    @Bean
+    public MetricsCollector metricsCollector(MeterRegistry meterRegistry) {
+        return new MetricsCollector(meterRegistry);
+    }
+
+    @Bean
+    public TracingManager tracingManager() {
+        return new TracingManager();
+    }
+
+    @Bean
+    public RequestBodyHandler requestBodyHandler(ObjectMapper objectMapper) {
+        return new RequestBodyHandler(objectMapper);
+    }
+
+    @Bean
+    public RequestExecutor requestExecutor(WebClient webClient, Tracer tracer, RetryPolicy retryPolicy,
+                                           MetricsCollector metricsCollector, TracingManager tracingManager,
+                                           RequestBodyHandler bodyHandler) {
+        return new RequestExecutor(webClient, tracer, retryPolicy, metricsCollector, tracingManager, bodyHandler);
+    }
+
+    @Bean
+    public WebClientAdapter webClientAdapter(ApiSettings apiSettings, WebClientConfig webClientConfig,
+                                             RequestExecutor requestExecutor) {
+        return new WebClientAdapter(apiSettings, webClientConfig, requestExecutor);
     }
 }

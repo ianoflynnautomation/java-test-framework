@@ -1,4 +1,4 @@
-package solutions.bjjeire.api.http;
+package solutions.bjjeire.api.client;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -10,12 +10,13 @@ import org.springframework.util.MultiValueMap;
 import solutions.bjjeire.api.http.auth.Authentication;
 import solutions.bjjeire.api.http.auth.NoAuth;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ApiRequest {
-
     private final HttpMethod method;
     private final String path;
     private final MultiValueMap<String, String> headers;
@@ -39,6 +40,7 @@ public class ApiRequest {
         private List<MediaType> acceptableMediaTypes = Collections.singletonList(MediaType.APPLICATION_JSON);
         private Authentication authentication = new NoAuth();
 
+
         public Builder method(HttpMethod method) {
             this.method = method;
             return this;
@@ -49,6 +51,7 @@ public class ApiRequest {
             return this;
         }
 
+        // Convenience methods for common HTTP methods
         public Builder get(String path) {
             this.method = HttpMethod.GET;
             this.path = path;
@@ -79,8 +82,32 @@ public class ApiRequest {
             return this;
         }
 
+        public Builder options(String path) {
+            this.method = HttpMethod.OPTIONS;
+            this.path = path;
+            return this;
+        }
+
+        public Builder head(String path) {
+            this.method = HttpMethod.HEAD;
+            this.path = path;
+            return this;
+        }
+
+        public Builder trace(String path) {
+            this.method = HttpMethod.TRACE;
+            this.path = path;
+            return this;
+        }
+
         public Builder header(String name, String value) {
             this.headers.add(name, value);
+            return this;
+        }
+
+        public Builder headers(MultiValueMap<String, String> headers) {
+            this.headers.clear();
+            this.headers.putAll(headers);
             return this;
         }
 
@@ -94,6 +121,12 @@ public class ApiRequest {
             return this;
         }
 
+        public Builder acceptableMediaTypes(List<MediaType> mediaTypes) {
+            this.acceptableMediaTypes = mediaTypes != null ? mediaTypes
+                    : Collections.singletonList(MediaType.APPLICATION_JSON);
+            return this;
+        }
+
         public Builder body(Object body) {
             this.body = body;
             return this;
@@ -101,6 +134,18 @@ public class ApiRequest {
 
         public Builder contentType(MediaType contentType) {
             this.contentType = contentType;
+            return this;
+        }
+
+        public Builder multipartBody(MultiValueMap<String, Object> multipartBody) {
+            this.body = multipartBody;
+            this.contentType = MediaType.MULTIPART_FORM_DATA;
+            return this;
+        }
+
+        public Builder formBody(MultiValueMap<String, String> formBody) {
+            this.body = formBody;
+            this.contentType = MediaType.APPLICATION_FORM_URLENCODED;
             return this;
         }
 

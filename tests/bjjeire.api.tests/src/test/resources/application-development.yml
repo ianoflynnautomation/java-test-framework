@@ -1,7 +1,46 @@
-
-  api-settings:
-    baseUrl: "http://localhost:5003"
-    connectTimeoutMillis: 5000
-    responseTimeoutMillis: 10000
-    maxRetryAttempts: 3
-    pauseBetweenFailuresMillis: 1000
+spring:
+    application:
+        name: api-testing-framework
+api-settings:
+        baseUrl: "http://localhost:5003"
+        connectTimeoutMillis: 5000
+        responseTimeoutMillis: 10000
+        maxRetryAttempts: 3
+        pauseBetweenFailuresMillis: 1000
+        tracingExporter: otlp
+        otlpLogEndpoint: http://otel-collector:4317
+        jaegerEndpoint: http://jaeger:4318
+        sensitiveFields:
+            - password
+            - token
+management:
+    otlp:
+        tracing:
+            endpoint: http://otel-collector:4317/v1/traces
+        metrics:
+            endpoint: http://otel-collector:4317/v1/metrics
+        logging:
+            endpoint: http://otel-collector:4317/v1/logs
+    metrics:
+        export:
+            otlp:
+                enabled: true
+    tracing:
+        sampling:
+            probability: 1.0
+otel:
+    service:
+        name: api-testing-framework
+    resource:
+        attributes:
+            environment: development
+            test_type: cucumber
+    instrumentation:
+        logback:
+            enabled: true
+    propagators: tracecontext,baggage
+logging:
+    level:
+        root: INFO
+        solutions.bjjeire: DEBUG
+        io.opentelemetry: DEBUG
