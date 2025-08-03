@@ -11,8 +11,6 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Tracer;
-import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
-import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
@@ -52,12 +50,11 @@ public class TestConfiguration {
     }
 
     @Bean
-    public OpenTelemetry openTelemetry() {
-        // Define the resource with service name and deployment environment
+    public OpenTelemetry openTelemetry(ApiSettings apiSettings) {
         Resource resource = Resource.getDefault()
                 .merge(Resource.create(Attributes.of(
-                        ResourceAttributes.SERVICE_NAME, "api-testing-framework",
-                        ResourceAttributes.DEPLOYMENT_ENVIRONMENT, "development",
+                        ResourceAttributes.SERVICE_NAME, apiSettings.getServiceName(),
+                        ResourceAttributes.DEPLOYMENT_ENVIRONMENT, apiSettings.getEnvironment(),
                         ResourceAttributes.SERVICE_VERSION, "1.0-SNAPSHOT"
                 )));
 
@@ -77,6 +74,12 @@ public class TestConfiguration {
         return new SimpleMeterRegistry(); // Or use Micrometer's Prometheus registry if needed
     }
 
+
+    @Bean
+    public MetricsCollector metricsCollector(MeterRegistry meterRegistry, ApiSettings apiSettings) {
+        return new MetricsCollector(meterRegistry, apiSettings.getServiceName(), apiSettings.getEnvironment());
+    }
+
     @Bean
     public CorrelationIdFilter correlationIdFilter() {
         return new CorrelationIdFilter();
@@ -86,25 +89,20 @@ public class TestConfiguration {
     public WebClient webClient(WebClientConfig webClientConfig) {
         return webClientConfig.buildWebClient(WebClient.builder());
     }
+
+
+    @Bean
+    public Tracer tracer(OpenTelemetry openTelemetry) {
+        return openTelemetry.getTracer(TestConfiguration.class.getName());
+    }
     @Bean
     public WebClientConfig webClientConfig(ApiSettings apiSettings, ObjectMapper objectMapper) {
         return new WebClientConfig(apiSettings, objectMapper);
     }
 
-
-    @Bean
-    public Tracer tracer(OpenTelemetry openTelemetry) {
-        return openTelemetry.getTracer("test-tracer");
-    }
-
     @Bean
     public RetryPolicy retryPolicy(ApiSettings apiSettings, MeterRegistry meterRegistry) {
         return new RetryPolicy(apiSettings, meterRegistry);
-    }
-
-    @Bean
-    public MetricsCollector metricsCollector(MeterRegistry meterRegistry) {
-        return new MetricsCollector(meterRegistry);
     }
 
     @Bean
@@ -118,10 +116,9 @@ public class TestConfiguration {
     }
 
     @Bean
-    public RequestExecutor requestExecutor(WebClient webClient, Tracer tracer, RetryPolicy retryPolicy,
-                                           MetricsCollector metricsCollector, TracingManager tracingManager,
-                                           RequestBodyHandler bodyHandler) {
-        return new RequestExecutor(webClient, tracer, retryPolicy, metricsCollector, tracingManager, bodyHandler);
+    public RequestExecutor requestExecutor(WebClient webClient, RetryPolicy retryPolicy,
+                                           MetricsCollector metricsCollector, RequestBodyHandler bodyHandler) {
+        return new RequestExecutor(webClient, retryPolicy, metricsCollector, bodyHandler);
     }
 
     @Bean

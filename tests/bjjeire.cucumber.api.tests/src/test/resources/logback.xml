@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <!-- Async console appender with JSON output -->
+    <!-- Console Appender for structured JSON logs -->
     <appender name="CONSOLE_JSON" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
             <fieldNames>
@@ -12,31 +12,27 @@
                 <stackTrace>stackTrace</stackTrace>
                 <version>[ignore]</version>
             </fieldNames>
-            <customFields>
-                {
-                "service_name": "api-testing-framework",
-                "environment": "${spring.profiles.active:-local}"
-                }
-            </customFields>
+            <!-- Custom fields from application.yml via Spring properties -->
+            <customFields>{"service_name":"${spring.application.name:-api-testing-framework}","environment":"${api-settings.environment:-development}"}</customFields>
+            <!-- Automatically include all MDC properties as top-level fields -->
             <includeMdc>true</includeMdc>
-            <mdc>
-                <includeMdcKeyName>traceId</includeMdcKeyName>
-                <includeMdcKeyName>spanId</includeMdcKeyName>
-                <includeMdcKeyName>correlationId</includeMdcKeyName>
-                <includeMdcKeyName>test_id</includeMdcKeyName>
-                <includeMdcKeyName>test_name</includeMdcKeyName>
-                <includeMdcKeyName>test_stage</includeMdcKeyName>
-            </mdc>
-            <includeContext>false</includeContext>
+            <!-- Optionally, you can explicitly include specific MDC keys if not all are desired -->
+            <!-- <includeMdcKeyName>traceId</includeMdcKeyName> -->
+            <!-- <includeMdcKeyName>spanId</includeMdcKeyName> -->
+            <!-- <includeMdcKeyName>test_id</includeMdcKeyName> -->
+            <!-- ... other test-related MDC keys ... -->
+            <!-- Removed the problematic <throwableConverter> element -->
         </encoder>
     </appender>
 
+    <!-- OpenTelemetry Appender for sending logs to OTLP Collector -->
     <appender name="OTLP" class="io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender">
-        <captureMdcAttributes>*</captureMdcAttributes> <!-- Capture test_id, test_name, correlationId -->
-        <captureContextDataAttributes>true</captureContextDataAttributes>
+        <!-- Capture all MDC attributes and send them as log attributes to OTLP -->
+        <captureMdcAttributes>*</captureMdcAttributes>
+        <!-- No encoder needed here, OTel Appender handles the conversion to OTLP LogRecords -->
     </appender>
 
-    <!-- Async file appender for JSON logs -->
+    <!-- File Appender for structured JSON logs (for local debugging/archiving) -->
     <appender name="FILE_JSON" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>logs/app.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
@@ -46,39 +42,29 @@
             <totalSizeCap>3GB</totalSizeCap>
         </rollingPolicy>
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
-            <customFields>{"service_name":"api-testing-framework","environment":"${spring.profiles.active:-local}"}</customFields>
+            <customFields>{"service_name":"${spring.application.name:-api-testing-framework}","environment":"${api-settings.environment:-development}"}</customFields>
             <includeMdc>true</includeMdc>
-            <mdc>
-                <includeMdcKeyName>traceId</includeMdcKeyName>
-                <includeMdcKeyName>spanId</includeMdcKeyName>
-                <includeMdcKeyName>correlationId</includeMdcKeyName>
-                <includeMdcKeyName>test_id</includeMdcKeyName>
-                <includeMdcKeyName>test_name</includeMdcKeyName>
-                <includeMdcKeyName>test_stage</includeMdcKeyName>
-            </mdc>
+            <!-- Removed the problematic <throwableConverter> element -->
         </encoder>
     </appender>
 
-    <!-- Async appender for performance -->
-    <appender name="ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+    <!-- Root logger configuration -->
+    <root level="INFO">
         <appender-ref ref="CONSOLE_JSON"/>
         <appender-ref ref="FILE_JSON"/>
-        <queueSize>500</queueSize>
-        <discardingThreshold>0</discardingThreshold>
-    </appender>
-
-    <!-- Root logger -->
-    <root level="INFO">
-        <appender-ref ref="ASYNC"/>
+        <appender-ref ref="OTLP"/>
     </root>
 
-    <!-- Specific logger levels -->
+    <!-- Specific logger for your framework classes -->
     <logger name="solutions.bjjeire.api" level="DEBUG" additivity="false">
-        <appender-ref ref="ASYNC"/>
+        <appender-ref ref="CONSOLE_JSON"/>
+        <appender-ref ref="FILE_JSON"/>
+        <appender-ref ref="OTLP"/>
     </logger>
+    <!-- Other loggers for third-party libraries -->
     <logger name="org.springframework" level="INFO"/>
     <logger name="reactor.netty" level="INFO"/>
     <logger name="io.netty" level="INFO"/>
     <logger name="com.jayway.jsonpath" level="INFO"/>
-    <logger name="io.opentelemetry" level="INFO"/>
+    <logger name="io.opentelemetry" level="DEBUG"/> <!-- Keep OTel internal logs visible for debugging -->
 </configuration>

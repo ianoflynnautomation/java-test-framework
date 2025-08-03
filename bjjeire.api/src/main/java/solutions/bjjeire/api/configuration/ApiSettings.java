@@ -38,4 +38,11 @@ public class ApiSettings {
 
     @NotBlank(message = "OTLP log endpoint must not be blank")
     private String otlpLogEndpoint = "http://otel-collector:4317";
+
+    private List<String> sensitiveFields;
+    private String serviceName;
+    private String environment;
+
+    // New property for test type
+    private String testType = "junit_test"; // Default value
 }

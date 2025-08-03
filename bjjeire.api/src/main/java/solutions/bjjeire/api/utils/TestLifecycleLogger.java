@@ -1,8 +1,9 @@
 package solutions.bjjeire.api.utils;
 
+import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.api.trace.Tracer;
-import io.opentelemetry.context.Scope;
 import net.logstash.logback.argument.StructuredArguments;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
@@ -13,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
+import solutions.bjjeire.api.configuration.ApiSettings;
 import solutions.bjjeire.api.telemetry.MetricsCollector;
 
 import java.util.Map;
@@ -21,11 +23,9 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 public class TestLifecycleLogger implements BeforeEachCallback, AfterEachCallback, TestWatcher {
-
     private static final Logger logger = LoggerFactory.getLogger(TestLifecycleLogger.class);
     private static final ExtensionContext.Namespace NAMESPACE = ExtensionContext.Namespace.create("solutions", "bjjeire", "observability");
 
-    // Static helper to hold Spring ApplicationContext for accessing beans
     public static class SpringContext {
         private static ApplicationContext applicationContext;
 
@@ -42,100 +42,102 @@ public class TestLifecycleLogger implements BeforeEachCallback, AfterEachCallbac
     }
 
     @Override
-    public void beforeEach(ExtensionContext context) throws Exception {
+    public void beforeEach(ExtensionContext context) {
         String testId = UUID.randomUUID().toString();
         String testName = context.getDisplayName();
         String testClass = context.getRequiredTestClass().getSimpleName();
         String testMethod = context.getRequiredTestMethod().getName();
+        String testSuite = testClass;
 
-        // Retrieve beans
         Tracer tracer = SpringContext.getBean(Tracer.class);
         MetricsCollector metricsCollector = SpringContext.getBean(MetricsCollector.class);
+        ApiSettings apiSettings = SpringContext.getBean(ApiSettings.class);
 
-        // Start OpenTelemetry span
+        String testType = apiSettings.getTestType();
+
+        // Store test details in JUnit context for reliable retrieval in TestWatcher methods
+        context.getStore(NAMESPACE).put("testId", testId);
+        context.getStore(NAMESPACE).put("testName", testName);
+        context.getStore(NAMESPACE).put("testSuite", testSuite);
+        context.getStore(NAMESPACE).put("testType", testType);
+
+
+        // Put test context into MDC for structured logging.
+        // These will be automatically picked up by Logback's OpenTelemetryAppender.
+        MDC.put("test_id", testId);
+        MDC.put("test_name", testName);
+        MDC.put("test_suite", testSuite);
+        MDC.put("test_type", testType);
+        MDC.put("test_stage", "setup");
+
+        // Propagate test context via Baggage.
+        // We are no longer calling .makeCurrent() here to avoid scope management issues.
+        // Baggage is still created and can be propagated by auto-instrumentation if configured.
+        Baggage.current()
+                .toBuilder()
+                .put("test.id", testId)
+                .put("test.name", testName)
+                .put("test.suite", testSuite)
+                .put("test.type", testType)
+                .build()
+                .storeInContext(io.opentelemetry.context.Context.current()); // Store in context, but don't make current.
+
+        // Create a new span for the test case.
+        // This span will automatically become the current span for the current thread and its children.
         Span span = tracer.spanBuilder("test." + testName)
                 .setAttribute("test.id", testId)
                 .setAttribute("test.name", testName)
                 .setAttribute("test.class", testClass)
                 .setAttribute("test.method", testMethod)
-                .setAttribute("test.type", "junit_test")
+                .setAttribute("test.type", testType)
                 .startSpan();
 
-        // Store span and scope
+        // Store span in JUnit context for later access.
         context.getStore(NAMESPACE).put("testSpan", span);
-        Scope scope = span.makeCurrent();
-        context.getStore(NAMESPACE).put("testScope", scope);
-        context.getStore(NAMESPACE).put("startTime", System.nanoTime());
 
-        // Set MDC properties
-        MDC.put("traceId", span.getSpanContext().getTraceId());
-        MDC.put("spanId", span.getSpanContext().getSpanId());
-        MDC.put("test_id", testId);
-        MDC.put("test_name", testName);
-        MDC.put("test_stage", "setup");
-
-        // Log test start
         logger.debug("JUnit test started",
-                StructuredArguments.kv("eventType", "test_start"),
-                StructuredArguments.kv("test_id", testId),
-                StructuredArguments.kv("test_name", testName),
-                StructuredArguments.kv("test_class", testClass),
-                StructuredArguments.kv("test_method", testMethod),
-                StructuredArguments.kv("test_stage", "setup"));
+                StructuredArguments.kv("eventType", "test_start"));
 
-        // Record metrics
-        metricsCollector.meterRegistry.counter("test_runs_total", "test_type", "junit").increment();
-        metricsCollector.meterRegistry.counter("test_cases_total", "test_name", testName, "test_type", "junit").increment();
+        metricsCollector.recordTestStart(testName, testSuite, testType);
         metricsCollector.incrementRunningTests();
-
         logger.info("--- Starting JUnit Test: '{}' ---", testName);
     }
 
     @Override
-    public void afterEach(ExtensionContext context) throws Exception {
+    public void afterEach(ExtensionContext context) {
+        // This method is called AFTER testSuccessful/testFailed/testAborted/testSkipped.
+        // The span should have already been ended by those methods.
+        // We only need to decrement the running tests counter and clear MDC here.
         MetricsCollector metricsCollector = SpringContext.getBean(MetricsCollector.class);
-        Span span = context.getStore(NAMESPACE).get("testSpan", Span.class);
-        Scope scope = context.getStore(NAMESPACE).get("testScope", Scope.class);
-
-        if (scope != null) {
-            scope.close();
-        }
-        if (span != null) {
-            span.end();
-        }
-
         metricsCollector.decrementRunningTests();
-        MDC.clear();
+        MDC.clear(); // Clear MDC after each test to prevent pollution
     }
 
     @Override
     public void testSuccessful(ExtensionContext context) {
         MetricsCollector metricsCollector = SpringContext.getBean(MetricsCollector.class);
-        String testId = MDC.get("test_id");
-        String testName = MDC.get("test_name");
+        ApiSettings apiSettings = SpringContext.getBean(ApiSettings.class);
+        // Retrieve test details from JUnit context store
+        String testName = context.getStore(NAMESPACE).get("testName", String.class);
+        String testSuite = context.getStore(NAMESPACE).get("testSuite", String.class);
+        String testType = context.getStore(NAMESPACE).get("testType", String.class);
         Long durationNanos = context.getStore(NAMESPACE).get("startTime", Long.class) != null ?
                 System.nanoTime() - context.getStore(NAMESPACE).get("startTime", Long.class) : 0;
-        long durationMs = TimeUnit.NANOSECONDS.toMillis(durationNanos);
 
-        // Log test success
+        MDC.put("test_stage", "teardown");
+        MDC.put("status", "passed");
+        MDC.put("duration_ms", String.valueOf(TimeUnit.NANOSECONDS.toMillis(durationNanos)));
+
         logger.info("JUnit test passed",
-                StructuredArguments.kv("eventType", "test_end"),
-                StructuredArguments.kv("test_id", testId),
-                StructuredArguments.kv("test_name", testName),
-                StructuredArguments.kv("test_stage", "teardown"),
-                StructuredArguments.kv("status", "passed"),
-                StructuredArguments.kv("duration_ms", durationMs));
+                StructuredArguments.kv("eventType", "test_end"));
 
-        // Record metrics
-        metricsCollector.meterRegistry.counter("test_cases_passed_total", "test_name", testName, "test_type", "junit").increment();
-        metricsCollector.meterRegistry.timer("test_case_duration_seconds", "test_name", testName, "status", "passed", "test_type", "junit")
-                .record(durationNanos, TimeUnit.NANOSECONDS);
-
-        // Update OpenTelemetry span
+        metricsCollector.recordTestSuccess(testName, testSuite, testType, durationNanos);
         Span span = context.getStore(NAMESPACE).get("testSpan", Span.class);
+
         if (span != null) {
             span.setAttribute("test.status", "passed");
-            span.setStatus(io.opentelemetry.api.trace.StatusCode.OK);
+            span.setStatus(StatusCode.OK);
+            span.end(); // End the span after setting attributes and status
         }
         logger.info("--- JUnit Test PASSED: '{}' ---", testName);
     }
@@ -143,36 +145,33 @@ public class TestLifecycleLogger implements BeforeEachCallback, AfterEachCallbac
     @Override
     public void testFailed(ExtensionContext context, Throwable cause) {
         MetricsCollector metricsCollector = SpringContext.getBean(MetricsCollector.class);
-        String testId = MDC.get("test_id");
-        String testName = MDC.get("test_name");
+        ApiSettings apiSettings = SpringContext.getBean(ApiSettings.class);
+        // Retrieve test details from JUnit context store
+        String testName = context.getStore(NAMESPACE).get("testName", String.class);
+        String testSuite = context.getStore(NAMESPACE).get("testSuite", String.class);
+        String testType = context.getStore(NAMESPACE).get("testType", String.class);
         Long durationNanos = context.getStore(NAMESPACE).get("startTime", Long.class) != null ?
                 System.nanoTime() - context.getStore(NAMESPACE).get("startTime", Long.class) : 0;
-        long durationMs = TimeUnit.NANOSECONDS.toMillis(durationNanos);
 
-        // Log test failure
+        MDC.put("test_stage", "teardown");
+        MDC.put("status", "failed");
+        MDC.put("duration_ms", String.valueOf(TimeUnit.NANOSECONDS.toMillis(durationNanos)));
+        MDC.put("error_message", cause.getMessage() != null ? cause.getMessage() : "unknown");
+        MDC.put("error_type", cause.getClass().getSimpleName());
+
+
         logger.error("JUnit test failed",
                 StructuredArguments.kv("eventType", "test_end"),
-                StructuredArguments.kv("test_id", testId),
-                StructuredArguments.kv("test_name", testName),
-                StructuredArguments.kv("test_stage", "teardown"),
-                StructuredArguments.kv("status", "failed"),
-                StructuredArguments.kv("duration_ms", durationMs),
-                StructuredArguments.kv("error_details", Map.of(
-                        "error_message", cause.getMessage() != null ? cause.getMessage() : "unknown",
-                        "error_type", cause.getClass().getSimpleName())),
                 cause);
 
-        // Record metrics
-        metricsCollector.meterRegistry.counter("test_cases_failed_total", "test_name", testName, "test_type", "junit").increment();
-        metricsCollector.meterRegistry.timer("test_case_duration_seconds", "test_name", testName, "status", "failed", "test_type", "junit")
-                .record(durationNanos, TimeUnit.NANOSECONDS);
-
-        // Update OpenTelemetry span
+        metricsCollector.recordTestFailure(testName, testSuite, testType, durationNanos);
         Span span = context.getStore(NAMESPACE).get("testSpan", Span.class);
+
         if (span != null) {
             span.setAttribute("test.status", "failed");
             span.recordException(cause);
-            span.setStatus(io.opentelemetry.api.trace.StatusCode.ERROR, cause.getMessage() != null ? cause.getMessage() : "unknown");
+            span.setStatus(StatusCode.ERROR, cause.getMessage() != null ? cause.getMessage() : "unknown");
+            span.end(); // End the span after setting attributes and status
         }
         logger.error("--- JUnit Test FAILED: '{}' ---", testName, cause);
     }
@@ -180,68 +179,66 @@ public class TestLifecycleLogger implements BeforeEachCallback, AfterEachCallbac
     @Override
     public void testAborted(ExtensionContext context, Throwable cause) {
         MetricsCollector metricsCollector = SpringContext.getBean(MetricsCollector.class);
-        String testId = MDC.get("test_id");
-        String testName = MDC.get("test_name");
+        ApiSettings apiSettings = SpringContext.getBean(ApiSettings.class);
+        // Retrieve test details from JUnit context store
+        String testName = context.getStore(NAMESPACE).get("testName", String.class);
+        String testSuite = context.getStore(NAMESPACE).get("testSuite", String.class);
+        String testType = context.getStore(NAMESPACE).get("testType", String.class);
         Long durationNanos = context.getStore(NAMESPACE).get("startTime", Long.class) != null ?
                 System.nanoTime() - context.getStore(NAMESPACE).get("startTime", Long.class) : 0;
-        long durationMs = TimeUnit.NANOSECONDS.toMillis(durationNanos);
 
-        // Log test aborted
+        MDC.put("test_stage", "teardown");
+        MDC.put("status", "aborted");
+        MDC.put("duration_ms", String.valueOf(TimeUnit.NANOSECONDS.toMillis(durationNanos)));
+        MDC.put("reason", cause != null ? cause.getMessage() : "unknown");
+
         logger.warn("JUnit test aborted",
-                StructuredArguments.kv("eventType", "test_end"),
-                StructuredArguments.kv("test_id", testId),
-                StructuredArguments.kv("test_name", testName),
-                StructuredArguments.kv("test_stage", "teardown"),
-                StructuredArguments.kv("status", "aborted"),
-                StructuredArguments.kv("duration_ms", durationMs),
-                StructuredArguments.kv("reason", cause != null ? cause.getMessage() : "unknown"));
+                StructuredArguments.kv("eventType", "test_end"));
 
-        // Record metrics
-        metricsCollector.meterRegistry.counter("test_cases_skipped_total", "test_name", testName, "test_type", "junit").increment();
-        metricsCollector.meterRegistry.timer("test_case_duration_seconds", "test_name", testName, "status", "aborted", "test_type", "junit")
-                .record(durationNanos, TimeUnit.NANOSECONDS);
-
-        // Update OpenTelemetry span
+        metricsCollector.recordTestAborted(testName, testSuite, testType, durationNanos);
         Span span = context.getStore(NAMESPACE).get("testSpan", Span.class);
+
         if (span != null) {
             span.setAttribute("test.status", "aborted");
             if (cause != null) {
                 span.recordException(cause);
             }
-            span.setStatus(io.opentelemetry.api.trace.StatusCode.UNSET, "Test aborted");
+            span.setStatus(StatusCode.UNSET, "Test aborted");
+            span.end(); // End the span
         }
         logger.warn("--- JUnit Test ABORTED: '{}' ---", testName, cause);
     }
 
-    public void testSkipped(ExtensionContext context, String reason) {
+    //@Override
+    public void testSkipped(ExtensionContext context) {
         MetricsCollector metricsCollector = SpringContext.getBean(MetricsCollector.class);
-        String testId = MDC.get("test_id");
-        String testName = MDC.get("test_name");
+        ApiSettings apiSettings = SpringContext.getBean(ApiSettings.class);
+        // Retrieve test details from JUnit context store
+        String testName = context.getStore(NAMESPACE).get("testName", String.class);
+        String testSuite = context.getStore(NAMESPACE).get("testSuite", String.class);
+        String testType = apiSettings.getTestType();
         Long durationNanos = context.getStore(NAMESPACE).get("startTime", Long.class) != null ?
                 System.nanoTime() - context.getStore(NAMESPACE).get("startTime", Long.class) : 0;
-        long durationMs = TimeUnit.NANOSECONDS.toMillis(durationNanos);
 
-        // Log test skipped
+        String reason = "skipped via JUnit";
+
+        MDC.put("test_stage", "teardown");
+        MDC.put("status", "skipped");
+        MDC.put("duration_ms", String.valueOf(TimeUnit.NANOSECONDS.toMillis(durationNanos)));
+        MDC.put("reason", reason);
+
+
         logger.info("JUnit test skipped",
-                StructuredArguments.kv("eventType", "test_end"),
-                StructuredArguments.kv("test_id", testId),
-                StructuredArguments.kv("test_name", testName),
-                StructuredArguments.kv("test_stage", "teardown"),
-                StructuredArguments.kv("status", "skipped"),
-                StructuredArguments.kv("duration_ms", durationMs),
-                StructuredArguments.kv("reason", reason != null ? reason : "unknown"));
+                StructuredArguments.kv("eventType", "test_end"));
 
-        // Record metrics
-        metricsCollector.meterRegistry.counter("test_cases_skipped_total", "test_name", testName, "test_type", "junit").increment();
-        metricsCollector.meterRegistry.timer("test_case_duration_seconds", "test_name", testName, "status", "skipped", "test_type", "junit")
-                .record(durationNanos, TimeUnit.NANOSECONDS);
-
-        // Update OpenTelemetry span
+        metricsCollector.recordTestSkipped(testName, testSuite, testType, durationNanos);
         Span span = context.getStore(NAMESPACE).get("testSpan", Span.class);
+
         if (span != null) {
             span.setAttribute("test.status", "skipped");
-            span.setStatus(io.opentelemetry.api.trace.StatusCode.UNSET, "Test skipped: " + reason);
+            span.setStatus(StatusCode.UNSET, "Test skipped: " + reason);
+            span.end(); // End the span
         }
-        logger.info("--- JUnit Test SKIPPED: '{}' --- Reason: {}", testName, reason != null ? reason : "unknown");
+        logger.info("--- JUnit Test SKIPPED: '{}' --- Reason: {}", testName, reason);
     }
 }

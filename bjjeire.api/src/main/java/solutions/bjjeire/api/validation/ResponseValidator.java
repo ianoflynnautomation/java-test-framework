@@ -7,10 +7,14 @@ import com.networknt.schema.JsonSchema;
 import com.networknt.schema.JsonSchemaFactory;
 import com.networknt.schema.SpecVersion;
 import com.networknt.schema.ValidationMessage;
-import org.slf4j.MDC;
+import io.opentelemetry.api.baggage.Baggage;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.StatusCode;
+import io.opentelemetry.api.trace.Tracer;
 import solutions.bjjeire.api.models.ApiAssertionException;
 import solutions.bjjeire.api.models.errors.ValidationErrorResponse;
 import solutions.bjjeire.api.telemetry.MetricsCollector;
+import solutions.bjjeire.api.telemetry.TracingManager;
 
 import java.io.InputStream;
 import java.time.Duration;
@@ -21,148 +25,177 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-
-/**
- * Provides a fluent API for validating ApiResponse objects.
- * Supports status code assertions, content checks, schema validation, and more.
- * Enhanced to record assertion metrics.
- */
 public class ResponseValidator {
     private final ApiResponse response;
-    private final MetricsCollector metricsCollector; // Added MetricsCollector dependency
+    private final MetricsCollector metricsCollector;
+    private final TracingManager tracingManager;
+    private final Tracer tracer;
 
-    public ResponseValidator(ApiResponse response, MetricsCollector metricsCollector) {
+    public ResponseValidator(ApiResponse response, MetricsCollector metricsCollector, TracingManager tracingManager, Tracer tracer) {
         this.response = response;
         this.metricsCollector = metricsCollector;
+        this.tracingManager = tracingManager;
+        this.tracer = tracer;
     }
 
-    /**
-     * Helper to retrieve the current test name from MDC for metric labeling.
-     * @return The current test name or "unknown_test" if not found.
-     */
     private String getCurrentTestName() {
-        String testName = MDC.get("test_name");
-        return testName != null ? testName : "unknown_test";
+        return Baggage.current().getEntryValue("test.name") != null ? Baggage.current().getEntryValue("test.name") : "unknown_test";
     }
 
-    /**
-     * Asserts that the response status code matches the expected value.
-     * @param expectedStatusCode The expected HTTP status code.
-     * @return The validator instance for chaining.
-     * @throws ApiAssertionException if the status codes do not match.
-     */
+    private String getCurrentTestSuite() {
+        return Baggage.current().getEntryValue("test.suite") != null ? Baggage.current().getEntryValue("test.suite") : "unknown_suite";
+    }
+
     public ResponseValidator statusCode(int expectedStatusCode) {
-        String currentTestName = getCurrentTestName();
-        try {
+        String testName = getCurrentTestName();
+        String testSuite = getCurrentTestSuite();
+        Span span = tracer.spanBuilder("assertion.status_code")
+                .setAttribute("assertion.type", "status_code") // Add assertion type
+                .setAttribute("expected.status_code", expectedStatusCode)
+                .setAttribute("actual.status_code", response.getStatusCode())
+                .startSpan();
+        try (var scope = span.makeCurrent()) {
             if (response.getStatusCode() != expectedStatusCode) {
                 throw new ApiAssertionException(
                         String.format("Expected status code <%d> but was <%d>.", expectedStatusCode, response.getStatusCode()),
                         response.getRequestPath(), response.getBodyAsString());
             }
-            metricsCollector.recordAssertionSuccess(currentTestName);
+            metricsCollector.recordAssertionSuccess(testName, testSuite);
+            tracingManager.recordAssertionSuccess(span, testName);
+            span.setAttribute("assertion.status", "success");
+            span.setStatus(StatusCode.OK);
+            return this;
         } catch (ApiAssertionException e) {
-            metricsCollector.recordAssertionFailure(currentTestName);
+            metricsCollector.recordAssertionFailure(testName, testSuite);
+            tracingManager.recordAssertionFailure(span, testName, e.getMessage());
+            span.setAttribute("assertion.status", "failure");
+            span.recordException(e);
+            span.setStatus(StatusCode.ERROR, e.getMessage());
             throw e;
+        } finally {
+            span.end();
         }
-        return this;
     }
 
-    /**
-     * Convenience method to assert a 400 Bad Request status code, typically for validation errors.
-     * @return The validator instance for chaining.
-     */
     public ResponseValidator validationError() {
-        return statusCode(400); // This will now also record metrics
+        return statusCode(400);
     }
 
-    /**
-     * Asserts that the response body contains a specific substring.
-     * @param expectedSubstring The substring expected in the response body.
-     * @return The validator instance for chaining.
-     * @throws ApiAssertionException if the substring is not found.
-     */
     public ResponseValidator contentContains(String expectedSubstring) {
-        String currentTestName = getCurrentTestName();
-        String body = response.getBodyAsString();
-        try {
+        String testName = getCurrentTestName();
+        String testSuite = getCurrentTestSuite();
+        Span span = tracer.spanBuilder("assertion.content_contains")
+                .setAttribute("assertion.type", "content_contains") // Add assertion type
+                .setAttribute("expected.substring", expectedSubstring)
+                .startSpan();
+        try (var scope = span.makeCurrent()) {
+            String body = response.getBodyAsString();
             if (body == null || !body.contains(expectedSubstring)) {
                 throw new ApiAssertionException(
                         String.format("Response content did not contain the expected substring '%s'.", expectedSubstring),
                         response.getRequestPath(), body);
             }
-            metricsCollector.recordAssertionSuccess(currentTestName);
+            metricsCollector.recordAssertionSuccess(testName, testSuite);
+            tracingManager.recordAssertionSuccess(span, testName);
+            span.setAttribute("assertion.status", "success");
+            span.setStatus(StatusCode.OK);
+            return this;
         } catch (ApiAssertionException e) {
-            metricsCollector.recordAssertionFailure(currentTestName);
+            metricsCollector.recordAssertionFailure(testName, testSuite);
+            tracingManager.recordAssertionFailure(span, testName, e.getMessage());
+            span.setAttribute("assertion.status", "failure");
+            span.recordException(e);
+            span.setStatus(StatusCode.ERROR, e.getMessage());
             throw e;
+        } finally {
+            span.end();
         }
-        return this;
     }
 
-    /**
-     * Asserts that the request execution time is under a specified maximum duration.
-     * @param expectedMaxDuration The maximum allowed execution duration.
-     * @return The validator instance for chaining.
-     * @throws ApiAssertionException if the execution time exceeds the maximum.
-     */
     public ResponseValidator executionTimeUnder(Duration expectedMaxDuration) {
-        String currentTestName = getCurrentTestName();
-        try {
+        String testName = getCurrentTestName();
+        String testSuite = getCurrentTestSuite();
+        Span span = tracer.spanBuilder("assertion.execution_time")
+                .setAttribute("assertion.type", "execution_time") // Add assertion type
+                .setAttribute("expected.max_duration_ms", expectedMaxDuration.toMillis())
+                .setAttribute("actual.duration_ms", response.getExecutionTime().toMillis())
+                .startSpan();
+        try (var scope = span.makeCurrent()) {
             if (response.getExecutionTime().compareTo(expectedMaxDuration) > 0) {
                 throw new ApiAssertionException(
                         String.format("Request execution time %s was over the expected max of %s.", response.getExecutionTime(), expectedMaxDuration),
                         response.getRequestPath(), response.getBodyAsString());
             }
-            metricsCollector.recordAssertionSuccess(currentTestName);
+            metricsCollector.recordAssertionSuccess(testName, testSuite);
+            tracingManager.recordAssertionSuccess(span, testName);
+            span.setAttribute("assertion.status", "success");
+            span.setStatus(StatusCode.OK);
+            return this;
         } catch (ApiAssertionException e) {
-            metricsCollector.recordAssertionFailure(currentTestName);
+            metricsCollector.recordAssertionFailure(testName, testSuite);
+            tracingManager.recordAssertionFailure(span, testName, e.getMessage());
+            span.setAttribute("assertion.status", "failure");
+            span.recordException(e);
+            span.setStatus(StatusCode.ERROR, e.getMessage());
             throw e;
+        } finally {
+            span.end();
         }
-        return this;
     }
 
-    /**
-     * Validates the response body against a JSON schema loaded from the classpath.
-     * Uses networknt/json-schema-validator for schema validation.
-     * @param schemaPath The path to the JSON schema file in the classpath (e.g., "schemas/my-response-schema.json").
-     * @return The validator instance for chaining.
-     * @throws ApiAssertionException if the schema file is not found or validation fails.
-     */
     public ResponseValidator matchesJsonSchemaInClasspath(String schemaPath) {
-        String currentTestName = getCurrentTestName();
-        try (InputStream schemaStream = getClass().getClassLoader().getResourceAsStream(schemaPath)) {
-            if (schemaStream == null) {
-                throw new ApiAssertionException("Schema file not found in classpath: " + schemaPath, response.getRequestPath(), response.getBodyAsString());
+        String testName = getCurrentTestName();
+        String testSuite = getCurrentTestSuite();
+        Span span = tracer.spanBuilder("assertion.json_schema")
+                .setAttribute("assertion.type", "json_schema") // Add assertion type
+                .setAttribute("schema.path", schemaPath)
+                .startSpan();
+        try (var scope = span.makeCurrent()) {
+            try (InputStream schemaStream = getClass().getClassLoader().getResourceAsStream(schemaPath)) {
+                if (schemaStream == null) {
+                    throw new ApiAssertionException("Schema file not found in classpath: " + schemaPath, response.getRequestPath(), response.getBodyAsString());
+                }
+                JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7);
+                JsonSchema schema = factory.getSchema(schemaStream);
+                JsonNode jsonNode = response.as(JsonNode.class);
+                Set<ValidationMessage> errors = schema.validate(jsonNode);
+                if (!errors.isEmpty()) {
+                    String errorDetails = errors.stream().map(ValidationMessage::getMessage).collect(Collectors.joining("\n- ", "\n- ", ""));
+                    throw new ApiAssertionException("JSON schema validation failed:" + errorDetails, response.getRequestPath(), response.getBodyAsString());
+                }
+                metricsCollector.recordAssertionSuccess(testName, testSuite);
+                tracingManager.recordAssertionSuccess(span, testName);
+                span.setAttribute("assertion.status", "success");
+                span.setStatus(StatusCode.OK);
+                return this;
+            } catch (ApiAssertionException e) {
+                metricsCollector.recordAssertionFailure(testName, testSuite);
+                tracingManager.recordAssertionFailure(span, testName, e.getMessage());
+                span.setAttribute("assertion.status", "failure");
+                span.recordException(e);
+                span.setStatus(StatusCode.ERROR, e.getMessage());
+                throw e;
+            } catch (Exception e) {
+                metricsCollector.recordAssertionFailure(testName, testSuite);
+                tracingManager.recordAssertionFailure(span, testName, e.getMessage());
+                span.setAttribute("assertion.status", "failure");
+                span.recordException(e);
+                span.setStatus(StatusCode.ERROR, e.getMessage());
+                throw new ApiAssertionException("Failed during JSON schema validation.", response.getRequestPath(), response.getBodyAsString(), e);
             }
-            JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7); // Using Draft 7
-            JsonSchema schema = factory.getSchema(schemaStream);
-            JsonNode jsonNode = response.as(JsonNode.class); // Deserialize response body to JsonNode
-
-            Set<ValidationMessage> errors = schema.validate(jsonNode); // Perform validation
-            if (!errors.isEmpty()) {
-                String errorDetails = errors.stream().map(ValidationMessage::getMessage).collect(Collectors.joining("\n- ", "\n- ", ""));
-                throw new ApiAssertionException("JSON schema validation failed:" + errorDetails, response.getRequestPath(), response.getBodyAsString());
-            }
-            metricsCollector.recordAssertionSuccess(currentTestName);
-        } catch (ApiAssertionException e) {
-            metricsCollector.recordAssertionFailure(currentTestName);
-            throw e;
-        } catch (Exception e) {
-            metricsCollector.recordAssertionFailure(currentTestName); // Also record failure for unexpected exceptions
-            throw new ApiAssertionException("Failed during JSON schema validation.", response.getRequestPath(), response.getBodyAsString(), e);
+        } finally {
+            span.end();
         }
-        return this;
     }
 
-    /**
-     * Asserts that the number of validation errors in the response matches the expected count.
-     * Requires the response body to be deserializable into a ValidationErrorResponse.
-     * @param expectedCount The expected number of errors.
-     * @return The validator instance for chaining.
-     * @throws ApiAssertionException if the error count does not match.
-     */
     public ResponseValidator errorCount(int expectedCount) {
-        String currentTestName = getCurrentTestName();
-        try {
+        String testName = getCurrentTestName();
+        String testSuite = getCurrentTestSuite();
+        Span span = tracer.spanBuilder("assertion.error_count")
+                .setAttribute("assertion.type", "error_count") // Add assertion type
+                .setAttribute("expected.error_count", expectedCount)
+                .startSpan();
+        try (var scope = span.makeCurrent()) {
             ValidationErrorResponse errorResponse = response.as(ValidationErrorResponse.class);
             int actualCount = errorResponse.errors().size();
             if (actualCount != expectedCount) {
@@ -170,28 +203,35 @@ public class ResponseValidator {
                         String.format("Expected <%d> validation errors but found <%d>.", expectedCount, actualCount),
                         response.getRequestPath(), response.getBodyAsString());
             }
-            metricsCollector.recordAssertionSuccess(currentTestName);
+            metricsCollector.recordAssertionSuccess(testName, testSuite);
+            tracingManager.recordAssertionSuccess(span, testName);
+            span.setAttribute("assertion.status", "success");
+            span.setStatus(StatusCode.OK);
+            return this;
         } catch (ApiAssertionException e) {
-            metricsCollector.recordAssertionFailure(currentTestName);
+            metricsCollector.recordAssertionFailure(testName, testSuite);
+            tracingManager.recordAssertionFailure(span, testName, e.getMessage());
+            span.setAttribute("assertion.status", "failure");
+            span.recordException(e);
+            span.setStatus(StatusCode.ERROR, e.getMessage());
             throw e;
+        } finally {
+            span.end();
         }
-        return this;
     }
 
-    /**
-     * Asserts that a specific error message exists for a given field in the validation error response.
-     * @param field The field name associated with the error.
-     * @param expectedMessage The expected error message for that field.
-     * @return The validator instance for chaining.
-     * @throws ApiAssertionException if the specific error is not found.
-     */
     public ResponseValidator containsErrorForField(String field, String expectedMessage) {
-        String currentTestName = getCurrentTestName();
-        try {
+        String testName = getCurrentTestName();
+        String testSuite = getCurrentTestSuite();
+        Span span = tracer.spanBuilder("assertion.error_for_field")
+                .setAttribute("assertion.type", "error_for_field") // Add assertion type
+                .setAttribute("field", field)
+                .setAttribute("expected.message", expectedMessage)
+                .startSpan();
+        try (var scope = span.makeCurrent()) {
             ValidationErrorResponse errorResponse = response.as(ValidationErrorResponse.class);
             boolean matchFound = errorResponse.errors().stream()
                     .anyMatch(error -> field.equals(error.field()) && expectedMessage.equals(error.message()));
-
             if (!matchFound) {
                 String availableErrors = errorResponse.errors().stream()
                         .map(e -> String.format("  - Field: '%s', Message: '%s'", e.field(), e.message()))
@@ -201,132 +241,164 @@ public class ResponseValidator {
                                 field, expectedMessage, availableErrors),
                         response.getRequestPath(), response.getBodyAsString());
             }
-            metricsCollector.recordAssertionSuccess(currentTestName);
+            metricsCollector.recordAssertionSuccess(testName, testSuite);
+            tracingManager.recordAssertionSuccess(span, testName);
+            span.setAttribute("assertion.status", "success");
+            span.setStatus(StatusCode.OK);
+            return this;
         } catch (ApiAssertionException e) {
-            metricsCollector.recordAssertionFailure(currentTestName);
+            metricsCollector.recordAssertionFailure(testName, testSuite);
+            tracingManager.recordAssertionFailure(span, testName, e.getMessage());
+            span.setAttribute("assertion.status", "failure");
+            span.recordException(e);
+            span.setStatus(StatusCode.ERROR, e.getMessage());
             throw e;
+        } finally {
+            span.end();
         }
-        return this;
     }
 
-    /**
-     * Asserts that all expected field-error message pairs are present in the validation error response.
-     * @param expectedErrors A map where keys are field names and values are expected error messages.
-     * @return The validator instance for chaining.
-     */
     public ResponseValidator containsAllErrors(Map<String, String> expectedErrors) {
-        // This method calls containsErrorForField, which now handles its own metrics.
         expectedErrors.forEach(this::containsErrorForField);
-        // No need to record success here, as individual calls to containsErrorForField do it.
         return this;
     }
 
-    /**
-     * Extracts a value from the JSON response body using a JSONPath expression and asserts its equality.
-     *
-     * @param jsonPathExpression The JSONPath expression (e.g., "$.data.id").
-     * @param expectedValue The expected value to compare against.
-     * @return The validator instance for chaining.
-     * @throws ApiAssertionException if the JSONPath is invalid, not found, or the value does not match.
-     */
     public ResponseValidator jsonPath(String jsonPathExpression, Object expectedValue) {
-        String currentTestName = getCurrentTestName();
-        String body = response.getBodyAsString();
-        try {
+        String testName = getCurrentTestName();
+        String testSuite = getCurrentTestSuite();
+        Span span = tracer.spanBuilder("assertion.json_path")
+                .setAttribute("assertion.type", "json_path") // Add assertion type
+                .setAttribute("jsonpath.expression", jsonPathExpression)
+                .setAttribute("expected.value", String.valueOf(expectedValue))
+                .startSpan();
+        String body = null;
+        try (var scope = span.makeCurrent()) {
+            body = response.getBodyAsString();
             if (body == null || body.isBlank()) {
                 throw new ApiAssertionException("Cannot perform JSONPath assertion on an empty response body.", response.getRequestPath(), "");
             }
             Object actualValue = JsonPath.read(body, jsonPathExpression);
+            span.setAttribute("actual.value", String.valueOf(actualValue));
             assertThat(actualValue)
                     .as("JSONPath '%s' value assertion failed. Expected <%s> but was <%s>.", jsonPathExpression, expectedValue, actualValue)
                     .isEqualTo(expectedValue);
-            metricsCollector.recordAssertionSuccess(currentTestName);
+            metricsCollector.recordAssertionSuccess(testName, testSuite);
+            tracingManager.recordAssertionSuccess(span, testName);
+            span.setAttribute("assertion.status", "success");
+            span.setStatus(StatusCode.OK);
+            return this;
         } catch (PathNotFoundException e) {
-            metricsCollector.recordAssertionFailure(currentTestName);
+            metricsCollector.recordAssertionFailure(testName, testSuite);
+            tracingManager.recordAssertionFailure(span, testName, e.getMessage());
+            span.setAttribute("assertion.status", "failure");
+            span.recordException(e);
+            span.setStatus(StatusCode.ERROR, e.getMessage());
             throw new ApiAssertionException(
                     String.format("JSONPath expression '%s' not found in response body.", jsonPathExpression),
                     response.getRequestPath(), body, e);
         } catch (AssertionError e) {
-            metricsCollector.recordAssertionFailure(currentTestName);
+            metricsCollector.recordAssertionFailure(testName, testSuite);
+            tracingManager.recordAssertionFailure(span, testName, e.getMessage());
+            span.setAttribute("assertion.status", "failure");
+            span.recordException(e);
+            span.setStatus(StatusCode.ERROR, e.getMessage());
             throw new ApiAssertionException(
                     String.format("JSONPath '%s' value assertion failed: %s", jsonPathExpression, e.getMessage()),
                     response.getRequestPath(), body, e);
         } catch (Exception e) {
-            metricsCollector.recordAssertionFailure(currentTestName);
+            metricsCollector.recordAssertionFailure(testName, testSuite);
+            tracingManager.recordAssertionFailure(span, testName, e.getMessage());
+            span.setAttribute("assertion.status", "failure");
+            span.recordException(e);
+            span.setStatus(StatusCode.ERROR, e.getMessage());
             throw new ApiAssertionException(
                     String.format("Failed to evaluate JSONPath '%s'. Error: %s", jsonPathExpression, e.getMessage()),
                     response.getRequestPath(), body, e);
+        } finally {
+            span.end();
         }
-        return this;
     }
 
-    /**
-     * Extracts a value from the JSON response body using a JSONPath expression and allows custom assertions
-     * on the extracted value using a Consumer.
-     *
-     * @param jsonPathExpression The JSONPath expression (e.g., "$.data.items[0].name").
-     * @param consumer A Consumer that takes the extracted object and performs assertions.
-     * @return The validator instance for chaining.
-     * @throws ApiAssertionException if the JSONPath is invalid, not found, or the custom assertion fails.
-     */
     public ResponseValidator jsonPath(String jsonPathExpression, Consumer<Object> consumer) {
-        String currentTestName = getCurrentTestName();
-        String body = response.getBodyAsString();
-        try {
+        String testName = getCurrentTestName();
+        String testSuite = getCurrentTestSuite();
+        Span span = tracer.spanBuilder("assertion.json_path_custom")
+                .setAttribute("assertion.type", "json_path_custom") // Add assertion type
+                .setAttribute("jsonpath.expression", jsonPathExpression)
+                .startSpan();
+        String body = null;
+        try (var scope = span.makeCurrent()) {
+            body = response.getBodyAsString();
             if (body == null || body.isBlank()) {
                 throw new ApiAssertionException("Cannot perform JSONPath assertion on an empty response body.", response.getRequestPath(), "");
             }
             Object extractedValue = JsonPath.read(body, jsonPathExpression);
             consumer.accept(extractedValue);
-            metricsCollector.recordAssertionSuccess(currentTestName);
+            metricsCollector.recordAssertionSuccess(testName, testSuite);
+            tracingManager.recordAssertionSuccess(span, testName);
+            span.setAttribute("assertion.status", "success");
+            span.setStatus(StatusCode.OK);
+            return this;
         } catch (PathNotFoundException e) {
-            metricsCollector.recordAssertionFailure(currentTestName);
+            metricsCollector.recordAssertionFailure(testName, testSuite);
+            tracingManager.recordAssertionFailure(span, testName, e.getMessage());
+            span.setAttribute("assertion.status", "failure");
+            span.recordException(e);
+            span.setStatus(StatusCode.ERROR, e.getMessage());
             throw new ApiAssertionException(
                     String.format("JSONPath expression '%s' not found in response body.", jsonPathExpression),
                     response.getRequestPath(), body, e);
         } catch (AssertionError e) {
-            metricsCollector.recordAssertionFailure(currentTestName);
+            metricsCollector.recordAssertionFailure(testName, testSuite);
+            tracingManager.recordAssertionFailure(span, testName, e.getMessage());
+            span.setAttribute("assertion.status", "failure");
+            span.recordException(e);
+            span.setStatus(StatusCode.ERROR, e.getMessage());
             throw new ApiAssertionException(
                     String.format("Custom JSONPath assertion failed for '%s': %s", jsonPathExpression, e.getMessage()),
                     response.getRequestPath(), body, e);
         } catch (Exception e) {
-            metricsCollector.recordAssertionFailure(currentTestName);
+            metricsCollector.recordAssertionFailure(testName, testSuite);
+            tracingManager.recordAssertionFailure(span, testName, e.getMessage());
+            span.setAttribute("assertion.status", "failure");
+            span.recordException(e);
+            span.setStatus(StatusCode.ERROR, e.getMessage());
             throw new ApiAssertionException(
                     String.format("Failed to evaluate JSONPath '%s'. Error: %s", jsonPathExpression, e.getMessage()),
                     response.getRequestPath(), body, e);
+        } finally {
+            span.end();
         }
-        return this;
     }
 
-    /**
-     * Allows custom assertions on the deserialized response body using a Consumer.
-     * This provides flexibility for complex or specific body validations.
-     * @param type The class to deserialize the response body into.
-     * @param consumer A Consumer that takes an instance of the deserialized body and performs assertions.
-     * @param <T> The generic type of the response body.
-     * @return The validator instance for chaining.
-     * @throws ApiAssertionException if the custom assertion fails.
-     */
     public <T> ResponseValidator bodySatisfies(Class<T> type, Consumer<T> consumer) {
-        String currentTestName = getCurrentTestName();
-        T bodyAsObject = response.as(type);
-        try {
+        String testName = getCurrentTestName();
+        String testSuite = getCurrentTestSuite();
+        Span span = tracer.spanBuilder("assertion.body_satisfies")
+                .setAttribute("assertion.type", "body_satisfies") // Add assertion type
+                .setAttribute("body.type", type.getName())
+                .startSpan();
+        try (var scope = span.makeCurrent()) {
+            T bodyAsObject = response.as(type);
             consumer.accept(bodyAsObject);
-            metricsCollector.recordAssertionSuccess(currentTestName);
+            metricsCollector.recordAssertionSuccess(testName, testSuite);
+            tracingManager.recordAssertionSuccess(span, testName);
+            span.setAttribute("assertion.status", "success");
+            span.setStatus(StatusCode.OK);
+            return this;
         } catch (AssertionError e) {
-            metricsCollector.recordAssertionFailure(currentTestName);
+            metricsCollector.recordAssertionFailure(testName, testSuite);
+            tracingManager.recordAssertionFailure(span, testName, e.getMessage());
+            span.setAttribute("assertion.status", "failure");
+            span.recordException(e);
+            span.setStatus(StatusCode.ERROR, e.getMessage());
             throw new ApiAssertionException("Custom body assertion failed: " + e.getMessage(),
                     response.getRequestPath(), response.getBodyAsString(), e);
+        } finally {
+            span.end();
         }
-        return this;
     }
 
-    /**
-     * A convenience method to return the underlying ApiResponse, for example,
-     * to extract the body after assertions have passed.
-     *
-     * @return The original ApiResponse.
-     */
     public ApiResponse andReturn() {
         return response;
     }

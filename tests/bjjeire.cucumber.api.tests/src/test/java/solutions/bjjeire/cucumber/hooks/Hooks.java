@@ -4,13 +4,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
 import io.cucumber.java.Scenario;
+import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.StatusCode; // Import StatusCode
 import io.opentelemetry.api.trace.Tracer;
-import io.opentelemetry.context.Scope;
+// import io.opentelemetry.context.Scope; // Removed explicit Scope import
 import net.logstash.logback.argument.StructuredArguments;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
+import org.slf4j.MDC; // Import MDC for structured logging
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import solutions.bjjeire.api.services.EventService;
@@ -26,14 +28,15 @@ import java.util.concurrent.TimeUnit;
 
 import static io.opentelemetry.api.common.AttributeKey.stringKey;
 
-public class Hooks {
 
+public class Hooks {
     private static final Logger logger = LoggerFactory.getLogger(Hooks.class);
     private static final ThreadLocal<Span> scenarioSpan = new ThreadLocal<>();
-    private static final ThreadLocal<Scope> scenarioScope = new ThreadLocal<>();
+    // private static final ThreadLocal<Scope> scenarioScope = new ThreadLocal<>(); // Removed explicit Scope ThreadLocal
     private static final ThreadLocal<Long> startTime = new ThreadLocal<>();
     private static final ThreadLocal<String> currentScenarioId = new ThreadLocal<>();
     private static final ThreadLocal<String> currentScenarioName = new ThreadLocal<>();
+    private static final ThreadLocal<String> currentTestSuite = new ThreadLocal<>(); // Added ThreadLocal for testSuite
 
     @Autowired
     private TestContext testContext;
@@ -52,43 +55,56 @@ public class Hooks {
     public void setup(Scenario scenario) {
         String scenarioName = scenario.getName();
         String scenarioId = UUID.randomUUID().toString();
+        // Extract test suite from tags, defaulting if not found
+        String testSuite = scenario.getSourceTagNames().stream()
+                .filter(tag -> tag.startsWith("@"))
+                .map(tag -> tag.replaceFirst("@", "")) // Remove '@' prefix
+                .findFirst()
+                .orElse("unknown_suite");
 
-        // Store scenario ID and name
+
         currentScenarioId.set(scenarioId);
         currentScenarioName.set(scenarioName);
+        currentTestSuite.set(testSuite); // Store testSuite in ThreadLocal
 
-        // Start OpenTelemetry span
+        // Put test context into MDC for structured logging.
+        // These will be automatically picked up by Logback's OpenTelemetryAppender.
+        MDC.put("test_id", scenarioId);
+        MDC.put("test_name", scenarioName);
+        MDC.put("test_suite", testSuite);
+        MDC.put("test_type", "cucumber_scenario"); // Hardcoded for now, can be configured
+        MDC.put("test_stage", "setup");
+
+        // Propagate test context via Baggage.
+        // We are no longer calling .makeCurrent() here to avoid scope management issues.
+        // Baggage is still created and can be propagated by auto-instrumentation if configured.
+        Baggage.current()
+                .toBuilder()
+                .put("test.id", scenarioId)
+                .put("test.name", scenarioName)
+                .put("test.suite", testSuite)
+                .put("test.type", "cucumber_scenario")
+                .build()
+                .storeInContext(io.opentelemetry.context.Context.current()); // Store in context, but don't make current.
+
+        // Create a new span for the test case.
+        // This span will automatically become the current span for the current thread and its children.
         Span span = tracer.spanBuilder("test." + scenarioName)
                 .setAttribute("test.id", scenarioId)
                 .setAttribute("test.name", scenarioName)
+                .setAttribute("test.suite", testSuite)
                 .setAttribute("test.type", "cucumber_scenario")
                 .startSpan();
 
-        // Store span and scope
-        scenarioSpan.set(span);
-        Scope scope = span.makeCurrent();
-        scenarioScope.set(scope);
-
-        // Set MDC properties
-        MDC.put("traceId", span.getSpanContext().getTraceId());
-        MDC.put("spanId", span.getSpanContext().getSpanId());
-        MDC.put("test_id", scenarioId);
-        MDC.put("test_name", scenarioName);
-        MDC.put("test_stage", "setup");
-
-        // Record start time
+        scenarioSpan.set(span); // Store span in ThreadLocal
+        // Scope scope = span.makeCurrent(); // Removed explicit scope management
+        // scenarioScope.set(scope); // Removed explicit scope storage
         startTime.set(System.nanoTime());
 
-        // Log scenario start
         logger.debug("Scenario started",
-                StructuredArguments.kv("eventType", "test_start"),
-                StructuredArguments.kv("test_id", scenarioId),
-                StructuredArguments.kv("test_name", scenarioName),
-                StructuredArguments.kv("test_stage", "setup"));
+                StructuredArguments.kv("eventType", "test_start")); // MDC will add other fields
 
-        // Record metrics
-        metricsCollector.meterRegistry.counter("test_runs_total", "test_type", "cucumber").increment();
-        metricsCollector.meterRegistry.counter("test_cases_total", "test_name", scenarioName, "test_type", "cucumber").increment();
+        metricsCollector.recordTestStart(scenarioName, testSuite, "cucumber");
         metricsCollector.incrementRunningTests();
     }
 
@@ -96,11 +112,10 @@ public class Hooks {
     public void tearDown(Scenario scenario) {
         String scenarioName = Objects.requireNonNullElse(currentScenarioName.get(), "unknown-name");
         String scenarioId = Objects.requireNonNullElse(currentScenarioId.get(), "unknown-id");
+        String testSuite = Objects.requireNonNullElse(currentTestSuite.get(), "unknown_suite"); // Retrieve from ThreadLocal
 
-        // Perform entity cleanup
         List<Object> entitiesToClean = testContext.getCreatedEntities();
         if (!entitiesToClean.isEmpty()) {
-            MDC.put("test_stage", "teardown");
             logger.debug("Executing cleanup actions",
                     StructuredArguments.kv("eventType", "resource_cleanup"),
                     StructuredArguments.kv("entity_count", entitiesToClean.size()),
@@ -110,64 +125,80 @@ public class Hooks {
             entitiesToClean.forEach(this::cleanupEntity);
         }
 
-        // Calculate duration
         Long start = startTime.get();
         long durationNanos = start != null ? System.nanoTime() - start : 0;
-        long durationMs = TimeUnit.NANOSECONDS.toMillis(durationNanos);
 
-        // Handle scenario outcome
         Span span = scenarioSpan.get();
+
         MDC.put("test_stage", "teardown");
+        MDC.put("duration_ms", String.valueOf(TimeUnit.NANOSECONDS.toMillis(durationNanos)));
+        MDC.put("test_id", scenarioId); // Ensure MDC is set for final log
+        MDC.put("test_name", scenarioName); // Ensure MDC is set for final log
+        MDC.put("test_suite", testSuite); // Ensure MDC is set for final log
+
 
         if (scenario.isFailed()) {
+            MDC.put("status", "failed");
             logger.error("Scenario failed",
                     StructuredArguments.kv("eventType", "test_end"),
-                    StructuredArguments.kv("test_id", scenarioId),
-                    StructuredArguments.kv("test_name", scenarioName),
-                    StructuredArguments.kv("test_stage", "teardown"),
-                    StructuredArguments.kv("status", "failed"),
-                    StructuredArguments.kv("duration_ms", durationMs),
-                    new RuntimeException("Scenario failed: " + scenario.getStatus().name()));
-            metricsCollector.meterRegistry.counter("test_cases_failed_total", "test_name", scenarioName, "test_type", "cucumber").increment();
+                    new RuntimeException("Scenario failed: " + scenario.getStatus().name())); // Pass cause directly
+
+            metricsCollector.recordTestFailure(scenarioName, testSuite, "cucumber", durationNanos);
             if (span != null) {
                 span.setAttribute("test.status", "failed");
-                span.setStatus(io.opentelemetry.api.trace.StatusCode.ERROR, "Scenario failed");
+                // Safely get the error, providing a fallback if getError() is not available or returns null
+                Throwable scenarioError = null;
+                try {
+                    // Check if getError() method exists and is accessible
+                    java.lang.reflect.Method getErrorMethod = scenario.getClass().getMethod("getError");
+                    scenarioError = (Throwable)getErrorMethod.invoke(scenario);
+                } catch (NoSuchMethodException | IllegalAccessException |
+                         java.lang.reflect.InvocationTargetException e) {
+                    // Log a warning if getError() is not found or callable, but continue with fallback
+                    logger.warn("Scenario.getError() method not found or callable, using generic RuntimeException for span.recordException.", e);
+                }
+
+                // Record the exception on the span, using the actual error or a generic one
+                span.recordException(scenarioError != null ? scenarioError : new RuntimeException("Scenario failed: " + scenario.getStatus().name()));
+                span.setStatus(StatusCode.ERROR, "Scenario failed");
             }
             logFailureDetails(scenario, span);
-            metricsCollector.meterRegistry.timer("test_case_duration_seconds", "test_name", scenarioName, "status", "failed", "test_type", "cucumber")
-                    .record(durationNanos, TimeUnit.NANOSECONDS);
-        } else {
+        }
+//        } else if (scenario.isSkipped()) { // Handle skipped scenarios explicitly
+//            MDC.put("status", "skipped");
+//            logger.info("Scenario skipped",
+//                    StructuredArguments.kv("eventType", "test_end"),
+//                    StructuredArguments.kv("reason", "Cucumber scenario skipped"));
+//            metricsCollector.recordTestSkipped(scenarioName, testSuite, "cucumber", durationNanos);
+//            if (span != null) {
+//                span.setAttribute("test.status", "skipped");
+//                span.setStatus(StatusCode.UNSET, "Scenario skipped");
+//            }
+//        }
+        else {
+            MDC.put("status", "passed");
             logger.info("Scenario passed",
-                    StructuredArguments.kv("eventType", "test_end"),
-                    StructuredArguments.kv("test_id", scenarioId),
-                    StructuredArguments.kv("test_name", scenarioName),
-                    StructuredArguments.kv("test_stage", "teardown"),
-                    StructuredArguments.kv("status", "passed"),
-                    StructuredArguments.kv("duration_ms", durationMs));
-            metricsCollector.meterRegistry.counter("test_cases_passed_total", "test_name", scenarioName, "test_type", "cucumber").increment();
+                    StructuredArguments.kv("eventType", "test_end"));
+            metricsCollector.recordTestSuccess(scenarioName, testSuite, "cucumber", durationNanos);
             if (span != null) {
                 span.setAttribute("test.status", "passed");
-                span.setStatus(io.opentelemetry.api.trace.StatusCode.OK);
+                span.setStatus(StatusCode.OK);
             }
-            metricsCollector.meterRegistry.timer("test_case_duration_seconds", "test_name", scenarioName, "status", "passed", "test_type", "cucumber")
-                    .record(durationNanos, TimeUnit.NANOSECONDS);
         }
 
-        // Clean up OpenTelemetry and ThreadLocal
-        Scope scope = scenarioScope.get();
-        if (scope != null) {
-            scope.close();
-            scenarioScope.remove();
-        }
         if (span != null) {
-            span.end();
+            span.end(); // End the span after all attributes and status are set
             scenarioSpan.remove();
         }
+        // Scope scope = scenarioScope.get(); // Removed explicit scope retrieval
+        // if (scope != null) { scope.close(); scenarioScope.remove(); } // Removed explicit scope closing
+
         metricsCollector.decrementRunningTests();
         startTime.remove();
         currentScenarioId.remove();
         currentScenarioName.remove();
-        MDC.clear();
+        currentTestSuite.remove(); // Clear ThreadLocal for testSuite
+        MDC.clear(); // Clear MDC at the very end
     }
 
     private void cleanupEntity(Object entity) {
@@ -207,10 +238,12 @@ public class Hooks {
     private void logFailureDetails(Scenario scenario, Span span) {
         String scenarioName = Objects.requireNonNullElse(currentScenarioName.get(), "unknown-name");
         String scenarioId = Objects.requireNonNullElse(currentScenarioId.get(), "unknown-id");
+        String testSuite = Objects.requireNonNullElse(currentTestSuite.get(), "unknown_suite"); // Retrieve from ThreadLocal
 
         Map<String, Object> failureContext = new LinkedHashMap<>();
         failureContext.put("scenarioName", scenarioName);
         failureContext.put("scenarioId", scenarioId);
+        failureContext.put("testSuite", testSuite);
 
         if (testContext.getLastResponse() != null) {
             ApiResponse response = testContext.getLastResponse();
