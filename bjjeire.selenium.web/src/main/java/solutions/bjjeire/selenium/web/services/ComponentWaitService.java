@@ -1,14 +1,13 @@
 package solutions.bjjeire.selenium.web.services;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import solutions.bjjeire.selenium.web.components.WebComponent;
 import solutions.bjjeire.selenium.web.waitstrategies.WaitStrategy;
 
 @Service
 public class ComponentWaitService extends WebService {
 
-    @Autowired
     public ComponentWaitService(DriverService driverService) {
         super(driverService);
     }

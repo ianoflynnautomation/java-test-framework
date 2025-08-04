@@ -1,38 +1,42 @@
 package junit;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import solutions.bjjeire.core.data.common.County;
 import solutions.bjjeire.core.data.gyms.GymFactory;
-import solutions.bjjeire.selenium.web.data.TestDataManager;
-import solutions.bjjeire.selenium.web.pages.gyms.GymsPage;
 import solutions.bjjeire.core.plugins.Browser;
-import solutions.bjjeire.selenium.web.infrastructure.ExecutionBrowser;
 import solutions.bjjeire.core.plugins.Lifecycle;
+import solutions.bjjeire.selenium.web.data.TestDataManager;
+import solutions.bjjeire.selenium.web.infrastructure.ExecutionBrowser;
 import solutions.bjjeire.selenium.web.infrastructure.junit.JunitWebTest;
+import solutions.bjjeire.selenium.web.pages.gyms.GymsPage;
 import solutions.bjjeire.selenium.web.services.BrowserService;
 import solutions.bjjeire.selenium.web.services.CookiesService;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @ExecutionBrowser(browser = Browser.FIREFOX, lifecycle = Lifecycle.REUSE_IF_STARTED)
 public class GymTests extends JunitWebTest {
 
-    @Autowired
-    private CookiesService cookiesService;
-    @Autowired
-    private BrowserService browserService;
-    @Autowired
-    private GymsPage gymsPage;
-    @Autowired
-    private TestDataManager testDataManager;
+    private final CookiesService cookiesService;
+    private final BrowserService browserService;
+    private final GymsPage gymsPage;
+    private final TestDataManager testDataManager;
     private String authToken;
     private final List<String> createdGymIds = new ArrayList<>();
+
+    public GymTests(CookiesService cookiesService, BrowserService browserService, GymsPage gymsPage,
+            TestDataManager testDataManager) {
+        this.cookiesService = cookiesService;
+        this.browserService = browserService;
+        this.gymsPage = gymsPage;
+        this.testDataManager = testDataManager;
+    }
 
     @BeforeEach
     public void setup() {

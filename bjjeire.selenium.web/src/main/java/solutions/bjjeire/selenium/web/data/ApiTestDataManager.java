@@ -1,15 +1,23 @@
 package solutions.bjjeire.selenium.web.data;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Duration;
+import java.util.List;
+import java.util.Objects;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
-import org.springframework.http.*;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import solutions.bjjeire.core.data.common.GenerateTokenResponse;
@@ -20,12 +28,9 @@ import solutions.bjjeire.core.data.gyms.CreateGymCommand;
 import solutions.bjjeire.core.data.gyms.CreateGymResponse;
 import solutions.bjjeire.core.data.gyms.Gym;
 
-import java.time.Duration;
-import java.util.List;
-import java.util.Objects;
-
 /**
- * A stateless, thread-safe service for managing test data via non-blocking API calls using Spring WebClient.
+ * A stateless, thread-safe service for managing test data via non-blocking API
+ * calls using Spring WebClient.
  * This is the primary implementation for development and testing environments.
  */
 @Service
@@ -61,13 +66,12 @@ public class ApiTestDataManager implements TestDataManager {
                         .queryParam("role", adminRole)
                         .build())
                 .retrieve()
-                .onStatus(status -> !status.is2xxSuccessful(), response ->
-                        response.bodyToMono(String.class)
-                                .flatMap(body -> {
-                                    log.error("HTTP Error during authentication: {} - {}", response.statusCode(), body);
-                                    return Mono.error(new IllegalStateException("Could not authenticate due to HTTP error: " + response.statusCode()));
-                                })
-                )
+                .onStatus(status -> !status.is2xxSuccessful(), response -> response.bodyToMono(String.class)
+                        .flatMap(body -> {
+                            log.error("HTTP Error during authentication: {} - {}", response.statusCode(), body);
+                            return Mono.error(new IllegalStateException(
+                                    "Could not authenticate due to HTTP error: " + response.statusCode()));
+                        }))
                 .bodyToMono(GenerateTokenResponse.class)
                 .map(response -> {
                     if (response != null && response.token() != null) {
@@ -75,7 +79,8 @@ public class ApiTestDataManager implements TestDataManager {
                         return response.token();
                     } else {
                         log.error("Failed to authenticate. Response body or token was null.");
-                        throw new IllegalStateException("Authentication failed. Response was OK but body or token was null.");
+                        throw new IllegalStateException(
+                                "Authentication failed. Response was OK but body or token was null.");
                     }
                 })
                 .block(TIMEOUT); // Block to return a synchronous result
@@ -98,12 +103,14 @@ public class ApiTestDataManager implements TestDataManager {
                             .bodyValue(command)
                             .retrieve()
                             .onStatus(status -> status.value() != HttpStatus.CREATED.value(), response -> {
-                                log.warn("Failed to create event '{}'. Status: {}", event.name(), response.statusCode());
+                                log.warn("Failed to create event '{}'. Status: {}", event.name(),
+                                        response.statusCode());
                                 return Mono.empty(); // Continue with other events
                             })
                             .bodyToMono(CreateBjjEventResponse.class)
                             .map(response -> response.data().id())
-                            .doOnSuccess(id -> log.debug("Successfully created event '{}' with ID: {}", event.name(), id))
+                            .doOnSuccess(
+                                    id -> log.debug("Successfully created event '{}' with ID: {}", event.name(), id))
                             .onErrorResume(e -> {
                                 log.error("An unexpected error occurred while creating event '{}':", event.name(), e);
                                 return Mono.empty();

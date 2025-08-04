@@ -1,32 +1,5 @@
 package solutions.bjjeire.selenium.web.components;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.SneakyThrows;
-import org.openqa.selenium.*;
-import org.openqa.selenium.interactions.Actions;
-import org.openqa.selenium.support.ui.FluentWait;
-import org.openqa.selenium.support.ui.Select;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-import solutions.bjjeire.selenium.web.components.contracts.BjjEireComponent;
-import solutions.bjjeire.selenium.web.components.enums.AriaRole;
-import solutions.bjjeire.selenium.web.components.enums.ScrollPosition;
-import solutions.bjjeire.selenium.web.configuration.WebSettings;
-import solutions.bjjeire.selenium.web.findstrategies.*;
-import solutions.bjjeire.selenium.web.services.DriverService;
-import solutions.bjjeire.selenium.web.services.BrowserService;
-import solutions.bjjeire.selenium.web.services.ComponentValidationService;
-import solutions.bjjeire.selenium.web.services.ComponentWaitService;
-import solutions.bjjeire.selenium.web.services.JavaScriptService;
-import solutions.bjjeire.selenium.web.waitstrategies.WaitStrategy;
-import solutions.bjjeire.selenium.web.waitstrategies.WaitStrategyFactory;
-
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -35,10 +8,51 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.apache.commons.text.StringEscapeUtils.unescapeHtml4;
+import org.openqa.selenium.ElementNotInteractableException;
+import org.openqa.selenium.NotFoundException;
+import org.openqa.selenium.SearchContext;
+import org.openqa.selenium.StaleElementReferenceException;
+import org.openqa.selenium.TimeoutException;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebDriverException;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.support.ui.FluentWait;
+import org.openqa.selenium.support.ui.Select;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.SneakyThrows;
+import solutions.bjjeire.selenium.web.components.contracts.BjjEireComponent;
+import solutions.bjjeire.selenium.web.components.enums.AriaRole;
+import solutions.bjjeire.selenium.web.components.enums.ScrollPosition;
+import solutions.bjjeire.selenium.web.configuration.WebSettings;
+import solutions.bjjeire.selenium.web.findstrategies.CssFindStrategy;
+import solutions.bjjeire.selenium.web.findstrategies.DataTestIdFindStrategy;
+import solutions.bjjeire.selenium.web.findstrategies.FindStrategy;
+import solutions.bjjeire.selenium.web.findstrategies.LabelTextFindStrategy;
+import solutions.bjjeire.selenium.web.findstrategies.PlaceholderFindStrategy;
+import solutions.bjjeire.selenium.web.findstrategies.RoleFindStrategy;
+import solutions.bjjeire.selenium.web.findstrategies.TextFindStrategy;
+import solutions.bjjeire.selenium.web.findstrategies.XPathFindStrategy;
+import solutions.bjjeire.selenium.web.services.BrowserService;
+import solutions.bjjeire.selenium.web.services.ComponentValidationService;
+import solutions.bjjeire.selenium.web.services.ComponentWaitService;
+import solutions.bjjeire.selenium.web.services.DriverService;
+import solutions.bjjeire.selenium.web.services.JavaScriptService;
+import solutions.bjjeire.selenium.web.waitstrategies.WaitStrategy;
+import solutions.bjjeire.selenium.web.waitstrategies.WaitStrategyFactory;
 
 @Component
 @Scope("prototype")
 public abstract class WebComponent implements BjjEireComponent {
+
     private static final Logger log = LoggerFactory.getLogger(WebComponent.class);
 
     @Setter(AccessLevel.PROTECTED)
@@ -67,7 +81,6 @@ public abstract class WebComponent implements BjjEireComponent {
     protected final ApplicationContext applicationContext;
     private final WaitStrategyFactory waitStrategyFactory;
 
-    @Autowired
     public WebComponent(
             DriverService driverService,
             JavaScriptService javaScriptService,

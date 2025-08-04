@@ -1,19 +1,21 @@
 package solutions.bjjeire.selenium.web.pages;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.springframework.context.ApplicationContext;
+
 import solutions.bjjeire.selenium.web.components.custom.grid.ErrorState;
 import solutions.bjjeire.selenium.web.components.custom.grid.NoDataState;
 import solutions.bjjeire.selenium.web.configuration.WebSettings;
+import solutions.bjjeire.selenium.web.services.BrowserService;
+import solutions.bjjeire.selenium.web.services.ComponentCreateService;
+import solutions.bjjeire.selenium.web.services.ComponentWaitService;
 import solutions.bjjeire.selenium.web.services.DriverService;
-import solutions.bjjeire.selenium.web.services.*;
+import solutions.bjjeire.selenium.web.services.JavaScriptService;
+import solutions.bjjeire.selenium.web.services.NavigationService;
 import solutions.bjjeire.selenium.web.waitstrategies.WaitStrategyFactory;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ListPageBase extends WebPage {
 
-    @Autowired
     public ListPageBase(DriverService driverService, JavaScriptService javaScriptService, BrowserService browserService,
             ComponentWaitService componentWaitService, WebSettings webSettings, ApplicationContext applicationContext,
             WaitStrategyFactory waitStrategyFactory, NavigationService navigationService,

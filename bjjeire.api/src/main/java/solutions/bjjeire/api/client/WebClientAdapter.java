@@ -6,13 +6,12 @@ import solutions.bjjeire.api.configuration.ApiSettings;
 import solutions.bjjeire.api.configuration.WebClientConfig;
 import solutions.bjjeire.api.validation.ApiResponse;
 
-
 @Component
 public class WebClientAdapter implements Client {
     private final RequestExecutor requestExecutor;
 
     public WebClientAdapter(ApiSettings settings, WebClientConfig webClientConfig,
-                            RequestExecutor requestExecutor) {
+            RequestExecutor requestExecutor) {
         this.requestExecutor = requestExecutor;
     }
 

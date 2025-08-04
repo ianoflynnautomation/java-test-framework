@@ -13,7 +13,6 @@ import solutions.bjjeire.core.data.gyms.Gym;
 import solutions.bjjeire.core.data.gyms.GymFactory;
 import solutions.bjjeire.cucumber.context.TestContext;
 
-
 public class GymCreateSteps {
 
     @Autowired
@@ -22,7 +21,6 @@ public class GymCreateSteps {
     private GymService gymService;
     @Autowired // Inject the ResponseValidatorFactory
     private ResponseValidatorFactory responseValidator;
-
 
     @Given("a new BJJ gym has been prepared")
     public void aNewGymHasBeenPrepared() {

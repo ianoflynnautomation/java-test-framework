@@ -1,7 +1,9 @@
 package solutions.bjjeire.selenium.web.data;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
+import java.time.Duration;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,17 +13,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.utility.DockerImageName;
+
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import reactor.core.publisher.Mono;
 import solutions.bjjeire.core.data.events.BjjEvent;
 import solutions.bjjeire.core.data.gyms.Gym;
 
-import java.time.Duration;
-import java.util.List;
-import java.util.stream.Collectors;
-
 /**
- * A stateless, thread-safe service for managing test data using a Testcontainers MongoDB instance.
- * This implementation uses WebClient for HTTP communication with the backend's test endpoints.
+ * A stateless, thread-safe service for managing test data using a
+ * Testcontainers MongoDB instance.
+ * This implementation uses WebClient for HTTP communication with the backend's
+ * test endpoints.
  */
 @Service
 @Profile("staging")
@@ -35,7 +38,7 @@ public class TestcontainersTestDataManager implements TestDataManager {
     private MongoDBContainer mongoDBContainer;
 
     public TestcontainersTestDataManager(WebClient.Builder webClientBuilder,
-                                         @Value("${web-settings.backendApiUrl}") String baseUrl) {
+            @Value("${web-settings.backendApiUrl}") String baseUrl) {
         this.testApiBaseUrl = baseUrl + "/_test"; // Assuming a dedicated endpoint for testing
         this.webClient = webClientBuilder.baseUrl(this.testApiBaseUrl).build();
         log.info("Initialized TestcontainersTestDataManager for STAGING environment.");
@@ -79,7 +82,8 @@ public class TestcontainersTestDataManager implements TestDataManager {
                 .uri("/seed/events")
                 .bodyValue(events)
                 .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<List<BjjEvent>>() {})
+                .bodyToMono(new ParameterizedTypeReference<List<BjjEvent>>() {
+                })
                 .doOnSuccess(response -> log.info("Successfully seeded {} events.", response.size()))
                 .onErrorResume(e -> {
                     log.error("Failed to seed events.", e);
@@ -98,7 +102,8 @@ public class TestcontainersTestDataManager implements TestDataManager {
                 .uri("/seed/gyms")
                 .bodyValue(gyms)
                 .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<List<Gym>>() {})
+                .bodyToMono(new ParameterizedTypeReference<List<Gym>>() {
+                })
                 .doOnSuccess(response -> log.info("Successfully seeded {} gyms.", response.size()))
                 .onErrorResume(e -> {
                     log.error("Failed to seed gyms.", e);

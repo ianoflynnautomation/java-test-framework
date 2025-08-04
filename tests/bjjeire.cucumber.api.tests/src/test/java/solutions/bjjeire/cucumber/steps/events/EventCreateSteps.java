@@ -24,7 +24,6 @@ public class EventCreateSteps {
     @Autowired // Inject the ResponseValidatorFactory
     private ResponseValidatorFactory responseValidator;
 
-
     @Given("a new event has been prepared")
     public void aNewEventHasBeenPrepared() {
         testContext.setRequestPayload(new CreateBjjEventCommand(BjjEventFactory.getValidBjjEvent()));

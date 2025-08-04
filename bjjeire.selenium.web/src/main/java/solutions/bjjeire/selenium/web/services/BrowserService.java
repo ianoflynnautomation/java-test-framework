@@ -1,18 +1,19 @@
 package solutions.bjjeire.selenium.web.services;
 
-import org.openqa.selenium.*;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.time.Duration;
+
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.ScriptTimeoutException;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.testng.Assert;
-import solutions.bjjeire.selenium.web.configuration.WebSettings;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.time.Duration;
+import solutions.bjjeire.selenium.web.configuration.WebSettings;
 
 @Service
 public class BrowserService extends WebService {
@@ -21,7 +22,6 @@ public class BrowserService extends WebService {
     private final WebSettings webSettings;
     protected final JavaScriptService javaScriptService;
 
-    @Autowired
     public BrowserService(DriverService driverService, JavaScriptService javaScriptService, WebSettings webSettings) {
         super(driverService);
         this.javaScriptService = javaScriptService;

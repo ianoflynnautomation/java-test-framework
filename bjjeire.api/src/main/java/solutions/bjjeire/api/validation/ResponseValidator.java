@@ -31,7 +31,8 @@ public class ResponseValidator {
     private final TracingManager tracingManager;
     private final Tracer tracer;
 
-    public ResponseValidator(ApiResponse response, MetricsCollector metricsCollector, TracingManager tracingManager, Tracer tracer) {
+    public ResponseValidator(ApiResponse response, MetricsCollector metricsCollector, TracingManager tracingManager,
+            Tracer tracer) {
         this.response = response;
         this.metricsCollector = metricsCollector;
         this.tracingManager = tracingManager;
@@ -39,11 +40,13 @@ public class ResponseValidator {
     }
 
     private String getCurrentTestName() {
-        return Baggage.current().getEntryValue("test.name") != null ? Baggage.current().getEntryValue("test.name") : "unknown_test";
+        return Baggage.current().getEntryValue("test.name") != null ? Baggage.current().getEntryValue("test.name")
+                : "unknown_test";
     }
 
     private String getCurrentTestSuite() {
-        return Baggage.current().getEntryValue("test.suite") != null ? Baggage.current().getEntryValue("test.suite") : "unknown_suite";
+        return Baggage.current().getEntryValue("test.suite") != null ? Baggage.current().getEntryValue("test.suite")
+                : "unknown_suite";
     }
 
     public ResponseValidator statusCode(int expectedStatusCode) {
@@ -57,7 +60,8 @@ public class ResponseValidator {
         try (var scope = span.makeCurrent()) {
             if (response.getStatusCode() != expectedStatusCode) {
                 throw new ApiAssertionException(
-                        String.format("Expected status code <%d> but was <%d>.", expectedStatusCode, response.getStatusCode()),
+                        String.format("Expected status code <%d> but was <%d>.", expectedStatusCode,
+                                response.getStatusCode()),
                         response.getRequestPath(), response.getBodyAsString());
             }
             metricsCollector.recordAssertionSuccess(testName, testSuite);
@@ -92,7 +96,8 @@ public class ResponseValidator {
             String body = response.getBodyAsString();
             if (body == null || !body.contains(expectedSubstring)) {
                 throw new ApiAssertionException(
-                        String.format("Response content did not contain the expected substring '%s'.", expectedSubstring),
+                        String.format("Response content did not contain the expected substring '%s'.",
+                                expectedSubstring),
                         response.getRequestPath(), body);
             }
             metricsCollector.recordAssertionSuccess(testName, testSuite);
@@ -123,7 +128,8 @@ public class ResponseValidator {
         try (var scope = span.makeCurrent()) {
             if (response.getExecutionTime().compareTo(expectedMaxDuration) > 0) {
                 throw new ApiAssertionException(
-                        String.format("Request execution time %s was over the expected max of %s.", response.getExecutionTime(), expectedMaxDuration),
+                        String.format("Request execution time %s was over the expected max of %s.",
+                                response.getExecutionTime(), expectedMaxDuration),
                         response.getRequestPath(), response.getBodyAsString());
             }
             metricsCollector.recordAssertionSuccess(testName, testSuite);
@@ -153,15 +159,18 @@ public class ResponseValidator {
         try (var scope = span.makeCurrent()) {
             try (InputStream schemaStream = getClass().getClassLoader().getResourceAsStream(schemaPath)) {
                 if (schemaStream == null) {
-                    throw new ApiAssertionException("Schema file not found in classpath: " + schemaPath, response.getRequestPath(), response.getBodyAsString());
+                    throw new ApiAssertionException("Schema file not found in classpath: " + schemaPath,
+                            response.getRequestPath(), response.getBodyAsString());
                 }
                 JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7);
                 JsonSchema schema = factory.getSchema(schemaStream);
                 JsonNode jsonNode = response.as(JsonNode.class);
                 Set<ValidationMessage> errors = schema.validate(jsonNode);
                 if (!errors.isEmpty()) {
-                    String errorDetails = errors.stream().map(ValidationMessage::getMessage).collect(Collectors.joining("\n- ", "\n- ", ""));
-                    throw new ApiAssertionException("JSON schema validation failed:" + errorDetails, response.getRequestPath(), response.getBodyAsString());
+                    String errorDetails = errors.stream().map(ValidationMessage::getMessage)
+                            .collect(Collectors.joining("\n- ", "\n- ", ""));
+                    throw new ApiAssertionException("JSON schema validation failed:" + errorDetails,
+                            response.getRequestPath(), response.getBodyAsString());
                 }
                 metricsCollector.recordAssertionSuccess(testName, testSuite);
                 tracingManager.recordAssertionSuccess(span, testName);
@@ -181,7 +190,8 @@ public class ResponseValidator {
                 span.setAttribute("assertion.status", "failure");
                 span.recordException(e);
                 span.setStatus(StatusCode.ERROR, e.getMessage());
-                throw new ApiAssertionException("Failed during JSON schema validation.", response.getRequestPath(), response.getBodyAsString(), e);
+                throw new ApiAssertionException("Failed during JSON schema validation.", response.getRequestPath(),
+                        response.getBodyAsString(), e);
             }
         } finally {
             span.end();
@@ -237,7 +247,8 @@ public class ResponseValidator {
                         .map(e -> String.format("  - Field: '%s', Message: '%s'", e.field(), e.message()))
                         .collect(Collectors.joining("\n"));
                 throw new ApiAssertionException(
-                        String.format("Expected to find error for field '%s' with message '%s', but it was not found.\nAvailable errors:\n%s",
+                        String.format(
+                                "Expected to find error for field '%s' with message '%s', but it was not found.\nAvailable errors:\n%s",
                                 field, expectedMessage, availableErrors),
                         response.getRequestPath(), response.getBodyAsString());
             }
@@ -275,12 +286,14 @@ public class ResponseValidator {
         try (var scope = span.makeCurrent()) {
             body = response.getBodyAsString();
             if (body == null || body.isBlank()) {
-                throw new ApiAssertionException("Cannot perform JSONPath assertion on an empty response body.", response.getRequestPath(), "");
+                throw new ApiAssertionException("Cannot perform JSONPath assertion on an empty response body.",
+                        response.getRequestPath(), "");
             }
             Object actualValue = JsonPath.read(body, jsonPathExpression);
             span.setAttribute("actual.value", String.valueOf(actualValue));
             assertThat(actualValue)
-                    .as("JSONPath '%s' value assertion failed. Expected <%s> but was <%s>.", jsonPathExpression, expectedValue, actualValue)
+                    .as("JSONPath '%s' value assertion failed. Expected <%s> but was <%s>.", jsonPathExpression,
+                            expectedValue, actualValue)
                     .isEqualTo(expectedValue);
             metricsCollector.recordAssertionSuccess(testName, testSuite);
             tracingManager.recordAssertionSuccess(span, testName);
@@ -330,7 +343,8 @@ public class ResponseValidator {
         try (var scope = span.makeCurrent()) {
             body = response.getBodyAsString();
             if (body == null || body.isBlank()) {
-                throw new ApiAssertionException("Cannot perform JSONPath assertion on an empty response body.", response.getRequestPath(), "");
+                throw new ApiAssertionException("Cannot perform JSONPath assertion on an empty response body.",
+                        response.getRequestPath(), "");
             }
             Object extractedValue = JsonPath.read(body, jsonPathExpression);
             consumer.accept(extractedValue);

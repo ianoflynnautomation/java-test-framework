@@ -55,8 +55,7 @@ public class TestConfiguration {
                 .merge(Resource.create(Attributes.of(
                         ResourceAttributes.SERVICE_NAME, apiSettings.getServiceName(),
                         ResourceAttributes.DEPLOYMENT_ENVIRONMENT, apiSettings.getEnvironment(),
-                        ResourceAttributes.SERVICE_VERSION, "1.0-SNAPSHOT"
-                )));
+                        ResourceAttributes.SERVICE_VERSION, "1.0-SNAPSHOT")));
 
         // Create a tracer provider with the resource
         SdkTracerProvider tracerProvider = SdkTracerProvider.builder()
@@ -74,7 +73,6 @@ public class TestConfiguration {
         return new SimpleMeterRegistry(); // Or use Micrometer's Prometheus registry if needed
     }
 
-
     @Bean
     public MetricsCollector metricsCollector(MeterRegistry meterRegistry, ApiSettings apiSettings) {
         return new MetricsCollector(meterRegistry, apiSettings.getServiceName(), apiSettings.getEnvironment());
@@ -90,11 +88,11 @@ public class TestConfiguration {
         return webClientConfig.buildWebClient(WebClient.builder());
     }
 
-
     @Bean
     public Tracer tracer(OpenTelemetry openTelemetry) {
         return openTelemetry.getTracer(TestConfiguration.class.getName());
     }
+
     @Bean
     public WebClientConfig webClientConfig(ApiSettings apiSettings, ObjectMapper objectMapper) {
         return new WebClientConfig(apiSettings, objectMapper);
@@ -117,13 +115,13 @@ public class TestConfiguration {
 
     @Bean
     public RequestExecutor requestExecutor(WebClient webClient, RetryPolicy retryPolicy,
-                                           MetricsCollector metricsCollector, RequestBodyHandler bodyHandler) {
+            MetricsCollector metricsCollector, RequestBodyHandler bodyHandler) {
         return new RequestExecutor(webClient, retryPolicy, metricsCollector, bodyHandler);
     }
 
     @Bean
     public WebClientAdapter webClientAdapter(ApiSettings apiSettings, WebClientConfig webClientConfig,
-                                             RequestExecutor requestExecutor) {
+            RequestExecutor requestExecutor) {
         return new WebClientAdapter(apiSettings, webClientConfig, requestExecutor);
     }
 }

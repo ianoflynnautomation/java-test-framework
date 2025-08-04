@@ -1,12 +1,12 @@
 package solutions.bjjeire.selenium.web.pages;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+
 import solutions.bjjeire.selenium.web.configuration.WebSettings;
-import solutions.bjjeire.selenium.web.services.DriverService;
 import solutions.bjjeire.selenium.web.services.BrowserService;
 import solutions.bjjeire.selenium.web.services.ComponentCreateService;
 import solutions.bjjeire.selenium.web.services.ComponentWaitService;
+import solutions.bjjeire.selenium.web.services.DriverService;
 import solutions.bjjeire.selenium.web.services.JavaScriptService;
 import solutions.bjjeire.selenium.web.services.NavigationService;
 import solutions.bjjeire.selenium.web.waitstrategies.WaitStrategyFactory;
@@ -28,7 +28,6 @@ public abstract class WebPage {
     protected final NavigationService navigationService;
     protected final ComponentCreateService componentCreateService;
 
-    @Autowired
     public WebPage(DriverService driverService,
             JavaScriptService javaScriptService,
             BrowserService browserService,

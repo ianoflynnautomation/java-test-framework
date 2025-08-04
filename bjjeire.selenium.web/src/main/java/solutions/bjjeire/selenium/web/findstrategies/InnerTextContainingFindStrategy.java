@@ -3,6 +3,7 @@ package solutions.bjjeire.selenium.web.findstrategies;
 import org.openqa.selenium.By;
 
 public class InnerTextContainingFindStrategy extends FindStrategy {
+
     public InnerTextContainingFindStrategy(String value) {
         super(value);
     }

@@ -48,8 +48,7 @@ public class MetricsCollector {
                 Tag.of("endpoint", request.getPath()),
                 Tag.of("method", request.getMethod().name()),
                 Tag.of("status_code_group", statusCodeGroup),
-                Tag.of("status_code", String.valueOf(response.getStatusCode()))
-        ));
+                Tag.of("status_code", String.valueOf(response.getStatusCode()))));
 
         if (span != null && span.getSpanContext().isValid()) {
             SpanContext context = span.getSpanContext();
@@ -72,8 +71,7 @@ public class MetricsCollector {
                 Tag.of("environment", environment),
                 Tag.of("error_type", error.getClass().getSimpleName()),
                 Tag.of("endpoint", request.getPath()),
-                Tag.of("method", request.getMethod().name())
-        ));
+                Tag.of("method", request.getMethod().name())));
 
         if (span != null && span.getSpanContext().isValid()) {
             SpanContext context = span.getSpanContext();
@@ -89,8 +87,7 @@ public class MetricsCollector {
                 Tag.of("service.name", serviceName),
                 Tag.of("environment", environment),
                 Tag.of("endpoint", request.getPath()),
-                Tag.of("method", request.getMethod().name())
-        ));
+                Tag.of("method", request.getMethod().name())));
 
         if (span != null && span.getSpanContext().isValid()) {
             SpanContext context = span.getSpanContext();
@@ -118,31 +115,45 @@ public class MetricsCollector {
     }
 
     public void recordTestStart(String testName, String testSuite, String testType) {
-        meterRegistry.counter("test_runs_total", "service.name", serviceName, "environment", environment, "test_type", testType).increment();
-        meterRegistry.counter("test_cases_total", "service.name", serviceName, "environment", environment, "test_name", testName, "test_suite", testSuite, "test_type", testType).increment();
+        meterRegistry.counter("test_runs_total", "service.name", serviceName, "environment", environment, "test_type",
+                testType).increment();
+        meterRegistry.counter("test_cases_total", "service.name", serviceName, "environment", environment, "test_name",
+                testName, "test_suite", testSuite, "test_type", testType).increment();
     }
 
     public void recordTestSuccess(String testName, String testSuite, String testType, long durationNanos) {
-        meterRegistry.counter("test_cases_passed_total", "service.name", serviceName, "environment", environment, "test_name", testName, "test_suite", testSuite, "test_type", testType).increment();
-        meterRegistry.timer("test_case_duration_seconds", "service.name", serviceName, "environment", environment, "test_name", testName, "test_suite", testSuite, "status", "passed", "test_type", testType)
+        meterRegistry.counter("test_cases_passed_total", "service.name", serviceName, "environment", environment,
+                "test_name", testName, "test_suite", testSuite, "test_type", testType).increment();
+        meterRegistry
+                .timer("test_case_duration_seconds", "service.name", serviceName, "environment", environment,
+                        "test_name", testName, "test_suite", testSuite, "status", "passed", "test_type", testType)
                 .record(durationNanos, TimeUnit.NANOSECONDS);
     }
 
     public void recordTestFailure(String testName, String testSuite, String testType, long durationNanos) {
-        meterRegistry.counter("test_cases_failed_total", "service.name", serviceName, "environment", environment, "test_name", testName, "test_suite", testSuite, "test_type", testType).increment();
-        meterRegistry.timer("test_case_duration_seconds", "service.name", serviceName, "environment", environment, "test_name", testName, "test_suite", testSuite, "status", "failed", "test_type", testType)
+        meterRegistry.counter("test_cases_failed_total", "service.name", serviceName, "environment", environment,
+                "test_name", testName, "test_suite", testSuite, "test_type", testType).increment();
+        meterRegistry
+                .timer("test_case_duration_seconds", "service.name", serviceName, "environment", environment,
+                        "test_name", testName, "test_suite", testSuite, "status", "failed", "test_type", testType)
                 .record(durationNanos, TimeUnit.NANOSECONDS);
     }
 
     public void recordTestAborted(String testName, String testSuite, String testType, long durationNanos) {
-        meterRegistry.counter("test_cases_aborted_total", "service.name", serviceName, "environment", environment, "test_name", testName, "test_suite", testSuite, "test_type", testType).increment();
-        meterRegistry.timer("test_case_duration_seconds", "service.name", serviceName, "environment", environment, "test_name", testName, "test_suite", testSuite, "status", "aborted", "test_type", testType)
+        meterRegistry.counter("test_cases_aborted_total", "service.name", serviceName, "environment", environment,
+                "test_name", testName, "test_suite", testSuite, "test_type", testType).increment();
+        meterRegistry
+                .timer("test_case_duration_seconds", "service.name", serviceName, "environment", environment,
+                        "test_name", testName, "test_suite", testSuite, "status", "aborted", "test_type", testType)
                 .record(durationNanos, TimeUnit.NANOSECONDS);
     }
 
     public void recordTestSkipped(String testName, String testSuite, String testType, long durationNanos) {
-        meterRegistry.counter("test_cases_skipped_total", "service.name", serviceName, "environment", environment, "test_name", testName, "test_suite", testSuite, "test_type", testType).increment();
-        meterRegistry.timer("test_case_duration_seconds", "service.name", serviceName, "environment", environment, "test_name", testName, "test_suite", testSuite, "status", "skipped", "test_type", testType)
+        meterRegistry.counter("test_cases_skipped_total", "service.name", serviceName, "environment", environment,
+                "test_name", testName, "test_suite", testSuite, "test_type", testType).increment();
+        meterRegistry
+                .timer("test_case_duration_seconds", "service.name", serviceName, "environment", environment,
+                        "test_name", testName, "test_suite", testSuite, "status", "skipped", "test_type", testType)
                 .record(durationNanos, TimeUnit.NANOSECONDS);
     }
 

@@ -1,13 +1,12 @@
 package solutions.bjjeire.selenium.web.services;
 
-import org.openqa.selenium.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebDriver;
 import org.springframework.stereotype.Service;
 
 @Service
 public class JavaScriptService extends WebService {
 
-    @Autowired
     public JavaScriptService(DriverService driverService) {
         super(driverService);
     }

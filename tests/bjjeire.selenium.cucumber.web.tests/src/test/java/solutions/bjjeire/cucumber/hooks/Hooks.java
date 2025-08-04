@@ -1,18 +1,26 @@
 package solutions.bjjeire.cucumber.hooks;
 
-import io.cucumber.java.After;
-import io.cucumber.java.Before;
-import io.cucumber.java.Scenario;
+import java.util.Collection;
+import java.util.UUID;
+
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-import org.springframework.beans.factory.annotation.Autowired;
-import solutions.bjjeire.core.plugins.*;
-import solutions.bjjeire.cucumber.context.BaseContext;
+
+import io.cucumber.java.After;
+import io.cucumber.java.Before;
+import io.cucumber.java.Scenario;
+import solutions.bjjeire.core.plugins.Browser;
+import solutions.bjjeire.core.plugins.BrowserConfiguration;
+import solutions.bjjeire.core.plugins.Lifecycle;
+import solutions.bjjeire.core.plugins.PluginExecutionEngine;
+import solutions.bjjeire.core.plugins.TestResult;
+import solutions.bjjeire.core.plugins.UsesPlugins;
 import solutions.bjjeire.cucumber.context.EventContext;
 import solutions.bjjeire.cucumber.context.GymContext;
+import solutions.bjjeire.cucumber.context.ScenarioContext;
 import solutions.bjjeire.selenium.web.configuration.WebSettings;
 import solutions.bjjeire.selenium.web.data.TestDataManager;
 import solutions.bjjeire.selenium.web.plugins.BrowserLifecyclePlugin;
@@ -20,29 +28,31 @@ import solutions.bjjeire.selenium.web.services.BrowserService;
 import solutions.bjjeire.selenium.web.services.CookiesService;
 import solutions.bjjeire.selenium.web.services.DriverService;
 
-import java.util.Collection;
-import java.util.UUID;
-
 public class Hooks extends UsesPlugins {
 
     private static final Logger log = LoggerFactory.getLogger(Hooks.class);
 
-    @Autowired
-    private DriverService driverService;
-    @Autowired
-    private TestDataManager testDataManager;
-    @Autowired
-    private BaseContext baseContext;
-    @Autowired
-    private EventContext eventContext;
-    @Autowired
-    private GymContext gymContext;
-    @Autowired
-    private WebSettings webSettings;
-    @Autowired
-    private CookiesService cookiesService;
-    @Autowired
-    private BrowserService browserService;
+    private final DriverService driverService;
+    private final TestDataManager testDataManager;
+    private final ScenarioContext scenarioContext;
+    private final EventContext eventContext;
+    private final GymContext gymContext;
+    private final WebSettings webSettings;
+    private final CookiesService cookiesService;
+    private final BrowserService browserService;
+
+    public Hooks(DriverService driverService, TestDataManager testDataManager, ScenarioContext scenarioContext,
+            EventContext eventContext, GymContext gymContext, WebSettings webSettings,
+            CookiesService cookiesService, BrowserService browserService) {
+        this.driverService = driverService;
+        this.testDataManager = testDataManager;
+        this.scenarioContext = scenarioContext;
+        this.eventContext = eventContext;
+        this.gymContext = gymContext;
+        this.webSettings = webSettings;
+        this.cookiesService = cookiesService;
+        this.browserService = browserService;
+    }
 
     private static final String SCENARIO_ID = "scenarioId";
     private static final String SCENARIO_NAME = "scenarioName";
@@ -70,10 +80,11 @@ public class Hooks extends UsesPlugins {
         BrowserConfiguration config = getBrowserConfigurationFromTags(scenario);
         SCENARIO_BROWSER_CONFIG.set(config);
 
-        ScenarioContext context = new ScenarioContext(scenario.getName(), null, config);
+        solutions.bjjeire.core.plugins.ScenarioContext context = new solutions.bjjeire.core.plugins.ScenarioContext(
+                scenario.getName(), null, config);
         PluginExecutionEngine.preBeforeScenario(context);
 
-        baseContext.setDriver(driverService.getWrappedDriver());
+        scenarioContext.setDriver(driverService.getWrappedDriver());
         log.debug("Browser prepared. Config: {}", config);
     }
 
@@ -88,20 +99,21 @@ public class Hooks extends UsesPlugins {
             }
 
             // Teardown for Events
-            if (baseContext.getAuthToken() != null && !eventContext.getCreatedEventIds().isEmpty()) {
-                testDataManager.teardownEvents(eventContext.getCreatedEventIds(), baseContext.getAuthToken());
+            if (scenarioContext.getAuthToken() != null && !eventContext.getCreatedEventIds().isEmpty()) {
+                testDataManager.teardownEvents(eventContext.getCreatedEventIds(), scenarioContext.getAuthToken());
                 eventContext.getCreatedEventIds().clear();
             }
 
             // Teardown for Gyms
-            if (baseContext.getAuthToken() != null && !gymContext.getCreatedGymIds().isEmpty()) {
-                testDataManager.teardownGyms(gymContext.getCreatedGymIds(), baseContext.getAuthToken());
+            if (scenarioContext.getAuthToken() != null && !gymContext.getCreatedGymIds().isEmpty()) {
+                testDataManager.teardownGyms(gymContext.getCreatedGymIds(), scenarioContext.getAuthToken());
                 gymContext.getCreatedGymIds().clear();
             }
 
             TestResult result = scenario.isFailed() ? TestResult.FAILURE : TestResult.SUCCESS;
             BrowserConfiguration config = SCENARIO_BROWSER_CONFIG.get();
-            ScenarioContext context = new ScenarioContext(scenario.getName(), result, config);
+            solutions.bjjeire.core.plugins.ScenarioContext context = new solutions.bjjeire.core.plugins.ScenarioContext(
+                    scenario.getName(), result, config);
             PluginExecutionEngine.postAfterScenario(context);
 
         } finally {
@@ -116,12 +128,12 @@ public class Hooks extends UsesPlugins {
     }
 
     private void captureScreenshot(Scenario scenario) {
-        if (baseContext.getDriver() == null) {
+        if (scenarioContext.getDriver() == null) {
             log.warn("Driver was null, cannot take screenshot.");
             return;
         }
         try {
-            final byte[] screenshot = ((TakesScreenshot) baseContext.getDriver()).getScreenshotAs(OutputType.BYTES);
+            final byte[] screenshot = ((TakesScreenshot) scenarioContext.getDriver()).getScreenshotAs(OutputType.BYTES);
             scenario.attach(screenshot, "image/png", "screenshot-" + System.currentTimeMillis());
             log.debug("Screenshot attached to report.");
         } catch (Exception e) {

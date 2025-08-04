@@ -3,6 +3,7 @@ package solutions.bjjeire.selenium.web.findstrategies;
 import org.openqa.selenium.By;
 
 public class CssFindStrategy extends FindStrategy {
+
     public CssFindStrategy(String value) {
         super(value);
     }

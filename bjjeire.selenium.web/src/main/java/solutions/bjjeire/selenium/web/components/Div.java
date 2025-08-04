@@ -1,14 +1,14 @@
 package solutions.bjjeire.selenium.web.components;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
 import solutions.bjjeire.selenium.web.components.contracts.ComponentText;
 import solutions.bjjeire.selenium.web.configuration.WebSettings;
-import solutions.bjjeire.selenium.web.services.DriverService;
 import solutions.bjjeire.selenium.web.services.BrowserService;
 import solutions.bjjeire.selenium.web.services.ComponentWaitService;
+import solutions.bjjeire.selenium.web.services.DriverService;
 import solutions.bjjeire.selenium.web.services.JavaScriptService;
 import solutions.bjjeire.selenium.web.waitstrategies.WaitStrategyFactory;
 
@@ -16,7 +16,6 @@ import solutions.bjjeire.selenium.web.waitstrategies.WaitStrategyFactory;
 @Scope("prototype")
 public class Div extends WebComponent implements ComponentText {
 
-    @Autowired
     public Div(DriverService driverService, JavaScriptService javaScriptService, BrowserService browserService,
             ComponentWaitService componentWaitService, WebSettings webSettings, ApplicationContext applicationContext,
             WaitStrategyFactory waitStrategyFactory) {
@@ -33,6 +32,7 @@ public class Div extends WebComponent implements ComponentText {
         return defaultGetInnerHtmlAttribute();
     }
 
+    @Override
     public String getText() {
         return defaultGetText();
     }

@@ -1,30 +1,29 @@
 package solutions.bjjeire.selenium.web.pages.gyms;
 
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.openqa.selenium.NoSuchElementException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
 import solutions.bjjeire.selenium.web.components.Heading;
 import solutions.bjjeire.selenium.web.components.Label;
 import solutions.bjjeire.selenium.web.components.Select;
 import solutions.bjjeire.selenium.web.components.custom.gym.GymArticle;
 import solutions.bjjeire.selenium.web.configuration.UrlSettings;
 import solutions.bjjeire.selenium.web.configuration.WebSettings;
-import solutions.bjjeire.selenium.web.services.DriverService;
 import solutions.bjjeire.selenium.web.pages.ListPageBase;
 import solutions.bjjeire.selenium.web.pages.gyms.data.GymCardDetails;
 import solutions.bjjeire.selenium.web.services.BrowserService;
 import solutions.bjjeire.selenium.web.services.ComponentCreateService;
 import solutions.bjjeire.selenium.web.services.ComponentWaitService;
+import solutions.bjjeire.selenium.web.services.DriverService;
 import solutions.bjjeire.selenium.web.services.JavaScriptService;
 import solutions.bjjeire.selenium.web.services.NavigationService;
 import solutions.bjjeire.selenium.web.waitstrategies.WaitStrategyFactory;
-
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Component
 @Scope("prototype")
@@ -32,7 +31,6 @@ public class GymsPage extends ListPageBase {
 
     private final UrlSettings urlSettings;
 
-    @Autowired
     public GymsPage(DriverService driverService, JavaScriptService javaScriptService, BrowserService browserService,
             ComponentWaitService componentWaitService, WebSettings webSettings, ApplicationContext applicationContext,
             WaitStrategyFactory waitStrategyFactory, NavigationService navigationService,
@@ -83,13 +81,10 @@ public class GymsPage extends ListPageBase {
 
     public GymsPage assertTotalGymsFoundInList(Integer expectedGymsTotal) {
         switch (expectedGymsTotal) {
-            case 0:
-                break;
-            case 1:
-                gymsListTotalText().validateTextIs(String.format("Found %d gym.", expectedGymsTotal));
-                break;
-            default:
-                gymsListTotalText().validateTextIs(String.format("Found %d gyms.", expectedGymsTotal));
+            case 0 -> {
+            }
+            case 1 -> gymsListTotalText().validateTextIs(String.format("Found %d gym.", expectedGymsTotal));
+            default -> gymsListTotalText().validateTextIs(String.format("Found %d gyms.", expectedGymsTotal));
         }
         return this;
     }

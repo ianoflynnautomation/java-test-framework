@@ -1,36 +1,40 @@
 package solutions.bjjeire.cucumber.steps.gyms;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import solutions.bjjeire.core.data.common.County;
 import solutions.bjjeire.core.data.gyms.Gym;
 import solutions.bjjeire.core.data.gyms.GymFactory;
-import solutions.bjjeire.cucumber.context.BaseContext;
 import solutions.bjjeire.cucumber.context.GymContext;
+import solutions.bjjeire.cucumber.context.ScenarioContext;
 import solutions.bjjeire.selenium.web.data.TestDataManager;
 import solutions.bjjeire.selenium.web.pages.gyms.GymsPage;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 public class GymFilteringSteps {
 
     private static final Logger log = LoggerFactory.getLogger(GymFilteringSteps.class);
 
-    @Autowired
-    private GymsPage gymsPage;
-    @Autowired
-    private TestDataManager testDataManager;
-    @Autowired
-    private BaseContext baseContext;
-    @Autowired
-    private GymContext gymContext;
+    private final GymsPage gymsPage;
+    private final TestDataManager testDataManager;
+    private final ScenarioContext scenarioContext;
+    private final GymContext gymContext;
+
+    public GymFilteringSteps(GymsPage gymsPage, TestDataManager testDataManager, ScenarioContext scenarioContext,
+            GymContext gymContext) {
+        this.gymsPage = gymsPage;
+        this.testDataManager = testDataManager;
+        this.scenarioContext = scenarioContext;
+        this.gymContext = gymContext;
+    }
 
     @Given("the following BJJ gyms exist:")
     public void the_following_bjj_gyms_exist(DataTable dataTable) {
@@ -52,7 +56,7 @@ public class GymFilteringSteps {
             gymsToCreate.add(gym);
         }
 
-        String authToken = baseContext.getAuthToken();
+        String authToken = scenarioContext.getAuthToken();
         List<String> createdIds = testDataManager.seedGyms(gymsToCreate, authToken);
         gymContext.addAllCreatedGymIds(createdIds);
         log.debug("Created {} BJJ gym(s) for the test.", createdIds.size());

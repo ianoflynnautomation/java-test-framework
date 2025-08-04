@@ -4,13 +4,12 @@ package solutions.bjjeire.selenium.web.services;
 import org.openqa.selenium.WebDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class WebService {
     private static final Logger log = LoggerFactory.getLogger(WebService.class);
+
     protected final DriverService driverService;
 
-    @Autowired
     public WebService(DriverService driverService) {
         this.driverService = driverService;
     }

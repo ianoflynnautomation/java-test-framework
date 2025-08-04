@@ -1,20 +1,24 @@
 package solutions.bjjeire.selenium.web.services;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.stereotype.Service;
-import solutions.bjjeire.selenium.web.components.WebComponent;
-import solutions.bjjeire.selenium.web.findstrategies.*;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Service;
+
+import solutions.bjjeire.selenium.web.components.WebComponent;
+import solutions.bjjeire.selenium.web.findstrategies.CssFindStrategy;
+import solutions.bjjeire.selenium.web.findstrategies.DataTestIdFindStrategy;
+import solutions.bjjeire.selenium.web.findstrategies.FindStrategy;
+import solutions.bjjeire.selenium.web.findstrategies.InnerTextContainingFindStrategy;
+import solutions.bjjeire.selenium.web.findstrategies.TagFindStrategy;
+import solutions.bjjeire.selenium.web.findstrategies.XPathFindStrategy;
 
 @Service
 public class ComponentCreateService extends WebService {
 
     private final ApplicationContext applicationContext;
 
-    @Autowired
     public ComponentCreateService(DriverService driverService, ApplicationContext applicationContext) {
         super(driverService);
         this.applicationContext = applicationContext;

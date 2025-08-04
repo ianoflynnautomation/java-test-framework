@@ -1,37 +1,41 @@
 package solutions.bjjeire.cucumber.steps.events;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import solutions.bjjeire.core.data.common.County;
 import solutions.bjjeire.core.data.events.BjjEvent;
 import solutions.bjjeire.core.data.events.BjjEventFactory;
 import solutions.bjjeire.core.data.events.BjjEventType;
-import solutions.bjjeire.cucumber.context.BaseContext;
 import solutions.bjjeire.cucumber.context.EventContext;
+import solutions.bjjeire.cucumber.context.ScenarioContext;
 import solutions.bjjeire.selenium.web.data.TestDataManager;
 import solutions.bjjeire.selenium.web.pages.events.EventsPage;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 public class EventFilteringSteps {
 
     private static final Logger log = LoggerFactory.getLogger(EventFilteringSteps.class);
 
-    @Autowired
-    private EventsPage eventsPage;
-    @Autowired
-    private TestDataManager testDataManager;
-    @Autowired
-    private BaseContext baseContext;
-    @Autowired
-    private EventContext eventContext;
+    private final EventsPage eventsPage;
+    private final TestDataManager testDataManager;
+    private final ScenarioContext scenarioContext;
+    private final EventContext eventContext;
+
+    public EventFilteringSteps(EventsPage eventsPage, TestDataManager testDataManager, ScenarioContext scenarioContext,
+            EventContext eventContext) {
+        this.eventsPage = eventsPage;
+        this.testDataManager = testDataManager;
+        this.scenarioContext = scenarioContext;
+        this.eventContext = eventContext;
+    }
 
     @Given("the following BJJ events exist:")
     public void the_following_bjj_events_exist(DataTable dataTable) {
@@ -54,7 +58,7 @@ public class EventFilteringSteps {
             eventsToCreate.add(event);
         }
 
-        String authToken = baseContext.getAuthToken();
+        String authToken = scenarioContext.getAuthToken();
         List<String> createdIds = testDataManager.seedEvents(eventsToCreate, authToken);
         eventContext.addAllCreatedEventIds(createdIds);
         log.debug("Created {} BJJ event(s) for the test.", createdIds.size());

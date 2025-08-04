@@ -40,7 +40,6 @@ public class ApiRequest {
         private List<MediaType> acceptableMediaTypes = Collections.singletonList(MediaType.APPLICATION_JSON);
         private Authentication authentication = new NoAuth();
 
-
         public Builder method(HttpMethod method) {
             this.method = method;
             return this;

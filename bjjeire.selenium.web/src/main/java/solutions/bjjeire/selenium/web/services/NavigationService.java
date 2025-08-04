@@ -1,19 +1,19 @@
 package solutions.bjjeire.selenium.web.services;
 
-import lombok.SneakyThrows;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.time.Duration;
+
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import lombok.SneakyThrows;
 import solutions.bjjeire.selenium.web.configuration.WebSettings;
 import solutions.bjjeire.selenium.web.pages.WebPage;
-
-import java.lang.reflect.Method;
-import java.net.URL;
-import java.time.Duration;
 
 @Service
 public class NavigationService extends WebService {
@@ -21,7 +21,6 @@ public class NavigationService extends WebService {
     private static final Logger log = LoggerFactory.getLogger(NavigationService.class);
     private final WebSettings webSettings;
 
-    @Autowired
     public NavigationService(DriverService driverService, WebSettings webSettings) {
         super(driverService);
         this.webSettings = webSettings;

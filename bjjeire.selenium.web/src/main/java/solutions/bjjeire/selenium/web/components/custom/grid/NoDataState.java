@@ -18,7 +18,6 @@ import solutions.bjjeire.selenium.web.waitstrategies.WaitStrategyFactory;
 @Scope("prototype")
 public class NoDataState extends WebComponent {
 
-    @Autowired
     public NoDataState(DriverService driverService, JavaScriptService javaScriptService, BrowserService browserService,
             ComponentWaitService componentWaitService, WebSettings webSettings, ApplicationContext applicationContext,
             WaitStrategyFactory waitStrategyFactory) {
