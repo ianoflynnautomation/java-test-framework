@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import lombok.SneakyThrows;
+import net.logstash.logback.argument.StructuredArguments;
 import solutions.bjjeire.selenium.web.configuration.WebSettings;
 import solutions.bjjeire.selenium.web.pages.WebPage;
 
@@ -27,13 +28,15 @@ public class NavigationService extends WebService {
     }
 
     public void to(String url) {
-        log.info("Navigating to URL: {}", url);
+
+        log.info("Navigating to URL", StructuredArguments.keyValue("url", url));
         getWrappedDriver().navigate().to(url);
     }
 
     @SneakyThrows
     public void to(WebPage page) {
-        log.info("Navigating to page: {}", page.getClass().getSimpleName());
+
+        log.info("Navigating to page", StructuredArguments.keyValue("pageClass", page.getClass().getSimpleName()));
         Method method = page.getClass().getDeclaredMethod("getUrl");
         method.setAccessible(true);
         String url = (String) method.invoke(page);
@@ -41,12 +44,14 @@ public class NavigationService extends WebService {
     }
 
     public void toLocalPage(String filePath) {
-        log.info("Navigating to local page resource: {}", filePath);
+
+        log.info("Navigating to local page resource", StructuredArguments.keyValue("filePath", filePath));
         URL testAppUrl = Thread.currentThread().getContextClassLoader().getResource(filePath);
         if (testAppUrl != null) {
             to(testAppUrl.toString());
         } else {
-            log.error("Local page resource not found at path: {}", filePath);
+
+            log.error("Local page resource not found", StructuredArguments.keyValue("filePath", filePath));
             throw new IllegalArgumentException("Local page resource not found: " + filePath);
         }
     }
@@ -54,7 +59,10 @@ public class NavigationService extends WebService {
     public void waitForPartialUrl(String partialUrl) {
         long waitForPartialTimeout = webSettings.getTimeoutSettings().getWaitForPartialUrl();
         long sleepInterval = webSettings.getTimeoutSettings().getSleepInterval();
-        log.debug("Waiting up to {} seconds for URL to contain '{}'", waitForPartialTimeout, partialUrl);
+
+        log.debug("Waiting for partial URL",
+                StructuredArguments.keyValue("timeoutSeconds", waitForPartialTimeout),
+                StructuredArguments.keyValue("partialUrl", partialUrl));
 
         try {
             var webDriverWait = new WebDriverWait(getWrappedDriver(), Duration.ofSeconds(waitForPartialTimeout),
@@ -62,8 +70,11 @@ public class NavigationService extends WebService {
             webDriverWait.until(ExpectedConditions.urlContains(partialUrl));
         } catch (TimeoutException ex) {
             String currentUrl = getWrappedDriver().getCurrentUrl();
-            log.error("TimeoutException: Waited for URL to contain '{}', but current URL is '{}'.", partialUrl,
-                    currentUrl, ex);
+
+            log.error("Timeout waiting for partial URL",
+                    StructuredArguments.keyValue("partialUrl", partialUrl),
+                    StructuredArguments.keyValue("currentUrl", currentUrl),
+                    ex);
             throw ex;
         }
     }

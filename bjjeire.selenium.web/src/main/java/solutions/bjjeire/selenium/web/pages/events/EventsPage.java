@@ -1,12 +1,13 @@
 package solutions.bjjeire.selenium.web.pages.events;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.openqa.selenium.NoSuchElementException;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -15,18 +16,14 @@ import solutions.bjjeire.selenium.web.components.Button;
 import solutions.bjjeire.selenium.web.components.Heading;
 import solutions.bjjeire.selenium.web.components.Label;
 import solutions.bjjeire.selenium.web.components.Select;
+import solutions.bjjeire.selenium.web.components.Span;
 import solutions.bjjeire.selenium.web.components.custom.event.EventArticle;
 import solutions.bjjeire.selenium.web.configuration.UrlSettings;
-import solutions.bjjeire.selenium.web.configuration.WebSettings;
 import solutions.bjjeire.selenium.web.pages.ListPageBase;
 import solutions.bjjeire.selenium.web.pages.events.data.EventCardDetails;
-import solutions.bjjeire.selenium.web.services.BrowserService;
 import solutions.bjjeire.selenium.web.services.ComponentCreateService;
-import solutions.bjjeire.selenium.web.services.ComponentWaitService;
-import solutions.bjjeire.selenium.web.services.DriverService;
-import solutions.bjjeire.selenium.web.services.JavaScriptService;
 import solutions.bjjeire.selenium.web.services.NavigationService;
-import solutions.bjjeire.selenium.web.waitstrategies.WaitStrategyFactory;
+import static solutions.bjjeire.selenium.web.pages.events.EventsPageDataTestIds.*;
 
 @Component
 @Scope("prototype")
@@ -34,12 +31,10 @@ public class EventsPage extends ListPageBase {
 
     private final UrlSettings urlSettings;
 
-    public EventsPage(DriverService driverService, JavaScriptService javaScriptService, BrowserService browserService,
-            ComponentWaitService componentWaitService, WebSettings webSettings, ApplicationContext applicationContext,
-            WaitStrategyFactory waitStrategyFactory, NavigationService navigationService,
-            ComponentCreateService componentCreateService, UrlSettings urlSettings) {
-        super(driverService, javaScriptService, browserService, componentWaitService, webSettings, applicationContext,
-                waitStrategyFactory, navigationService, componentCreateService);
+    public EventsPage(NavigationService navigationService,
+            ComponentCreateService componentCreateService,
+            UrlSettings urlSettings) {
+        super(navigationService, componentCreateService);
         this.urlSettings = urlSettings;
     }
 
@@ -49,48 +44,49 @@ public class EventsPage extends ListPageBase {
     }
 
     public Heading titleText() {
-        return create().byDataTestId(Heading.class, "events-page-header-title");
+        return create().byDataTestId(Heading.class, PAGE_HEADER_TITLE);
     }
 
     public Label foundEventsTotalText() {
-        return create().byDataTestId(Label.class, "events-page-header-total");
+        return create().byDataTestId(Label.class, PAGE_HEADER_TOTAL);
     }
 
     private Select countyDropdown() {
-        return create().byDataTestId(Select.class, "select-filter-select");
+        return create().byDataTestId(Select.class, SELECT_FILTER);
     }
 
     private Button eventTypeButton(String buttonText) {
         return create().byInnerTextContaining(Button.class, buttonText);
     }
 
-    private List<EventArticle> eventCards() {
-        return create().allByDataTestId(EventArticle.class, "events-list-item");
+    public List<EventArticle> eventCards() {
+        return create().allByDataTestId(EventArticle.class, EVENTS_LIST_ITEM);
     }
-
     public EventsPage selectCounty(String county) {
-        countyDropdown().toBeClickable();
+        countyDropdown().toBeClickable().waitToBe();
         countyDropdown().selectByText(county);
         return this;
     }
 
     public EventsPage selectFilter(BjjEventType eventType) {
-        eventTypeButton(eventType.toString()).toBeClickable();
+        eventTypeButton(eventType.toString()).toBeClickable().waitToBe();
         eventTypeButton(eventType.toString()).click();
         return this;
     }
 
     public EventsPage assertTotalEventsFoundInList(Integer expectedEventsTotal) {
-        switch (expectedEventsTotal) {
-            case 0 -> {
-            }
-            case 1 -> foundEventsTotalText().validateTextIs(String.format("Found %d event.", expectedEventsTotal));
-            default -> foundEventsTotalText().validateTextIs(String.format("Found %d events.", expectedEventsTotal));
+        if (expectedEventsTotal == 0) {
+            foundEventsTotalText().validateTextIs("");
+        } else if (expectedEventsTotal == 1) {
+            foundEventsTotalText().validateTextIs(String.format("Found %d event.", expectedEventsTotal));
+        } else {
+            foundEventsTotalText().validateTextIs(String.format("Found %d events.", expectedEventsTotal));
         }
         return this;
     }
 
     public EventsPage assertEventIsInList(EventCardDetails eventCard) {
+
         EventArticle cardToAssert = eventCards().stream()
                 .filter(card -> card.headingText().getText().trim().equals(eventCard.name()))
                 .findFirst()
@@ -104,8 +100,9 @@ public class EventsPage extends ListPageBase {
 
     public EventsPage assertEventCountInListIs(int expectedCount) {
 
-        assertEquals(expectedCount, eventCards().size(),
-                String.format("Expected to find %d event cards, but found %d.", expectedCount, eventCards().size()));
+        List<EventArticle> cards = eventCards();
+        assertEquals(expectedCount, cards.size(),
+                String.format("Expected to find %d event cards, but found %d.", expectedCount, cards.size()));
         return this;
     }
 
@@ -113,12 +110,17 @@ public class EventsPage extends ListPageBase {
         List<EventArticle> cards = eventCards();
         assertFalse(cards.isEmpty(), "Expected to find event cards after filtering, but none were found.");
 
-        for (EventArticle card : cards) {
-            String actualCounty = card.county().getText();
-            assertTrue(actualCounty.toLowerCase().contains(expectedCounty.toLowerCase()),
-                    String.format("Event card '%s' should have county '%s' but was '%s'", card.headingText().getText(),
-                            expectedCounty, actualCounty));
-        }
+        List<String> mismatchedCounties = cards.stream()
+                .map(EventArticle::county)
+                .map(Span::getText)
+                .map(Object::toString)
+                .filter(actualCounty -> !actualCounty.equalsIgnoreCase(expectedCounty))
+                .toList();
+
+        assertTrue(mismatchedCounties.isEmpty(),
+                String.format("The following counties did not match the filter '%s': %s", expectedCounty,
+                        mismatchedCounties));
+
         return this;
     }
 
@@ -126,14 +128,15 @@ public class EventsPage extends ListPageBase {
         List<EventArticle> cards = eventCards();
         assertFalse(cards.isEmpty(), "Expected to find event cards after filtering, but none were found.");
 
-        for (EventArticle card : cards) {
-            boolean hasMatchingType = card.TypeLabels().stream()
-                    .anyMatch(label -> label.getText().equalsIgnoreCase(expectedEventType.toString()));
-            assertTrue(hasMatchingType,
-                    String.format("Event card '%s' should have event type '%s'", card.headingText().getText(),
-                            expectedEventType));
-        }
+        List<EventArticle> mismatchedCards = cards.stream()
+                .filter(card -> card.TypeLabels().stream()
+                        .noneMatch(label -> label.getText().equalsIgnoreCase(expectedEventType.toString())))
+                .toList();
 
+        assertTrue(mismatchedCards.isEmpty(),
+                String.format("The following cards did not match the event type filter '%s': %s", expectedEventType,
+                        mismatchedCards.stream().map(card -> card.headingText().getText())
+                                .collect(Collectors.joining(", "))));
         return this;
     }
 
@@ -142,4 +145,5 @@ public class EventsPage extends ListPageBase {
         assertAllEventsMatchTypeFilter(expectedEventType);
         return this;
     }
+
 }

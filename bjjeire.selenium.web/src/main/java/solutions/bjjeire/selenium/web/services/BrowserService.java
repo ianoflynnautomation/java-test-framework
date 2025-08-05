@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.testng.Assert;
 
+import net.logstash.logback.argument.StructuredArguments;
 import solutions.bjjeire.selenium.web.configuration.WebSettings;
 
 @Service
@@ -30,39 +31,52 @@ public class BrowserService extends WebService {
 
     public String getUrl() {
         String currentUrl = getWrappedDriver().getCurrentUrl();
-        log.debug("Current browser URL is: {}", currentUrl);
+
+        log.debug("Current browser URL is", StructuredArguments.keyValue("currentUrl", currentUrl));
         return currentUrl;
     }
 
     public void refresh() {
-        log.info("Refreshing the current page.");
+
+        log.info("Refreshing the current page");
         getWrappedDriver().navigate().refresh();
     }
 
     public void waitUntilPageLoadsCompletely() {
         long pageLoadTimeout = webSettings.getTimeoutSettings().getPageLoadTimeout();
-        log.debug("Waiting up to {} seconds for document.readyState to be 'complete'.", pageLoadTimeout);
+
+        log.debug("Waiting for page load to be complete",
+                StructuredArguments.keyValue("timeoutSeconds", pageLoadTimeout));
         try {
             WebDriverWait wait = new WebDriverWait(getWrappedDriver(), Duration.ofSeconds(pageLoadTimeout));
             wait.until(driver -> ((JavascriptExecutor) driver).executeScript("return document.readyState")
                     .equals("complete"));
         } catch (ScriptTimeoutException ex) {
-            log.warn("Timed out waiting for page to load completely.", ex);
+
+            log.warn("Timed out waiting for page to load completely",
+                    StructuredArguments.keyValue("timeoutSeconds", pageLoadTimeout), ex);
         }
     }
 
     public void clearLocalStorage() {
+
+        log.debug("Clearing local storage");
         javaScriptService.execute("localStorage.clear()");
     }
 
     public void clearSessionStorage() {
 
+        log.debug("Clearing session storage");
         javaScriptService.execute("sessionStorage.clear()");
     }
 
     public void waitForPartialUrl(String partialUrl) {
         long timeout = webSettings.getTimeoutSettings().getWaitForPartialUrl();
-        log.debug("Waiting up to {} seconds for URL to contain '{}'", timeout, partialUrl);
+
+        log.debug("Waiting for partial URL",
+                StructuredArguments.keyValue("timeoutSeconds", timeout),
+                StructuredArguments.keyValue("partialUrl", partialUrl));
+
         WebDriverWait wait = new WebDriverWait(getWrappedDriver(), Duration.ofSeconds(timeout));
         wait.until(ExpectedConditions.urlContains(partialUrl));
     }
@@ -70,7 +84,11 @@ public class BrowserService extends WebService {
     public void assertLandedOnPage(String partialUrl) {
         waitUntilPageLoadsCompletely();
         String currentBrowserUrl = getUrl().toLowerCase();
-        log.info("Asserting that current URL '{}' contains '{}'", currentBrowserUrl, partialUrl.toLowerCase());
+
+        log.info("Asserting partial URL",
+                StructuredArguments.keyValue("actualUrl", currentBrowserUrl),
+                StructuredArguments.keyValue("expectedPartialUrl", partialUrl.toLowerCase()));
+
         Assert.assertTrue(currentBrowserUrl.contains(partialUrl.toLowerCase()),
                 String.format("The expected partialUrl: '%s' was not found in the PageUrl: '%s'", partialUrl,
                         currentBrowserUrl));
@@ -78,14 +96,21 @@ public class BrowserService extends WebService {
 
     public void assertUrl(String fullUrl) {
         String currentBrowserUrl = getUrl();
-        log.info("Asserting that current URL '{}' matches expected URL '{}'", currentBrowserUrl, fullUrl);
+
+        log.info("Asserting full URL match",
+                StructuredArguments.keyValue("actualUrl", currentBrowserUrl),
+                StructuredArguments.keyValue("expectedUrl", fullUrl));
         try {
             URI actualUri = new URI(currentBrowserUrl);
             URI expectedUri = new URI(fullUrl);
             Assert.assertEquals(actualUri.toASCIIString(), expectedUri.toASCIIString(),
                     "Expected URL is different than the Actual one.");
         } catch (URISyntaxException e) {
-            log.error("Invalid URL syntax for comparison. Actual: '{}', Expected: '{}'", currentBrowserUrl, fullUrl, e);
+
+            log.error("Invalid URL syntax for comparison",
+                    StructuredArguments.keyValue("actualUrl", currentBrowserUrl),
+                    StructuredArguments.keyValue("expectedUrl", fullUrl),
+                    e);
             throw new IllegalArgumentException("Invalid URL syntax provided for assertion.", e);
         }
     }

@@ -1,6 +1,19 @@
 package solutions.bjjeire.selenium.web.services;
 
-import org.openqa.selenium.*;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.openqa.selenium.Dimension;
+import org.openqa.selenium.MutableCapabilities;
+import org.openqa.selenium.UnexpectedAlertBehaviour;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.edge.EdgeDriver;
@@ -16,17 +29,13 @@ import org.openqa.selenium.safari.SafariOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import solutions.bjjeire.selenium.web.configuration.GridSettings;
-import solutions.bjjeire.selenium.web.configuration.WebSettings;
+
+import net.logstash.logback.argument.StructuredArguments;
+import solutions.bjjeire.core.plugins.BrowserConfiguration;
 import solutions.bjjeire.core.utilities.SecretsResolver;
 import solutions.bjjeire.core.utilities.TimestampBuilder;
-import solutions.bjjeire.core.plugins.BrowserConfiguration;
-
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.time.Duration;
-import java.util.*;
+import solutions.bjjeire.selenium.web.configuration.GridSettings;
+import solutions.bjjeire.selenium.web.configuration.WebSettings;
 
 /**
  * A Spring-managed service responsible for creating and managing WebDriver
@@ -42,17 +51,20 @@ public class DriverService {
     private static final List<WebDriver> ALL_DRIVERS = Collections.synchronizedList(new ArrayList<>());
 
     static {
+
         log.info("Registering JVM shutdown hook for global browser cleanup.");
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             log.info("JVM shutdown initiated. Closing all managed WebDriver instances...");
             new ArrayList<>(ALL_DRIVERS).forEach(driver -> {
                 try {
                     if (driver != null) {
-                        log.debug("Shutting down driver instance: {}", driver);
+                        log.debug("Shutting down driver instance",
+                                StructuredArguments.keyValue("driverInstance", driver));
                         driver.quit();
                     }
                 } catch (Exception e) {
-                    log.error("Error while shutting down a WebDriver instance during JVM shutdown.", e);
+                    log.error("Error while shutting down a WebDriver instance during JVM shutdown.",
+                            StructuredArguments.keyValue("driverInstance", driver), e);
                 }
             });
             log.info("Global browser cleanup complete. All WebDriver instances have been shut down.");
@@ -64,7 +76,8 @@ public class DriverService {
     }
 
     public WebDriver start(BrowserConfiguration configuration) {
-        log.info("Starting new browser with configuration: {}", configuration);
+
+        log.info("Starting new browser", StructuredArguments.keyValue("configuration", configuration));
         if (webDriverThreadLocal.get() != null) {
             log.warn("A WebDriver instance already exists for this thread. Closing it before starting a new one.");
             close();
@@ -78,10 +91,13 @@ public class DriverService {
                     "The 'executionType' property is not set. Please check your configuration.");
         }
 
-        switch (executionType.toLowerCase()) {
-            case "grid", "selenoid", "healenium" -> driver = initializeDriverGridMode(configuration, executionType);
+        String executionTypeLower = executionType.toLowerCase();
+
+        switch (executionTypeLower) {
+            case "grid", "selenoid", "healenium" ->
+                driver = initializeDriverGridMode(configuration, executionTypeLower);
             case "regular" -> driver = initializeDriverRegularMode(configuration);
-            default -> driver = initializeDriverCloudGridMode(configuration, executionType);
+            default -> driver = initializeDriverCloudGridMode(configuration, executionTypeLower);
         }
 
         driver.manage().timeouts()
@@ -95,7 +111,7 @@ public class DriverService {
             driver.manage().window().maximize();
         }
 
-        log.info("Window resized to dimensions: {}", driver.manage().window().getSize());
+        log.info("Window resized", StructuredArguments.keyValue("windowSize", driver.manage().window().getSize()));
 
         webDriverThreadLocal.set(driver);
         ALL_DRIVERS.add(driver);
@@ -106,7 +122,9 @@ public class DriverService {
     public void close() {
         WebDriver driver = webDriverThreadLocal.get();
         if (driver != null) {
-            log.info("Closing WebDriver instance for thread: {}", Thread.currentThread().getName());
+
+            log.info("Closing WebDriver instance",
+                    StructuredArguments.keyValue("threadName", Thread.currentThread().getName()));
             try {
                 driver.quit();
             } catch (Exception e) {
@@ -123,7 +141,9 @@ public class DriverService {
     }
 
     private WebDriver initializeDriverRegularMode(BrowserConfiguration config) {
-        log.debug("Initializing driver in 'regular' mode for browser: {}", config.getBrowser());
+
+        log.debug("Initializing driver in 'regular' mode",
+                StructuredArguments.keyValue("browser", config.getBrowser()));
         return switch (config.getBrowser()) {
             case CHROME -> new ChromeDriver(applyCommonOptions(new ChromeOptions(), config));
             case CHROME_HEADLESS ->
@@ -156,6 +176,11 @@ public class DriverService {
         addGridOptions(capabilities, gridSettings);
         try {
             String gridUrl = getUrl(gridSettings.getUrl());
+
+            log.info("Initializing driver in grid mode",
+                    StructuredArguments.keyValue("gridProvider", providerName),
+                    StructuredArguments.keyValue("gridUrl", gridUrl),
+                    StructuredArguments.keyValue("browser", config.getBrowser()));
             return new RemoteWebDriver(new URI(gridUrl).toURL(), capabilities);
         } catch (MalformedURLException | URISyntaxException e) {
             throw new RuntimeException("Invalid Grid URL: " + gridSettings.getUrl(), e);
@@ -178,6 +203,11 @@ public class DriverService {
         capabilities.setCapability(gridSettings.getOptionsName(), cloudOptions);
         try {
             String gridUrl = getUrl(gridSettings.getUrl());
+
+            log.info("Initializing driver in cloud grid mode",
+                    StructuredArguments.keyValue("cloudProvider", providerName),
+                    StructuredArguments.keyValue("gridUrl", gridUrl),
+                    StructuredArguments.keyValue("browser", config.getBrowser()));
             return new RemoteWebDriver(new URI(gridUrl).toURL(), capabilities);
         } catch (MalformedURLException | URISyntaxException e) {
             throw new RuntimeException("Invalid Cloud Grid URL: " + gridSettings.getUrl(), e);

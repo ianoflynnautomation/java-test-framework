@@ -81,7 +81,7 @@ public class EventFilteringSteps {
 
     @Then("the displayed events include only those for county {string}")
     public void the_displayed_events_include_only_those_for_county(String expectedCounty) {
-        eventsPage.assertAllEventsMatchCountyFilter(expectedCounty);
+        eventsPage.assertAllEventsMatchCountyFilter(expectedCounty + " County");
     }
 
     @Then("the displayed events include only those of type {string}")

@@ -18,32 +18,12 @@ import solutions.bjjeire.selenium.web.waitstrategies.WaitStrategyFactory;
  */
 public abstract class WebPage {
 
-    protected final DriverService driverService;
-    protected final JavaScriptService javaScriptService;
-    protected final BrowserService browserService;
-    protected final ComponentWaitService componentWaitService;
-    protected final WebSettings webSettings;
-    protected final ApplicationContext applicationContext;
-    protected final WaitStrategyFactory waitStrategyFactory;
     protected final NavigationService navigationService;
     protected final ComponentCreateService componentCreateService;
 
-    public WebPage(DriverService driverService,
-            JavaScriptService javaScriptService,
-            BrowserService browserService,
-            ComponentWaitService componentWaitService,
-            WebSettings webSettings,
-            ApplicationContext applicationContext,
-            WaitStrategyFactory waitStrategyFactory,
-            NavigationService navigationService,
+    public WebPage(NavigationService navigationService,
             ComponentCreateService componentCreateService) {
-        this.driverService = driverService;
-        this.javaScriptService = javaScriptService;
-        this.browserService = browserService;
-        this.componentWaitService = componentWaitService;
-        this.webSettings = webSettings;
-        this.applicationContext = applicationContext;
-        this.waitStrategyFactory = waitStrategyFactory;
+
         this.navigationService = navigationService;
         this.componentCreateService = componentCreateService;
     }

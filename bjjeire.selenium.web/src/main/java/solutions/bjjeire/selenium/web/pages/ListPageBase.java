@@ -16,12 +16,9 @@ import solutions.bjjeire.selenium.web.waitstrategies.WaitStrategyFactory;
 
 public class ListPageBase extends WebPage {
 
-    public ListPageBase(DriverService driverService, JavaScriptService javaScriptService, BrowserService browserService,
-            ComponentWaitService componentWaitService, WebSettings webSettings, ApplicationContext applicationContext,
-            WaitStrategyFactory waitStrategyFactory, NavigationService navigationService,
-            ComponentCreateService componentCreateService) {
-        super(driverService, javaScriptService, browserService, componentWaitService, webSettings, applicationContext,
-                waitStrategyFactory, navigationService, componentCreateService);
+    public ListPageBase(
+            NavigationService navigationService, ComponentCreateService componentCreateService) {
+        super(navigationService, componentCreateService);
     }
 
     public NoDataState noDataState() {

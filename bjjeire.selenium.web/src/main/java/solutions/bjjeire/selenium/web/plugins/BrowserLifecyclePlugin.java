@@ -1,25 +1,32 @@
 package solutions.bjjeire.selenium.web.plugins;
 
+import java.lang.reflect.Method;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import solutions.bjjeire.core.plugins.*;
-import solutions.bjjeire.selenium.web.configuration.WebSettings;
-import solutions.bjjeire.selenium.web.infrastructure.*;
-import solutions.bjjeire.selenium.web.services.DriverService;
 
-import java.lang.reflect.Method;
+import net.logstash.logback.argument.StructuredArguments;
+import solutions.bjjeire.core.plugins.Browser;
+import solutions.bjjeire.core.plugins.BrowserConfiguration;
+import solutions.bjjeire.core.plugins.Lifecycle;
+import solutions.bjjeire.core.plugins.Plugin;
+import solutions.bjjeire.core.plugins.ScenarioContext;
+import solutions.bjjeire.core.plugins.TestResult;
+import solutions.bjjeire.core.plugins.TimeRecord;
+import solutions.bjjeire.selenium.web.configuration.WebSettings;
+import solutions.bjjeire.selenium.web.infrastructure.ExecutionBrowser;
+import solutions.bjjeire.selenium.web.services.DriverService;
 
 @Component
 public class BrowserLifecyclePlugin implements Plugin {
 
-    private static final Logger log = LoggerFactory.getLogger(BrowserLifecyclePlugin.class);
-    private final DriverService driverService;
-    private final WebSettings webSettings;
-
     private final ThreadLocal<BrowserConfiguration> currentBrowserConfiguration = new ThreadLocal<>();
     private final ThreadLocal<BrowserConfiguration> previousBrowserConfiguration = new ThreadLocal<>();
     private final ThreadLocal<Boolean> isBrowserStartedCorrectly = ThreadLocal.withInitial(() -> false);
+    private static final Logger log = LoggerFactory.getLogger(BrowserLifecyclePlugin.class);
+    private final DriverService driverService;
+    private final WebSettings webSettings;
 
     public BrowserLifecyclePlugin(DriverService driverService, WebSettings webSettings) {
         this.driverService = driverService;
@@ -28,7 +35,9 @@ public class BrowserLifecyclePlugin implements Plugin {
 
     @Override
     public void preBeforeTest(TestResult testResult, Method memberInfo) {
-        log.debug("Executing pre-before-test hook for method: {}", memberInfo.getName());
+        log.debug("Executing pre-before-test hook",
+                StructuredArguments.keyValue("methodName", memberInfo.getName()),
+                StructuredArguments.keyValue("testResult", testResult.name()));
         BrowserConfiguration config = getBrowserConfiguration(memberInfo);
         startBrowser(config);
     }
@@ -36,19 +45,30 @@ public class BrowserLifecyclePlugin implements Plugin {
     @Override
     public void postAfterTest(TestResult testResult, TimeRecord timeRecord, Method memberInfo,
             Throwable failedTestException) {
-        log.debug("Executing post-after-test hook for method: {}", memberInfo.getName());
+
+        log.debug("Executing post-after-test hook",
+                StructuredArguments.keyValue("methodName", memberInfo.getName()),
+                StructuredArguments.keyValue("testResult", testResult.name()));
+        // StructuredArguments.keyValue("durationMillis",
+        // timeRecord.getDurationMillis()));
+
         handleBrowserShutdown(testResult, this.currentBrowserConfiguration.get());
     }
 
     @Override
     public void preBeforeScenario(ScenarioContext context) {
-        log.debug("Executing pre-before-scenario hook for: {}", context.getScenarioName());
+
+        log.debug("Executing pre-before-scenario hook",
+                StructuredArguments.keyValue("scenarioName", context.getScenarioName()));
         startBrowser(context.getBrowserConfiguration());
     }
 
     @Override
     public void postAfterScenario(ScenarioContext context) {
-        log.debug("Executing post-after-scenario hook for: {}", context.getScenarioName());
+        log.debug("Executing post-after-scenario hook",
+                StructuredArguments.keyValue("scenarioName", context.getScenarioName()),
+                StructuredArguments.keyValue("testResult", context.getTestResult().name()));
+
         handleBrowserShutdown(context.getTestResult(), context.getBrowserConfiguration());
     }
 
@@ -60,7 +80,10 @@ public class BrowserLifecyclePlugin implements Plugin {
                 driverService.start(currentBrowserConfiguration.get());
                 isBrowserStartedCorrectly.set(true);
             } catch (Exception ex) {
-                log.error("Failed to start the browser. This is the root cause of the test failure.", ex);
+
+                log.error("Failed to start the browser",
+                        StructuredArguments.keyValue("browserConfig", currentBrowserConfiguration.get()),
+                        ex);
                 isBrowserStartedCorrectly.set(false);
                 throw new RuntimeException("Failed to initialize WebDriver. Check logs for the original exception.",
                         ex);
@@ -75,32 +98,51 @@ public class BrowserLifecyclePlugin implements Plugin {
             return;
         }
 
-        if (config.getLifecycle() == Lifecycle.REUSE_IF_STARTED) {
-            log.debug("Browser lifecycle is 'REUSE_IF_STARTED', keeping browser open.");
-            return;
-        }
+        switch (config.getLifecycle()) {
+            case REUSE_IF_STARTED:
 
-        if (config.getLifecycle() == Lifecycle.RESTART_ON_FAIL && testResult != TestResult.FAILURE) {
-            log.debug("Browser lifecycle is 'RESTART_ON_FAIL' and test passed, keeping browser open.");
-            return;
-        }
+                log.debug("Browser lifecycle is REUSE_IF_STARTED",
+                        StructuredArguments.keyValue("lifecycle", "REUSE_IF_STARTED"),
+                        StructuredArguments.keyValue("action", "keeping browser open"));
+                break;
+            case RESTART_ON_FAIL:
+                if (testResult != TestResult.FAILURE) {
 
-        shutdownBrowser();
+                    log.debug("Browser lifecycle is RESTART_ON_FAIL and test passed",
+                            StructuredArguments.keyValue("lifecycle", "RESTART_ON_FAIL"),
+                            StructuredArguments.keyValue("testResult", testResult.name()),
+                            StructuredArguments.keyValue("action", "keeping browser open"));
+                    break;
+                }
+            default:
+                shutdownBrowser();
+                break;
+        }
     }
 
     private void shutdownBrowser() {
         driverService.close();
         previousBrowserConfiguration.remove();
+
+        log.debug("Browser shutdown completed.");
     }
 
     private boolean shouldRestartBrowser() {
         var previousConfig = previousBrowserConfiguration.get();
         var currentConfig = currentBrowserConfiguration.get();
-        if (previousConfig == null)
+        if (previousConfig == null) {
+            log.debug("Previous browser configuration is null, starting new browser.");
             return true;
-        if (!isBrowserStartedCorrectly.get())
+        }
+        if (!isBrowserStartedCorrectly.get()) {
+            log.debug("Browser did not start correctly, forcing restart.");
             return true;
-        return !previousConfig.equals(currentConfig);
+        }
+        if (!previousConfig.equals(currentConfig)) {
+            log.debug("Browser configuration changed, forcing restart.");
+            return true;
+        }
+        return false;
     }
 
     private BrowserConfiguration getBrowserConfiguration(Method memberInfo) {
