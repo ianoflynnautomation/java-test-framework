@@ -19,6 +19,8 @@ import solutions.bjjeire.selenium.web.services.DriverService;
 import solutions.bjjeire.selenium.web.services.JavaScriptService;
 import solutions.bjjeire.selenium.web.waitstrategies.WaitStrategyFactory;
 
+import static solutions.bjjeire.selenium.web.utils.GymsPageDataTestIds.*;
+
 @Component
 @Scope("prototype")
 public class GymArticle extends WebComponent {
@@ -31,47 +33,47 @@ public class GymArticle extends WebComponent {
     }
 
     public Heading headingText() {
-        return createByDataTestId(Heading.class, "gym-card-name");
+        return createByDataTestId(Heading.class, GYM_CARD_NAME);
     }
 
     public Paragraph county() {
-        return createByDataTestId(Paragraph.class, "gym-card-county");
+        return createByDataTestId(Paragraph.class, GYM_CARD_COUNTY);
     }
 
     public Div AddressText() {
-        return createByDataTestId(Div.class, "gym-card-address");
+        return createByDataTestId(Div.class, GYM_CARD_ADDRESS);
     }
 
     public Anchor AddressLink() {
-        return createByDataTestId(Anchor.class, "gym-card-address-link");
+        return createByDataTestId(Anchor.class, GYM_CARD_ADDRESS_LINK);
     }
 
     public Div Affiliation() {
-        return createByDataTestId(Div.class, "gym-card-affiliation");
+        return createByDataTestId(Div.class, GYM_CARD_AFFILIATION);
     }
 
     public Anchor AffiliationLink() {
-        return createByDataTestId(Anchor.class, "gym-card-affiliation-link");
+        return createByDataTestId(Anchor.class, GYM_CARD_AFFILIATION_LINK);
     }
 
     public Div timeTable() {
-        return createByDataTestId(Div.class, "gym-card-timetable");
+        return createByDataTestId(Div.class, GYM_CARD_TIMETABLE);
     }
 
     public Anchor timeTableLink() {
-        return createByDataTestId(Anchor.class, "gym-card-timetable-link");
+        return createByDataTestId(Anchor.class, GYM_CARD_TIMETABLE_LINK);
     }
 
     public List<Span> offeredClasses() {
-        return createAllByDataTestId(Span.class, "gym-card-classes-item");
+        return createAllByDataTestId(Span.class, GYM_CARD_CLASSES_ITEM);
     }
 
     public List<Anchor> socialMediaLinks() {
-        return createAllByDataTestId(Anchor.class, "social-media-link");
+        return createAllByDataTestId(Anchor.class, SOCIAL_MEDIA_LINK);
     }
 
     public Anchor visitWebsiteLink() {
-        return createByDataTestId(Anchor.class, "gym-card-website-link");
+        return createByDataTestId(Anchor.class, GYM_CARD_WEBSITE_LINK);
     }
 
 }

@@ -5,46 +5,47 @@ Feature: Event Filtering
   I want to filter events by county and type
 
   Background:
-    Given I am an authenticated user
-    And I am on the BJJ app events page
+    Given I am a user of the BJJ app
+
+  Rule: Users can filter events by county
 
   @smoke @regression @priority-high @Requirement-501 @TestCase-1002
-  Scenario Outline: Filter BJJ events by county
+  Scenario Outline: Filtering events by county
     Given the following BJJ events exist:
       | Name               | County   | Type       |
       | <County> Seminar 1 | <County> | Seminar    |
       | <County> Seminar 2 | <County> | Seminar    |
       | Dublin IBJJF       | Dublin   | Tournament |
-    When I filter events by county "<County>"
-    Then the displayed events include only those for county "<County>"
-    And the event list contains exactly <ExpectedCount> events
+    When I search for events in the county "<County>"
+    Then I should see exactly <ExpectedCount> events for "<County>"
 
     Examples:
       | County  | ExpectedCount |
       | Cork    |             2 |
       | Kildare |             2 |
 
+    @negative @regression @priority-medium @Requirement-504 @TestCase-1005
+    Scenario: No events found for a county with no events
+      Given the following BJJ events exist:
+        | Name              | County | Type       |
+        | Dublin Tournament | Dublin | Tournament |
+      When I search events by county "Clare"
+      Then I should not see any events
+
+  Rule: Users can filter events by type
+
   @regression @priority-high @Requirement-502 @TestCase-1003
-  Scenario: Filter BJJ events by event type
+  Scenario: Filtering events by type
     Given the following BJJ events exist:
       | Name           | County | Type       |
       | Cork Seminar 1 | Cork   | Seminar    |
       | Cork Seminar 2 | Cork   | Seminar    |
       | Cork IBJJF     | Cork   | Tournament |
-    When I filter events by type "Seminar"
-    Then the displayed events include only those of type "Seminar"
-    And the event list contains exactly 2 events
-
-  @negative @regression @priority-medium @Requirement-504 @TestCase-1005
-  Scenario: No events found for a county with no events
-    Given the following BJJ events exist:
-      | Name              | County | Type       |
-      | Dublin Tournament | Dublin | Tournament |
-    When I filter events by county "Clare"
-    Then the event list is empty
+    When I search for events of type "Seminar"
+    Then I should see exactly 2 events of type "Seminar"
 
   @negative @regression @priority-medium @Requirement-505 @TestCase-1006
-  Scenario: No events found when none exist in the system
+  Scenario: No events found when none exist
     Given no BJJ events exist
-    When I filter events by county "Wexford"
-    Then the event list is empty
+    When I search events by county "Wexford"
+    Then I should not see any events

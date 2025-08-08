@@ -60,19 +60,21 @@ public class GymFilteringSteps {
         List<String> createdIds = testDataManager.seedGyms(gymsToCreate, authToken);
         gymContext.addAllCreatedGymIds(createdIds);
         log.debug("Created {} BJJ gym(s) for the test.", createdIds.size());
+
     }
 
-    @When("I filter gyms by county {string}")
+    @When("I search gyms by county {string}")
     public void i_filter_gyms_by_county(String county) {
+        gymsPage.open();
         gymsPage.selectCounty(county);
     }
 
-    @Then("I should see gyms only for the county {string}")
+    @Then("I should only see gyms for county {string}")
     public void i_should_see_gyms_only_for_the_county(String expectedCounty) {
         gymsPage.assertAllGymsMatchCountyFilter(expectedCounty);
     }
 
-    @Then("the gyms list should be empty")
+    @Then("I should not see any gyms")
     public void the_gyms_list_should_be_empty() {
         gymsPage.assertNoDataInList();
     }

@@ -19,7 +19,7 @@ public class AuthenticationSteps {
         this.scenarioContext = scenarioContext;
     }
 
-    @Given("I am an authenticated user")
+    @Given("I am a user of the BJJ app")
     public void i_am_an_authenticated_user() {
         log.info("Authenticating user and storing token in scenario context...");
         String authToken = testDataManager.authenticate();

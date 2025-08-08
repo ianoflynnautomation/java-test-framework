@@ -18,8 +18,10 @@ import solutions.bjjeire.selenium.web.pages.ListPageBase;
 import solutions.bjjeire.selenium.web.pages.gyms.data.GymCardDetails;
 import solutions.bjjeire.selenium.web.services.ComponentCreateService;
 import solutions.bjjeire.selenium.web.services.NavigationService;
-
-import static solutions.bjjeire.selenium.web.pages.gyms.GymsPageDataTestIds.*;
+import static solutions.bjjeire.selenium.web.utils.GymsPageDataTestIds.GYMS_LIST_ITEM;
+import static solutions.bjjeire.selenium.web.utils.GymsPageDataTestIds.PAGE_HEADER_TITLE;
+import static solutions.bjjeire.selenium.web.utils.GymsPageDataTestIds.PAGE_HEADER_TOTAL;
+import static solutions.bjjeire.selenium.web.utils.GymsPageDataTestIds.SELECT_FILTER;
 
 @Component
 @Scope("prototype")
@@ -56,6 +58,7 @@ public class GymsPage extends ListPageBase {
     }
 
     public GymsPage selectCounty(String county) {
+        countyDropdown().validateNotDisabled();
         countyDropdown().selectByText(county);
         return this;
     }
@@ -77,13 +80,14 @@ public class GymsPage extends ListPageBase {
     }
 
     public GymsPage assertTotalGymsFoundInList(Integer expectedGymsTotal) {
-        if (expectedGymsTotal == 0) {
-            gymsListTotalText().validateTextIs("");
-        } else if (expectedGymsTotal == 1) {
-            gymsListTotalText().validateTextIs(String.format("Found %d gym.", expectedGymsTotal));
-        } else {
+        if (null == expectedGymsTotal) {
             gymsListTotalText().validateTextIs(String.format("Found %d gyms.", expectedGymsTotal));
-        }
+        } else
+            switch (expectedGymsTotal) {
+                case 0 -> gymsListTotalText().validateTextIs("");
+                case 1 -> gymsListTotalText().validateTextIs(String.format("Found %d gym.", expectedGymsTotal));
+                default -> gymsListTotalText().validateTextIs(String.format("Found %d gyms.", expectedGymsTotal));
+            }
         return this;
     }
 

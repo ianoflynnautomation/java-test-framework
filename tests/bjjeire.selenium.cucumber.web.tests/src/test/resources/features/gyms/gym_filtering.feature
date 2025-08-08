@@ -5,8 +5,7 @@ Feature: Gym Filtering
   I want to filter gyms by county
 
   Background:
-    Given I am an authenticated user
-    And I am on the BJJ app gyms page
+    Given I am a user of the BJJ app
 
   @regression @priority-high @Requirement-101 @TestCase-1101
   Scenario Outline: Filter gyms by county
@@ -15,8 +14,8 @@ Feature: Gym Filtering
       | <County> Gym 1   | <County> |
       | <County> Gym 2   | <County> |
       | Other County Gym | Kildare  |
-    When I filter gyms by county "<County>"
-    Then I should see gyms only for the county "<County>"
+    When I search gyms by county "<County>"
+    Then I should only see gyms for county "<County>"
 
     Examples:
       | County |
@@ -28,5 +27,5 @@ Feature: Gym Filtering
     Given the following BJJ gyms exist:
       | Name       | County |
       | Dublin Gym | Dublin |
-    When I filter gyms by county "Clare"
-    Then the gyms list should be empty
+    When I search gyms by county "Clare"
+    Then I should not see any gyms

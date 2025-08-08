@@ -7,6 +7,8 @@ Feature: BJJ Gym Management
   Background:
     Given Admin is authenticated
 
+  Rule: Admin can create BJJ gyms
+
   @Type:Smoke @Type:Regression @Priority:High @TestCase:C189
   Scenario: Admin creates a new BJJ gym with valid details
     Given a new BJJ gym has been prepared

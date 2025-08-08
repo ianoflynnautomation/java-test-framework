@@ -12,6 +12,7 @@ import org.slf4j.MDC;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
 import io.cucumber.java.Scenario;
+import net.logstash.logback.argument.StructuredArguments;
 import solutions.bjjeire.core.plugins.Browser;
 import solutions.bjjeire.core.plugins.BrowserConfiguration;
 import solutions.bjjeire.core.plugins.Lifecycle;
@@ -41,6 +42,11 @@ public class Hooks extends UsesPlugins {
     private final CookiesService cookiesService;
     private final BrowserService browserService;
 
+    private static final String SCENARIO_ID = "scenarioId";
+    private static final String SCENARIO_NAME = "scenarioName";
+    private static final ThreadLocal<Boolean> IS_CUCUMBER_CONFIGURED = ThreadLocal.withInitial(() -> false);
+    private static final ThreadLocal<BrowserConfiguration> SCENARIO_BROWSER_CONFIG = new ThreadLocal<>();
+
     public Hooks(DriverService driverService, TestDataManager testDataManager, ScenarioContext scenarioContext,
             EventContext eventContext, GymContext gymContext, WebSettings webSettings,
             CookiesService cookiesService, BrowserService browserService) {
@@ -53,12 +59,6 @@ public class Hooks extends UsesPlugins {
         this.cookiesService = cookiesService;
         this.browserService = browserService;
     }
-
-    private static final String SCENARIO_ID = "scenarioId";
-    private static final String SCENARIO_NAME = "scenarioName";
-
-    private static final ThreadLocal<Boolean> IS_CUCUMBER_CONFIGURED = ThreadLocal.withInitial(() -> false);
-    private static final ThreadLocal<BrowserConfiguration> SCENARIO_BROWSER_CONFIG = new ThreadLocal<>();
 
     private void configureCucumberPlugins() {
         if (!IS_CUCUMBER_CONFIGURED.get()) {
@@ -75,7 +75,9 @@ public class Hooks extends UsesPlugins {
         MDC.put(SCENARIO_ID, UUID.randomUUID().toString().substring(0, 8));
         MDC.put(SCENARIO_NAME, scenario.getName());
 
-        log.info("--- SCENARIO START ---");
+        log.info("--- SCENARIO START ---",
+                StructuredArguments.keyValue("scenarioName", scenario.getName()),
+                StructuredArguments.keyValue("tags", scenario.getSourceTagNames()));
 
         BrowserConfiguration config = getBrowserConfigurationFromTags(scenario);
         SCENARIO_BROWSER_CONFIG.set(config);
@@ -85,17 +87,23 @@ public class Hooks extends UsesPlugins {
         PluginExecutionEngine.preBeforeScenario(context);
 
         scenarioContext.setDriver(driverService.getWrappedDriver());
-        log.debug("Browser prepared. Config: {}", config);
+        log.debug("Browser prepared", StructuredArguments.keyValue("config", config));
     }
 
     @After(order = 999)
     public void afterScenario(Scenario scenario) {
         try {
             if (scenario.isFailed()) {
-                log.error("Scenario failed. Status: {}", scenario.getStatus());
+    
+                log.error("Scenario failed",
+                        StructuredArguments.keyValue("scenarioName", scenario.getName()),
+                        StructuredArguments.keyValue("status", scenario.getStatus()));
                 captureScreenshot(scenario);
             } else {
-                log.info("Scenario finished. Status: {}", scenario.getStatus());
+
+                log.info("Scenario finished",
+                        StructuredArguments.keyValue("scenarioName", scenario.getName()),
+                        StructuredArguments.keyValue("status", scenario.getStatus()));
             }
 
             // Teardown for Events
@@ -117,7 +125,8 @@ public class Hooks extends UsesPlugins {
             PluginExecutionEngine.postAfterScenario(context);
 
         } finally {
-            log.info("--- SCENARIO END ---");
+            log.info("--- SCENARIO END ---",
+                    StructuredArguments.keyValue("scenarioName", scenario.getName()));
             MDC.clear();
             SCENARIO_BROWSER_CONFIG.remove();
 
@@ -137,6 +146,7 @@ public class Hooks extends UsesPlugins {
             scenario.attach(screenshot, "image/png", "screenshot-" + System.currentTimeMillis());
             log.debug("Screenshot attached to report.");
         } catch (Exception e) {
+            // Structured logging for screenshot failure
             log.error("Failed to capture or attach screenshot.", e);
         }
     }

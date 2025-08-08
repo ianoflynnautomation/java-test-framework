@@ -62,40 +62,46 @@ public class EventFilteringSteps {
         List<String> createdIds = testDataManager.seedEvents(eventsToCreate, authToken);
         eventContext.addAllCreatedEventIds(createdIds);
         log.debug("Created {} BJJ event(s) for the test.", createdIds.size());
+
     }
 
     @Given("no BJJ events exist")
     public void no_bjj_events_exist() {
-        log.debug("Ensuring no BJJ events exist for this test.");
     }
 
-    @When("I filter events by county {string}")
-    public void i_filter_events_by_county(String county) {
+    @When("I search for events in the county {string}")
+    public void iSearchForEventsInTheCounty(String county) {
+        eventsPage.open();
         eventsPage.selectCounty(county);
     }
 
-    @When("I filter events by type {string}")
-    public void i_filter_events_by_type(String eventType) {
+    @When("I search events by county {string}")
+    public void iSearchEventsByCounty(String county) {
+        eventsPage.open();
+        eventsPage.selectCounty(county);
+    }
+
+    @When("I search for events of type {string}")
+    public void iSearchForEventsOfType(String eventType) {
+        eventsPage.open();
         eventsPage.selectFilter(BjjEventType.fromString(eventType));
     }
 
-    @Then("the displayed events include only those for county {string}")
-    public void the_displayed_events_include_only_those_for_county(String expectedCounty) {
-        eventsPage.assertAllEventsMatchCountyFilter(expectedCounty + " County");
+    @Then("I should see exactly {int} events for {string}")
+    public void iShouldSeeExactlyExpectedCountEventsFor(int expectedCount, String county) {
+        eventsPage.assertAllEventsMatchCountyFilter(county + " County");
+        eventsPage.assertEventCountInListIs(expectedCount);;
     }
 
-    @Then("the displayed events include only those of type {string}")
-    public void the_displayed_events_include_only_those_of_type(String eventType) {
-        eventsPage.assertAllEventsMatchTypeFilter(BjjEventType.fromString(eventType));
-    }
-
-    @Then("the event list contains exactly {int} events")
-    public void the_event_list_contains_exactly_events(int expectedCount) {
-        eventsPage.assertEventCountInListIs(expectedCount);
-    }
-
-    @Then("the event list is empty")
-    public void the_event_list_is_empty() {
+    @Then("I should not see any events")
+    public void iShouldNotSeeAnyEvents() {
         eventsPage.assertNoDataInList();
+    }
+
+    @Then("I should see exactly {int} events of type {string}")
+    public void iShouldSeeExactlyEventsOfType(int expectedCount, String eventType) {
+        eventsPage.assertAllEventsMatchTypeFilter(BjjEventType.fromString(eventType));
+        eventsPage.assertEventCountInListIs(expectedCount);
+        eventsPage.assertTotalEventsFoundInList(expectedCount);
     }
 }

@@ -1,18 +1,9 @@
 package solutions.bjjeire.selenium.web.pages;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import org.springframework.context.ApplicationContext;
-
 import solutions.bjjeire.selenium.web.components.custom.grid.ErrorState;
 import solutions.bjjeire.selenium.web.components.custom.grid.NoDataState;
-import solutions.bjjeire.selenium.web.configuration.WebSettings;
-import solutions.bjjeire.selenium.web.services.BrowserService;
 import solutions.bjjeire.selenium.web.services.ComponentCreateService;
-import solutions.bjjeire.selenium.web.services.ComponentWaitService;
-import solutions.bjjeire.selenium.web.services.DriverService;
-import solutions.bjjeire.selenium.web.services.JavaScriptService;
 import solutions.bjjeire.selenium.web.services.NavigationService;
-import solutions.bjjeire.selenium.web.waitstrategies.WaitStrategyFactory;
 
 public class ListPageBase extends WebPage {
 
@@ -21,12 +12,12 @@ public class ListPageBase extends WebPage {
         super(navigationService, componentCreateService);
     }
 
-    public NoDataState noDataState() {
-        return create().byDataTestId(NoDataState.class, "no-data-state");
+    public ErrorState errorStateContainer() {
+        return create().byDataTestId(ErrorState.class, "error-state");
     }
 
-    public ErrorState errorState() {
-        return create().byDataTestId(ErrorState.class, "error-state");
+    public NoDataState noDataStateContainer() {
+        return create().byDataTestId(NoDataState.class, "no-data-state");
     }
 
     @Override
@@ -34,13 +25,18 @@ public class ListPageBase extends WebPage {
         return "";
     }
 
-    public void assertNoDataInList() {
-        assertTrue(noDataState().isVisible());
+    public ListPageBase assertNoDataInList() {
+        NoDataState noDataState = noDataStateContainer();
+        noDataState.toBeVisible().waitToBe();
+        noDataState.stateTitle().validateTextIs("No Events Found");
 
+        return this;
     }
 
     public ListPageBase assertErrorInList() {
-        assertTrue(errorState().isVisible());
+        ErrorState errorState = errorStateContainer();
+        errorState.stateTitle().validateTextIs("Error Loading Data");
+        errorState.messageLine1().validateTextIs("Network Error");
 
         return this;
     }

@@ -7,14 +7,16 @@ Feature: BJJ Event Management
   Background:
     Given Admin is authenticated
 
-  @Type:Smoke @Type:Regression @Priority:High @TestCase:C789
-  Scenario: Admin creates a new BJJ event with valid details
+  Rule: Admin can create BJJ events
 
+  @Type:Smoke @Type:Regression @Priority:High @TestCase:C789
   Scenario: Admin creates a new BJJ event with valid details
     Given a new event has been prepared
     When the Admin adds the new event
     Then the event should be successfully added
 
+  Rule: Admin is prevented from creating events with invalid data
+    
   @Type:Negative @Type:Regression @Priority:Medium @TestCase:C790
   Scenario Outline: Admin attempts to create a BJJ event with invalid data
     Given the Admin has an event with "<Field>" set to "<InvalidValue>"

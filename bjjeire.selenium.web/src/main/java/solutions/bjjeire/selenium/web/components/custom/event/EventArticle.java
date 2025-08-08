@@ -17,58 +17,59 @@ import solutions.bjjeire.selenium.web.services.ComponentWaitService;
 import solutions.bjjeire.selenium.web.services.DriverService;
 import solutions.bjjeire.selenium.web.services.JavaScriptService;
 import solutions.bjjeire.selenium.web.waitstrategies.WaitStrategyFactory;
+import static solutions.bjjeire.selenium.web.utils.EventsPageDataTestIds.*;
 
 @Component
 @Scope("prototype")
 public class EventArticle extends WebComponent {
 
     public EventArticle(DriverService driverService, JavaScriptService javaScriptService, BrowserService browserService,
-            ComponentWaitService componentWaitService, WebSettings webSettings, ApplicationContext applicationContext,
-            WaitStrategyFactory waitStrategyFactory) {
+                        ComponentWaitService componentWaitService, WebSettings webSettings, ApplicationContext applicationContext,
+                        WaitStrategyFactory waitStrategyFactory) {
         super(driverService, javaScriptService, browserService, componentWaitService, webSettings, applicationContext,
                 waitStrategyFactory);
     }
 
     public Heading headingText() {
-        return createByDataTestId(Heading.class, "event-card-name");
+        return createByDataTestId(Heading.class, EVENT_CARD_NAME);
     }
 
     public Span county() {
-        return createByDataTestId(Span.class, "event-card-county");
+        return createByDataTestId(Span.class, EVENT_CARD_COUNTY);
     }
 
     public List<Span> TypeLabels() {
-        return createAllByDataTestId(Span.class, "event-card-type");
+        return createAllByDataTestId(Span.class, EVENT_CARD_TYPE);
     }
 
     public Div AddressText() {
-        return createByDataTestId(Div.class, "event-card-address");
+        return createByDataTestId(Div.class, EVENT_CARD_ADDRESS);
     }
 
     public Anchor AddressLink() {
-        return createByDataTestId(Anchor.class, "event-card-address-link");
+        return createByDataTestId(Anchor.class, EVENT_CARD_ADDRESS_LINK);
     }
 
     public Div OrganiserText() {
-        return createByDataTestId(Div.class, "event-card-organiser");
+        return createByDataTestId(Div.class, EVENT_CARD_ORGANISER);
     }
 
     public Anchor OrganiserLink() {
-        return createByDataTestId(Anchor.class, "event-card-organiser-link");
+        return createByDataTestId(Anchor.class, EVENT_CARD_ORGANISER_LINK);
     }
 
     public Div price() {
-        return createByDataTestId(Div.class, "event-card-pricing");
+        return createByDataTestId(Div.class, EVENT_CARD_PRICING);
     }
 
     public List<Anchor> socialMediaLinks() {
-        return createAllByDataTestId(Anchor.class, "social-media-link");
+        return createAllByDataTestId(Anchor.class, SOCIAL_MEDIA_LINK);
     }
 
     // TODO: Add event schedule once refactored
 
     public Anchor moreInformationLink() {
-        return createByDataTestId(Anchor.class, "event-card-button");
+        return createByDataTestId(Anchor.class, EVENT_CARD_BUTTON);
     }
 
 }

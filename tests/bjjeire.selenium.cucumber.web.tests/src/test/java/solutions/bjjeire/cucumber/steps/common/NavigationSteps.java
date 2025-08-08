@@ -14,12 +14,12 @@ public class NavigationSteps {
         this.gymsPage = gymsPage;
     }
 
-    @Given("I am on the BJJ app events page")
+    @Given("I am viewing the events page")
     public void i_am_on_the_bjj_app_events_page() {
         eventsPage.open();
     }
 
-    @Given("I am on the BJJ app gyms page")
+    @Given("I am viewing the gyms page")
     public void i_am_on_the_bjj_app_gyms_page() {
         gymsPage.open();
     }
