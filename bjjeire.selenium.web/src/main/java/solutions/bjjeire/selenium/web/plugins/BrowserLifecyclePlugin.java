@@ -1,11 +1,8 @@
 package solutions.bjjeire.selenium.web.plugins;
 
 import java.lang.reflect.Method;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-
 import net.logstash.logback.argument.StructuredArguments;
 import solutions.bjjeire.core.plugins.Browser;
 import solutions.bjjeire.core.plugins.BrowserConfiguration;
@@ -18,13 +15,13 @@ import solutions.bjjeire.selenium.web.configuration.WebSettings;
 import solutions.bjjeire.selenium.web.infrastructure.ExecutionBrowser;
 import solutions.bjjeire.selenium.web.services.DriverService;
 
+@Slf4j
 @Component
 public class BrowserLifecyclePlugin implements Plugin {
 
     private final ThreadLocal<BrowserConfiguration> currentBrowserConfiguration = new ThreadLocal<>();
     private final ThreadLocal<BrowserConfiguration> previousBrowserConfiguration = new ThreadLocal<>();
     private final ThreadLocal<Boolean> isBrowserStartedCorrectly = ThreadLocal.withInitial(() -> false);
-    private static final Logger log = LoggerFactory.getLogger(BrowserLifecyclePlugin.class);
     private final DriverService driverService;
     private final WebSettings webSettings;
 

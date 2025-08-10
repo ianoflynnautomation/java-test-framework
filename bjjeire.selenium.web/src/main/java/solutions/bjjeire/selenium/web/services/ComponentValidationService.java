@@ -4,23 +4,21 @@ import java.time.Duration;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
+import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.FluentWait;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
-
 import net.logstash.logback.argument.StructuredArguments;
 import solutions.bjjeire.selenium.web.components.WebComponent;
 import solutions.bjjeire.selenium.web.configuration.WebSettings;
 
+@Slf4j
 @Service
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ComponentValidationService {
-    private static final Logger log = LoggerFactory.getLogger(ComponentValidationService.class);
 
     private final DriverService driverService;
     private final WebSettings webSettings;

@@ -1,20 +1,15 @@
 package solutions.bjjeire.selenium.web.configuration;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
+import net.logstash.logback.argument.StructuredArguments;
 
-/**
- * Determines and constructs URL paths for API endpoints.
- * This class uses Spring's UriComponentsBuilder for safe and reliable path construction,
- * making it compatible with WebClient.
- */
 @Component
+@Slf4j
 public class UrlDeterminer {
 
-    private static final Logger log = LoggerFactory.getLogger(UrlDeterminer.class);
     private final UrlSettings urlSettings;
 
     @Autowired
@@ -31,13 +26,15 @@ public class UrlDeterminer {
     }
 
     private String buildUrl(String basePath, String pathSuffix) {
-        // UriComponentsBuilder is part of Spring and handles URL/URI construction robustly.
         String fullPath = UriComponentsBuilder.fromPath(basePath)
                 .path(pathSuffix)
                 .build()
                 .toUriString();
 
-        log.debug("Constructed URL path: {}", fullPath);
+        log.debug("Constructed URL",
+                StructuredArguments.keyValue("basePath", basePath),
+                StructuredArguments.keyValue("pathSuffix", pathSuffix),
+                StructuredArguments.keyValue("fullPath", fullPath));
         return fullPath;
     }
 }

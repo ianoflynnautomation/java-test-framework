@@ -13,7 +13,7 @@ import org.springframework.web.client.RestTemplate;
         "solutions.bjjeire.core",
         "solutions.bjjeire.cucumber"
 })
-@EnableConfigurationProperties({ WebSettings.class, UrlSettings.class })
+@EnableConfigurationProperties({ WebSettings.class, UrlSettings.class, ApiSettings.class })
 @Import(WebClientConfig.class)
 public class SeleniumConfig {
 

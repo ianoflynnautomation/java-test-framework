@@ -1,13 +1,11 @@
 package solutions.bjjeire.selenium.web.services;
 
+import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.WebDriver;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import net.logstash.logback.argument.StructuredArguments;
 
+@Slf4j
 public abstract class WebService {
-    private static final Logger log = LoggerFactory.getLogger(WebService.class);
 
     protected final DriverService driverService;
 

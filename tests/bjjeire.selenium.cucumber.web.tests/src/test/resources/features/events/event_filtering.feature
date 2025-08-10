@@ -7,7 +7,7 @@ Feature: Event Filtering
   Background:
     Given I am a user of the BJJ app
 
-  Rule: Users can filter events by county
+  Rule: Users can search events by county
 
   @smoke @regression @priority-high @Requirement-501 @TestCase-1002
   Scenario Outline: Filtering events by county
@@ -32,7 +32,7 @@ Feature: Event Filtering
       When I search events by county "Clare"
       Then I should not see any events
 
-  Rule: Users can filter events by type
+  Rule: Users can search events by type
 
   @regression @priority-high @Requirement-502 @TestCase-1003
   Scenario: Filtering events by type

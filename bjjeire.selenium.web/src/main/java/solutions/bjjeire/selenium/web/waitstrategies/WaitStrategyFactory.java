@@ -4,10 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import solutions.bjjeire.selenium.web.configuration.WebSettings;
 
-/**
- * A Spring-managed factory for creating WaitStrategy instances.
- * It uses the injected WebSettings to provide default timeout values.
- */
 @Component
 public class WaitStrategyFactory {
 

@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.MutableCapabilities;
 import org.openqa.selenium.UnexpectedAlertBehaviour;
@@ -26,8 +27,6 @@ import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.safari.SafariDriver;
 import org.openqa.selenium.safari.SafariOptions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import net.logstash.logback.argument.StructuredArguments;
@@ -37,13 +36,9 @@ import solutions.bjjeire.core.utilities.TimestampBuilder;
 import solutions.bjjeire.selenium.web.configuration.GridSettings;
 import solutions.bjjeire.selenium.web.configuration.WebSettings;
 
-/**
- * A Spring-managed service responsible for creating and managing WebDriver
- * instances.
- */
+@Slf4j
 @Service
 public class DriverService {
-    private static final Logger log = LoggerFactory.getLogger(DriverService.class);
 
     private final ThreadLocal<WebDriver> webDriverThreadLocal = new ThreadLocal<>();
     private final WebSettings webSettings;
@@ -51,7 +46,6 @@ public class DriverService {
     private static final List<WebDriver> ALL_DRIVERS = Collections.synchronizedList(new ArrayList<>());
 
     static {
-
         log.info("Registering JVM shutdown hook for global browser cleanup.");
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             log.info("JVM shutdown initiated. Closing all managed WebDriver instances...");

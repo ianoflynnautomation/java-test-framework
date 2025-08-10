@@ -1,11 +1,7 @@
 package solutions.bjjeire.selenium.web.services;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
-
 import solutions.bjjeire.selenium.web.components.WebComponent;
 import solutions.bjjeire.selenium.web.findstrategies.CssFindStrategy;
 import solutions.bjjeire.selenium.web.findstrategies.DataTestIdFindStrategy;
@@ -13,6 +9,9 @@ import solutions.bjjeire.selenium.web.findstrategies.FindStrategy;
 import solutions.bjjeire.selenium.web.findstrategies.InnerTextContainingFindStrategy;
 import solutions.bjjeire.selenium.web.findstrategies.TagFindStrategy;
 import solutions.bjjeire.selenium.web.findstrategies.XPathFindStrategy;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class ComponentCreateService extends WebService {

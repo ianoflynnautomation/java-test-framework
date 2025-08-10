@@ -1,25 +1,23 @@
 package solutions.bjjeire.selenium.web.services;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.time.Duration;
-
+import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.ScriptTimeoutException;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.testng.Assert;
-
 import net.logstash.logback.argument.StructuredArguments;
 import solutions.bjjeire.selenium.web.configuration.WebSettings;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.time.Duration;
+
+@Slf4j
 @Service
 public class BrowserService extends WebService {
 
-    private static final Logger log = LoggerFactory.getLogger(BrowserService.class);
     private final WebSettings webSettings;
     protected final JavaScriptService javaScriptService;
 

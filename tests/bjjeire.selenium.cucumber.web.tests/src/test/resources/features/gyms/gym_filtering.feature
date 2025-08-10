@@ -7,6 +7,8 @@ Feature: Gym Filtering
   Background:
     Given I am a user of the BJJ app
 
+  Rule: Users can search gyms by county
+
   @regression @priority-high @Requirement-101 @TestCase-1101
   Scenario Outline: Filter gyms by county
     Given the following BJJ gyms exist:

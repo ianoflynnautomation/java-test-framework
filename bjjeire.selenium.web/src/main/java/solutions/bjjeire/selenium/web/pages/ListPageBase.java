@@ -28,7 +28,6 @@ public class ListPageBase extends WebPage {
     public ListPageBase assertNoDataInList() {
         NoDataState noDataState = noDataStateContainer();
         noDataState.toBeVisible().waitToBe();
-        noDataState.stateTitle().validateTextIs("No Events Found");
 
         return this;
     }

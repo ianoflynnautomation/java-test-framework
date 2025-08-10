@@ -18,10 +18,8 @@ import solutions.bjjeire.selenium.web.pages.ListPageBase;
 import solutions.bjjeire.selenium.web.pages.gyms.data.GymCardDetails;
 import solutions.bjjeire.selenium.web.services.ComponentCreateService;
 import solutions.bjjeire.selenium.web.services.NavigationService;
-import static solutions.bjjeire.selenium.web.utils.GymsPageDataTestIds.GYMS_LIST_ITEM;
-import static solutions.bjjeire.selenium.web.utils.GymsPageDataTestIds.PAGE_HEADER_TITLE;
-import static solutions.bjjeire.selenium.web.utils.GymsPageDataTestIds.PAGE_HEADER_TOTAL;
-import static solutions.bjjeire.selenium.web.utils.GymsPageDataTestIds.SELECT_FILTER;
+import static solutions.bjjeire.selenium.web.utils.CommonDataTestIds.SELECT_FILTER;
+import static solutions.bjjeire.selenium.web.utils.GymsPageDataTestIds.*;
 
 @Component
 @Scope("prototype")
@@ -42,11 +40,11 @@ public class GymsPage extends ListPageBase {
     }
 
     public Heading titleText() {
-        return create().byDataTestId(Heading.class, PAGE_HEADER_TITLE);
+        return create().byDataTestId(Heading.class, GYMS_PAGE_HEADER_TITLE);
     }
 
     public Label gymsListTotalText() {
-        return create().byDataTestId(Label.class, PAGE_HEADER_TOTAL);
+        return create().byDataTestId(Label.class, GYMS_PAGE_HEADER_TOTAL);
     }
 
     private Select countyDropdown() {

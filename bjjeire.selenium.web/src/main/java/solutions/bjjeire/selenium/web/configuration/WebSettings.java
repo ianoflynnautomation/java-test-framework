@@ -1,33 +1,58 @@
 package solutions.bjjeire.selenium.web.configuration;
 
 import java.util.List;
-import lombok.Getter;
-import lombok.Setter;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
+import lombok.Data;
+import org.hibernate.validator.constraints.URL;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.validation.annotation.Validated;
 import solutions.bjjeire.core.plugins.Browser;
 
-@Getter
-@Setter
+import javax.validation.constraints.NotBlank;
+
 @ConfigurationProperties(prefix = "web-settings")
+@Data
+@Validated
 public class WebSettings {
+
+    @NotBlank(message = "Base URL cannot be blank.")
+    @URL(message = "Base URL must be a valid URL.")
     private String baseUrl;
+
+    @NotBlank(message = "Execution type cannot be blank.")
     private String executionType;
-    private String defaultLifeCycle;
+
+    @NotBlank(message = "Default browser cannot be blank.")
     private String defaultBrowser;
+
+    private String defaultLifeCycle;
+
+    @PositiveOrZero(message = "Browser width must be a non-negative number.")
     private Integer defaultBrowserWidth = 0;
+
+    @PositiveOrZero(message = "Browser height must be a non-negative number.")
     private Integer defaultBrowserHeight = 0;
+
+    @Valid
     private List<GridSettings> gridSettings;
 
+    @PositiveOrZero(message = "Artificial delay must be a non-negative number.")
     private int artificialDelayBeforeAction;
+
+    @NotNull(message = "Timeout settings must be configured.")
+    @Valid
     private TimeoutSettings timeoutSettings;
 
-    private Boolean automaticallyScrollToVisible;
-    private Boolean waitUntilReadyOnElementFound;
+    private boolean automaticallyScrollToVisible;
+    private boolean waitUntilReadyOnElementFound;
 
-    private Boolean screenshotsOnFailEnabled;
+    private boolean screenshotsOnFailEnabled;
     private String screenshotsSaveLocation;
 
-    private Boolean videosOnFailEnabled;
+    private boolean videosOnFailEnabled;
     private String videosSaveLocation;
 
     public Browser getDefaultBrowserEnum() {

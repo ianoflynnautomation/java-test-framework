@@ -3,7 +3,11 @@ package solutions.bjjeire.cucumber.steps.gyms;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,53 +18,42 @@ import io.cucumber.java.en.When;
 import solutions.bjjeire.core.data.common.County;
 import solutions.bjjeire.core.data.gyms.Gym;
 import solutions.bjjeire.core.data.gyms.GymFactory;
-import solutions.bjjeire.cucumber.context.GymContext;
 import solutions.bjjeire.cucumber.context.ScenarioContext;
+import solutions.bjjeire.cucumber.context.TestDataContext;
+import solutions.bjjeire.cucumber.hooks.TestDataLifecycleHook;
 import solutions.bjjeire.selenium.web.data.TestDataManager;
 import solutions.bjjeire.selenium.web.pages.gyms.GymsPage;
 
+@Slf4j
+@RequiredArgsConstructor
 public class GymFilteringSteps {
-
-    private static final Logger log = LoggerFactory.getLogger(GymFilteringSteps.class);
 
     private final GymsPage gymsPage;
     private final TestDataManager testDataManager;
     private final ScenarioContext scenarioContext;
-    private final GymContext gymContext;
+    private final TestDataContext testDataContext;
 
-    public GymFilteringSteps(GymsPage gymsPage, TestDataManager testDataManager, ScenarioContext scenarioContext,
-            GymContext gymContext) {
-        this.gymsPage = gymsPage;
-        this.testDataManager = testDataManager;
-        this.scenarioContext = scenarioContext;
-        this.gymContext = gymContext;
+    @Data
+    public static class GymDataRow {
+        private String name;
+        private County county;
     }
 
     @Given("the following BJJ gyms exist:")
     public void the_following_bjj_gyms_exist(DataTable dataTable) {
-        List<Map<String, String>> rows = dataTable.asMaps(String.class, String.class);
-        List<Gym> gymsToCreate = new ArrayList<>();
+        List<GymDataRow> dataRows = dataTable.asList(GymDataRow.class);
 
-        for (Map<String, String> columns : rows) {
-            Gym gym = GymFactory.createGym(builder -> {
-                String name = columns.get("Name");
-                String county = columns.get("County");
-
-                if (name != null) {
-                    builder.name(name);
-                }
-                if (county != null) {
-                    builder.county(County.valueOf(county.replace(" ", "")));
-                }
-            });
-            gymsToCreate.add(gym);
-        }
+        List<Gym> gymsToCreate = dataRows.stream()
+                .map(row -> GymFactory.createGym(builder -> builder
+                        .name(row.getName())
+                        .county(row.getCounty())))
+                .collect(Collectors.toList());
 
         String authToken = scenarioContext.getAuthToken();
-        List<String> createdIds = testDataManager.seedGyms(gymsToCreate, authToken);
-        gymContext.addAllCreatedGymIds(createdIds);
-        log.debug("Created {} BJJ gym(s) for the test.", createdIds.size());
+        List<String> createdIds = testDataManager.seed(gymsToCreate, authToken);
 
+        testDataContext.addEntityIds(Gym.class, createdIds);
+        log.info("Seeded {} BJJ gym(s) for the test.", createdIds.size());
     }
 
     @When("I search gyms by county {string}")

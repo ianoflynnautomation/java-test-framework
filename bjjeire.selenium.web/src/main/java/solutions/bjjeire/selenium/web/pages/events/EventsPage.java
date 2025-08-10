@@ -22,10 +22,8 @@ import solutions.bjjeire.selenium.web.pages.ListPageBase;
 import solutions.bjjeire.selenium.web.pages.events.data.EventCardDetails;
 import solutions.bjjeire.selenium.web.services.ComponentCreateService;
 import solutions.bjjeire.selenium.web.services.NavigationService;
-import static solutions.bjjeire.selenium.web.utils.EventsPageDataTestIds.EVENTS_LIST_ITEM;
-import static solutions.bjjeire.selenium.web.utils.EventsPageDataTestIds.PAGE_HEADER_TITLE;
-import static solutions.bjjeire.selenium.web.utils.EventsPageDataTestIds.PAGE_HEADER_TOTAL;
-import static solutions.bjjeire.selenium.web.utils.EventsPageDataTestIds.SELECT_FILTER;
+import static solutions.bjjeire.selenium.web.utils.EventsPageDataTestIds.*;
+import static solutions.bjjeire.selenium.web.utils.CommonDataTestIds.SELECT_FILTER;
 
 @Component
 @Scope("prototype")
@@ -46,11 +44,11 @@ public class EventsPage extends ListPageBase {
     }
 
     public Heading titleText() {
-        return create().byDataTestId(Heading.class, PAGE_HEADER_TITLE);
+        return create().byDataTestId(Heading.class, EVENTS_PAGE_HEADER_TITLE);
     }
 
     public Label foundEventsTotalText() {
-        return create().byDataTestId(Label.class, PAGE_HEADER_TOTAL);
+        return create().byDataTestId(Label.class, EVENTS_PAGE_HEADER_TOTAL);
     }
 
     private Select countyDropdown() {

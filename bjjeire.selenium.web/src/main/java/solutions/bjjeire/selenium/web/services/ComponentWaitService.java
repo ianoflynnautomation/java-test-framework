@@ -1,7 +1,6 @@
 package solutions.bjjeire.selenium.web.services;
 
 import org.springframework.stereotype.Service;
-
 import solutions.bjjeire.selenium.web.components.WebComponent;
 import solutions.bjjeire.selenium.web.waitstrategies.WaitStrategy;
 

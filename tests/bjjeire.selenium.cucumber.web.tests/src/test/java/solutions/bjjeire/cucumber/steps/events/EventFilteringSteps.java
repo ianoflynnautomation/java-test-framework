@@ -1,11 +1,11 @@
 package solutions.bjjeire.cucumber.steps.events;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Given;
@@ -15,54 +15,45 @@ import solutions.bjjeire.core.data.common.County;
 import solutions.bjjeire.core.data.events.BjjEvent;
 import solutions.bjjeire.core.data.events.BjjEventFactory;
 import solutions.bjjeire.core.data.events.BjjEventType;
-import solutions.bjjeire.cucumber.context.EventContext;
 import solutions.bjjeire.cucumber.context.ScenarioContext;
+import solutions.bjjeire.cucumber.context.TestDataContext;
+import solutions.bjjeire.cucumber.hooks.TestDataLifecycleHook;
 import solutions.bjjeire.selenium.web.data.TestDataManager;
 import solutions.bjjeire.selenium.web.pages.events.EventsPage;
 
+@Slf4j
+@RequiredArgsConstructor
 public class EventFilteringSteps {
-
-    private static final Logger log = LoggerFactory.getLogger(EventFilteringSteps.class);
 
     private final EventsPage eventsPage;
     private final TestDataManager testDataManager;
     private final ScenarioContext scenarioContext;
-    private final EventContext eventContext;
+    private final TestDataContext testDataContext;
 
-    public EventFilteringSteps(EventsPage eventsPage, TestDataManager testDataManager, ScenarioContext scenarioContext,
-            EventContext eventContext) {
-        this.eventsPage = eventsPage;
-        this.testDataManager = testDataManager;
-        this.scenarioContext = scenarioContext;
-        this.eventContext = eventContext;
+
+    @Data
+    public static class EventDataRow {
+        private String name;
+        private County county;
+        private BjjEventType type;
     }
 
     @Given("the following BJJ events exist:")
     public void the_following_bjj_events_exist(DataTable dataTable) {
-        List<Map<String, String>> rows = dataTable.asMaps(String.class, String.class);
-        List<BjjEvent> eventsToCreate = new ArrayList<>();
+        List<EventDataRow> dataRows = dataTable.asList(EventDataRow.class);
 
-        for (Map<String, String> columns : rows) {
-            BjjEvent event = BjjEventFactory.createBjjEvent(builder -> {
-                String name = columns.get("Name");
-                String county = columns.get("County");
-                String type = columns.get("Type");
-
-                if (name != null)
-                    builder.name(name);
-                if (county != null)
-                    builder.county(County.valueOf(county.replace(" ", "")));
-                if (type != null)
-                    builder.type(BjjEventType.fromString(type));
-            });
-            eventsToCreate.add(event);
-        }
+        List<BjjEvent> eventsToCreate = dataRows.stream()
+                .map(row -> BjjEventFactory.createBjjEvent(builder -> builder
+                        .name(row.getName())
+                        .county(row.getCounty())
+                        .type(row.getType())))
+                .collect(Collectors.toList());
 
         String authToken = scenarioContext.getAuthToken();
-        List<String> createdIds = testDataManager.seedEvents(eventsToCreate, authToken);
-        eventContext.addAllCreatedEventIds(createdIds);
-        log.debug("Created {} BJJ event(s) for the test.", createdIds.size());
+        List<String> createdIds = testDataManager.seed(eventsToCreate, authToken);
 
+        testDataContext.addEntityIds(BjjEvent.class, createdIds);
+        log.info("Seeded {} BJJ event(s) for the test.", createdIds.size());
     }
 
     @Given("no BJJ events exist")
