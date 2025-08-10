@@ -1,12 +1,11 @@
 package solutions.bjjeire.core.plugins;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import java.lang.reflect.Method;
 
-public final class PluginExecutionEngine {
+import lombok.extern.slf4j.Slf4j;
 
-    private static final Logger log = LoggerFactory.getLogger(PluginExecutionEngine.class);
+@Slf4j
+public final class PluginExecutionEngine {
 
     @FunctionalInterface
     private interface PluginAction {

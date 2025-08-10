@@ -1,20 +1,19 @@
 package solutions.bjjeire.core.plugins.junit;
 
-import org.junit.jupiter.api.extension.ExtensionContext;
-import org.junit.jupiter.api.extension.TestWatcher;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import solutions.bjjeire.core.plugins.PluginExecutionEngine;
-import solutions.bjjeire.core.plugins.TestResult;
-
 import java.lang.reflect.Method;
 import java.util.Optional;
 
-public class TestResultWatcher implements TestWatcher {
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.api.extension.TestWatcher;
+import org.springframework.context.ApplicationContext;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-    private static final Logger log = LoggerFactory.getLogger(TestResultWatcher.class);
+import lombok.extern.slf4j.Slf4j;
+import solutions.bjjeire.core.plugins.PluginExecutionEngine;
+import solutions.bjjeire.core.plugins.TestResult;
+
+@Slf4j
+public class TestResultWatcher implements TestWatcher {
 
     @Override
     public void testAborted(ExtensionContext context, Throwable throwable) {
@@ -48,7 +47,8 @@ public class TestResultWatcher implements TestWatcher {
 
         Optional<Method> testMethod = context.getTestMethod();
         if (testMethod.isEmpty()) {
-            log.warn("Test method not available in ExtensionContext. Cannot run post-test plugin actions for '{}'.", context.getDisplayName());
+            log.warn("Test method not available in ExtensionContext. Cannot run post-test plugin actions for '{}'.",
+                    context.getDisplayName());
             return;
         }
 
@@ -57,15 +57,14 @@ public class TestResultWatcher implements TestWatcher {
                     JunitBaseTest.CURRENT_TEST_RESULT.get(),
                     JunitBaseTest.CURRENT_TEST_TIME_RECORD.get(),
                     testMethod.get(),
-                    throwable
-            );
+                    throwable);
         } catch (Exception e) {
-            log.error("An exception occurred within the postAfterTest plugin execution for test: {}", context.getDisplayName(), e);
+            log.error("An exception occurred within the postAfterTest plugin execution for test: {}",
+                    context.getDisplayName(), e);
         }
     }
 
-
-    private PluginExecutionEngine getPluginExecutionEngine(ExtensionContext context) {
+        private PluginExecutionEngine getPluginExecutionEngine(ExtensionContext context) {
         try {
             ApplicationContext springContext = SpringExtension.getApplicationContext(context);
             return springContext.getBean(PluginExecutionEngine.class);

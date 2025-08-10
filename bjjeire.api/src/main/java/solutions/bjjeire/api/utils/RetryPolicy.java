@@ -1,21 +1,23 @@
 package solutions.bjjeire.api.utils;
 
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.MeterRegistry;
-import net.logstash.logback.argument.StructuredArguments;
+import java.io.IOException;
+import java.net.ConnectException;
+import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
+import java.time.Duration;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import net.logstash.logback.argument.StructuredArguments;
 import reactor.util.retry.Retry;
 import solutions.bjjeire.api.configuration.ApiSettings;
-import java.io.IOException;
-import java.net.ConnectException;
-import java.net.SocketTimeoutException;
-import java.net.UnknownHostException;
-import java.time.Duration;
 
 @Component
 public class RetryPolicy {
@@ -35,7 +37,9 @@ public class RetryPolicy {
 
     public Retry getRetrySpec(HttpMethod method, String endpoint) {
         if (apiSettings.getMaxRetryAttempts() > 0 && isIdempotent(method)) {
-            return Retry.backoff(apiSettings.getMaxRetryAttempts(), Duration.ofMillis(apiSettings.getPauseBetweenFailuresMillis()))
+            return Retry
+                    .backoff(apiSettings.getMaxRetryAttempts(),
+                            Duration.ofMillis(apiSettings.getPauseBetweenFailuresMillis()))
                     .filter(throwable -> {
                         // Retry on network errors
                         if (throwable instanceof WebClientRequestException) {
@@ -49,7 +53,8 @@ public class RetryPolicy {
                                         StructuredArguments.kv("endpoint", endpoint),
                                         StructuredArguments.kv("method", method.name()),
                                         StructuredArguments.kv("originalError", throwable.getMessage()),
-                                        StructuredArguments.kv("networkCauseType", cause != null ? cause.getClass().getSimpleName() : "unknown"));
+                                        StructuredArguments.kv("networkCauseType",
+                                                cause != null ? cause.getClass().getSimpleName() : "unknown"));
                                 return true;
                             }
                         }
@@ -57,7 +62,8 @@ public class RetryPolicy {
                         if (throwable instanceof WebClientResponseException) {
                             WebClientResponseException responseException = (WebClientResponseException) throwable;
                             int statusCode = responseException.getStatusCode().value();
-                            boolean isRetryableHttpStatus = statusCode == 429 || (statusCode >= 500 && statusCode < 600);
+                            boolean isRetryableHttpStatus = statusCode == 429
+                                    || (statusCode >= 500 && statusCode < 600);
                             if (isRetryableHttpStatus) {
                                 logger.debug("Eligible for retry: Retryable HTTP status code detected",
                                         StructuredArguments.kv("endpoint", endpoint),
@@ -85,7 +91,8 @@ public class RetryPolicy {
                         apiRequestRetryCounter.increment();
                     })
                     .onRetryExhaustedThrow((retrySpec, retrySignal) -> {
-                        String message = String.format("Retry attempts exhausted for API request to %s %s. Final failure: %s",
+                        String message = String.format(
+                                "Retry attempts exhausted for API request to %s %s. Final failure: %s",
                                 method.name(), endpoint, retrySignal.failure().getMessage());
                         logger.error(message,
                                 StructuredArguments.kv("endpoint", endpoint),

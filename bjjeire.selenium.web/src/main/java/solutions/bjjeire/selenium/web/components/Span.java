@@ -36,4 +36,5 @@ public class Span extends WebComponent implements ComponentText {
     public String getText() {
         return defaultGetText();
     }
+
 }

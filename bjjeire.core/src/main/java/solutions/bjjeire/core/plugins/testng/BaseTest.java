@@ -1,23 +1,21 @@
 package solutions.bjjeire.core.plugins.testng;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.ITestResult;
-import org.testng.annotations.*;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Listeners;
+
+import lombok.extern.slf4j.Slf4j;
 import solutions.bjjeire.core.plugins.PluginExecutionEngine;
 import solutions.bjjeire.core.plugins.TestResult;
 import solutions.bjjeire.core.plugins.TimeRecord;
 
-/**
- * A generic, Spring-enabled base class for TestNG tests.
- * It integrates with the PluginExecutionEngine to provide lifecycle hooks.
- */
+@Slf4j
 @Listeners(TestResultListener.class)
 public abstract class BaseTest extends AbstractTestNGSpringContextTests {
-
-    private static final Logger log = LoggerFactory.getLogger(BaseTest.class);
 
     static final ThreadLocal<TestResult> CURRENT_TEST_RESULT = new ThreadLocal<>();
     static final ThreadLocal<TimeRecord> CURRENT_TEST_TIME_RECORD = ThreadLocal.withInitial(TimeRecord::new);
@@ -36,7 +34,8 @@ public abstract class BaseTest extends AbstractTestNGSpringContextTests {
             // postBeforeClass was removed from the engine's public API for simplification.
         } catch (Exception e) {
             log.error("An error occurred during the @BeforeClass execution phase.", e);
-            // beforeClassFailed was removed from the engine. Handle critical failures here if needed.
+            // beforeClassFailed was removed from the engine. Handle critical failures here
+            // if needed.
         }
     }
 
@@ -59,11 +58,14 @@ public abstract class BaseTest extends AbstractTestNGSpringContextTests {
             var testClass = this.getClass();
             var methodInfo = testClass.getMethod(result.getMethod().getMethodName());
             afterEach();
-            // preAfterTest was removed. All "after" logic is consolidated into postAfterTest.
-            PluginExecutionEngine.postAfterTest(CURRENT_TEST_RESULT.get(), CURRENT_TEST_TIME_RECORD.get(), methodInfo, result.getThrowable());
+            // preAfterTest was removed. All "after" logic is consolidated into
+            // postAfterTest.
+            PluginExecutionEngine.postAfterTest(CURRENT_TEST_RESULT.get(), CURRENT_TEST_TIME_RECORD.get(), methodInfo,
+                    result.getThrowable());
         } catch (Exception e) {
             log.error("An error occurred during the @AfterMethod execution phase for test: {}", result.getName(), e);
-            // afterTestFailed was removed. The exception is now passed directly to postAfterTest.
+            // afterTestFailed was removed. The exception is now passed directly to
+            // postAfterTest.
         }
     }
 
@@ -80,9 +82,18 @@ public abstract class BaseTest extends AbstractTestNGSpringContextTests {
     }
 
     // Hook methods for subclasses to override
-    protected void configure() {}
-    protected void beforeAll() throws Exception {}
-    protected void afterAll() throws Exception {}
-    protected void beforeEach() throws Exception {}
-    protected void afterEach() {}
+    protected void configure() {
+    }
+
+    protected void beforeAll() throws Exception {
+    }
+
+    protected void afterAll() throws Exception {
+    }
+
+    protected void beforeEach() throws Exception {
+    }
+
+    protected void afterEach() {
+    }
 }

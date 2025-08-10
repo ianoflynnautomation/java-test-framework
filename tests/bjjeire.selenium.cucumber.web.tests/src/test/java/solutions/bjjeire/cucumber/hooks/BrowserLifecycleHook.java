@@ -10,50 +10,82 @@ import lombok.extern.slf4j.Slf4j;
 import solutions.bjjeire.core.plugins.Browser;
 import solutions.bjjeire.core.plugins.BrowserConfiguration;
 import solutions.bjjeire.core.plugins.Lifecycle;
+import solutions.bjjeire.core.plugins.PluginExecutionEngine;
+import solutions.bjjeire.core.plugins.TestResult;
+import solutions.bjjeire.core.plugins.UsesPlugins;
 import solutions.bjjeire.cucumber.context.ScenarioContext;
 import solutions.bjjeire.selenium.web.configuration.WebSettings;
+import solutions.bjjeire.selenium.web.plugins.BrowserLifecyclePlugin;
 import solutions.bjjeire.selenium.web.services.BrowserService;
 import solutions.bjjeire.selenium.web.services.CookiesService;
 import solutions.bjjeire.selenium.web.services.DriverService;
 
 @Slf4j
 @RequiredArgsConstructor
-public class BrowserLifecycleHook {
+public class BrowserLifecycleHook extends UsesPlugins {
 
     private final DriverService driverService;
-    private final ScenarioContext scenarioContext;
     private final WebSettings webSettings;
     private final CookiesService cookiesService;
     private final BrowserService browserService;
+    private final ScenarioContext scenarioContext;
+    private final ThreadLocal<solutions.bjjeire.core.plugins.ScenarioContext> pluginEngineContext = new ThreadLocal<>();
+    private static final ThreadLocal<Boolean> IS_CUCUMBER_CONFIGURED = ThreadLocal.withInitial(() -> false);
 
-    private static final ThreadLocal<BrowserConfiguration> SCENARIO_BROWSER_CONFIG = new ThreadLocal<>();
+    private void configureCucumberPlugins() {
+        if (!IS_CUCUMBER_CONFIGURED.get()) {
+            log.info("Configuring plugins for Cucumber execution...");
+            addPlugin(BrowserLifecyclePlugin.class);
+            IS_CUCUMBER_CONFIGURED.set(true);
+        }
+    }
 
     @Before(order = 100)
     public void beforeScenario(Scenario scenario) {
+        configureCucumberPlugins();
+        log.info("Preparing browser for scenario: '{}'", scenario.getName());
+
         BrowserConfiguration config = parseBrowserConfigurationFromTags(scenario);
-        SCENARIO_BROWSER_CONFIG.set(config);
 
-        driverService.start(config);
+        solutions.bjjeire.core.plugins.ScenarioContext coreContext = new solutions.bjjeire.core.plugins.ScenarioContext(
+                scenario.getName(), null, config);
+        this.pluginEngineContext.set(coreContext);
 
+        PluginExecutionEngine.preBeforeScenario(coreContext);
         scenarioContext.setDriver(driverService.getWrappedDriver());
-        log.info("Browser prepared for scenario '{}' with config: {}", scenario.getName(), config);
+
+        log.info("Browser prepared with config: {}", config);
     }
 
     @After(order = 999)
     public void afterScenario(Scenario scenario) {
-        try {
-            log.debug("Clearing browser state (cookies, local storage, session storage).");
-            cookiesService.deleteAllCookies();
-            browserService.clearLocalStorage();
-            browserService.clearSessionStorage();
+        solutions.bjjeire.core.plugins.ScenarioContext initialCoreContext = this.pluginEngineContext.get();
+        if (initialCoreContext == null) {
+            log.warn("Plugin Engine Context was not initialized for scenario: {}. Skipping post-scenario hooks.",
+                    scenario.getName());
+            return;
+        }
 
-            // Delegate browser stopping logic to the DriverService
-            //driverService.(SCENARIO_BROWSER_CONFIG.get());
+        try {
+
+            TestResult result = scenario.isFailed() ? TestResult.FAILURE : TestResult.SUCCESS;
+            solutions.bjjeire.core.plugins.ScenarioContext finalCoreContext = new solutions.bjjeire.core.plugins.ScenarioContext(
+                    initialCoreContext.getScenarioName(), result, initialCoreContext.getBrowserConfiguration());
+
+            if (driverService.getWrappedDriver() != null) {
+                log.debug("Clearing browser state (cookies, local storage, session storage).");
+                cookiesService.deleteAllCookies();
+                browserService.clearLocalStorage();
+                browserService.clearSessionStorage();
+            }
+
+            PluginExecutionEngine.postAfterScenario(finalCoreContext);
+            log.info("Browser teardown complete for scenario: '{}'", scenario.getName());
 
         } catch (Exception e) {
             log.error("Error during browser cleanup for scenario: {}", scenario.getName(), e);
         } finally {
-            SCENARIO_BROWSER_CONFIG.remove();
+            this.pluginEngineContext.remove();
             scenarioContext.setDriver(null);
         }
     }
@@ -65,6 +97,7 @@ public class BrowserLifecycleHook {
         Lifecycle lifecycle = Lifecycle.fromText(webSettings.getDefaultLifeCycle());
         int width = webSettings.getDefaultBrowserWidth();
         int height = webSettings.getDefaultBrowserHeight();
+        String deviceName = null;
 
         for (String tag : tags) {
             if (tag.startsWith("@Browser:")) {
@@ -81,9 +114,18 @@ public class BrowserLifecycleHook {
                         log.warn("Could not parse @BrowserSize tag: '{}'. Using defaults.", tag);
                     }
                 }
+            } else if (tag.startsWith("@DeviceName:")) {
+                deviceName = tag.substring(12).trim();
             }
         }
-        var config = new BrowserConfiguration(browser, lifecycle, width, height);
+
+        BrowserConfiguration config;
+        if (deviceName != null && browser == Browser.CHROME_MOBILE) {
+            config = new BrowserConfiguration(Browser.CHROME_MOBILE, lifecycle, deviceName);
+        } else {
+            config = new BrowserConfiguration(browser, lifecycle, width, height);
+        }
+
         config.setTestName(scenario.getName());
         return config;
     }

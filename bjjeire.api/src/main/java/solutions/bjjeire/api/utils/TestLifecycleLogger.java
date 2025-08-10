@@ -29,7 +29,7 @@ public class TestLifecycleLogger implements BeforeEachCallback, AfterEachCallbac
             "bjjeire", "observability");
 
     public static class SpringContext {
-         private static ApplicationContext applicationContext;
+        private static ApplicationContext applicationContext;
 
         public static void setApplicationContext(ApplicationContext context) {
             applicationContext = context;
@@ -76,7 +76,7 @@ public class TestLifecycleLogger implements BeforeEachCallback, AfterEachCallbac
                 .put("test.suite", testSuite)
                 .put("test.type", testType)
                 .build()
-                .storeInContext(io.opentelemetry.context.Context.current()); 
+                .storeInContext(io.opentelemetry.context.Context.current());
 
         Span span = tracer.spanBuilder("test." + testName)
                 .setAttribute("test.id", testId)
@@ -171,7 +171,7 @@ public class TestLifecycleLogger implements BeforeEachCallback, AfterEachCallbac
     public void testAborted(ExtensionContext context, Throwable cause) {
         MetricsCollector metricsCollector = SpringContext.getBean(MetricsCollector.class);
         ApiSettings apiSettings = SpringContext.getBean(ApiSettings.class);
-   
+
         String testName = context.getStore(NAMESPACE).get("testName", String.class);
         String testSuite = context.getStore(NAMESPACE).get("testSuite", String.class);
         String testType = context.getStore(NAMESPACE).get("testType", String.class);
@@ -196,7 +196,7 @@ public class TestLifecycleLogger implements BeforeEachCallback, AfterEachCallbac
                 span.recordException(cause);
             }
             span.setStatus(StatusCode.UNSET, "Test aborted");
-            span.end(); 
+            span.end();
         }
         logger.warn("--- JUnit Test ABORTED: '{}' ---", testName, cause);
     }
@@ -205,7 +205,7 @@ public class TestLifecycleLogger implements BeforeEachCallback, AfterEachCallbac
     public void testSkipped(ExtensionContext context) {
         MetricsCollector metricsCollector = SpringContext.getBean(MetricsCollector.class);
         ApiSettings apiSettings = SpringContext.getBean(ApiSettings.class);
-   
+
         String testName = context.getStore(NAMESPACE).get("testName", String.class);
         String testSuite = context.getStore(NAMESPACE).get("testSuite", String.class);
         String testType = apiSettings.getTestType();

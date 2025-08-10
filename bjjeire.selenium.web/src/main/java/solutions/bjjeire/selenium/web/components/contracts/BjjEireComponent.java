@@ -1,7 +1,7 @@
 package solutions.bjjeire.selenium.web.components.contracts;
 
 import org.openqa.selenium.WebElement;
-import solutions.bjjeire.selenium.web.findstrategies.FindStrategy;
+
 import solutions.bjjeire.selenium.web.services.ComponentValidationService;
 
 public interface BjjEireComponent {
@@ -9,7 +9,7 @@ public interface BjjEireComponent {
 
     WebElement getWrappedElement();
 
-    FindStrategy getFindStrategy();
+    //FindStrategy getFindStrategy();
 
     String getAttribute(String attributeName);
 

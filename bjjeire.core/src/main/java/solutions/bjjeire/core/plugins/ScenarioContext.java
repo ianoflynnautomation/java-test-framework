@@ -1,8 +1,6 @@
 package solutions.bjjeire.core.plugins;
 
-/**
- * A context object that holds information about the currently executing Cucumber Scenario.
- */
+
 public class ScenarioContext {
     private final String scenarioName;
     private final TestResult testResult;

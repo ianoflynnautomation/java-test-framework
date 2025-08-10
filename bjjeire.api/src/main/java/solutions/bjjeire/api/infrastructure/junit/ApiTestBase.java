@@ -1,25 +1,23 @@
 package solutions.bjjeire.api.infrastructure.junit;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
+
 import solutions.bjjeire.api.configuration.TestConfiguration;
 import solutions.bjjeire.api.utils.TestLifecycleLogger;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 @SpringBootTest(classes = TestConfiguration.class)
 @ExtendWith(TestLifecycleLogger.class)
 public abstract class ApiTestBase {
-
-    @Autowired
-    private ApplicationContext applicationContext;
 
     @BeforeAll
     static void setup(@Autowired ApplicationContext applicationContext) {

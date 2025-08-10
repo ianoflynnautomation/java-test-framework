@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.apache.commons.text.StringEscapeUtils.unescapeHtml4;
-
-import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.ElementNotInteractableException;
 import org.openqa.selenium.NotFoundException;
 import org.openqa.selenium.SearchContext;
@@ -21,8 +19,6 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.FluentWait;
 import org.openqa.selenium.support.ui.Select;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -31,7 +27,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
-import net.logstash.logback.argument.StructuredArguments; // Add this import
+import lombok.extern.slf4j.Slf4j;
+import net.logstash.logback.argument.StructuredArguments;
 import solutions.bjjeire.selenium.web.components.contracts.BjjEireComponent;
 import solutions.bjjeire.selenium.web.components.enums.AriaRole;
 import solutions.bjjeire.selenium.web.components.enums.ScrollPosition;
@@ -101,6 +98,7 @@ public abstract class WebComponent implements BjjEireComponent {
         this.waitStrategies = new ArrayList<>();
     }
 
+    @Override
     public ComponentValidationService validator() {
         ComponentValidationService validator = applicationContext.getBean(ComponentValidationService.class);
         validator.setComponent(this);
@@ -128,6 +126,7 @@ public abstract class WebComponent implements BjjEireComponent {
         return component;
     }
 
+    @Override
     public WebElement getWrappedElement() {
         try {
             if (wrappedElement != null) {
@@ -273,6 +272,7 @@ public abstract class WebComponent implements BjjEireComponent {
         return String.format("%s (%s)", getComponentClass().getSimpleName(), findStrategy.toString());
     }
 
+    @Override
     public Class<?> getComponentClass() {
         return getClass();
     }
@@ -289,6 +289,7 @@ public abstract class WebComponent implements BjjEireComponent {
         scrollToVisible(getWrappedElement(), false, ScrollPosition.CENTER);
     }
 
+    @Override
     public String getAttribute(String name) {
         String value = getWrappedElement().getAttribute(name);
         log.debug("Getting attribute for element",

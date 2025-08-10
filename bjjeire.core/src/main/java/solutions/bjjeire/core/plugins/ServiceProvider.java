@@ -13,13 +13,6 @@ public class ServiceProvider implements ApplicationContextAware {
         applicationContext = context;
     }
 
-    /**
-     * Retrieves a Spring-managed bean of the specified type.
-     *
-     * @param classToGet The class of the bean to retrieve.
-     * @param <T> The type of the bean.
-     * @return The singleton instance of the bean from the Spring context.
-     */
     public static <T> T getService(Class<T> classToGet) {
         return applicationContext.getBean(classToGet);
     }

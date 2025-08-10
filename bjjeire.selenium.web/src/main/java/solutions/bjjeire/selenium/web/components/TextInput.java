@@ -54,4 +54,5 @@ public class TextInput extends WebComponent implements ComponentDisabled, Compon
     public boolean isDisabled() {
         return defaultGetDisabledAttribute();
     }
+
 }
