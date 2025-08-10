@@ -19,7 +19,9 @@ import solutions.bjjeire.selenium.web.pages.gyms.data.GymCardDetails;
 import solutions.bjjeire.selenium.web.services.ComponentCreateService;
 import solutions.bjjeire.selenium.web.services.NavigationService;
 import static solutions.bjjeire.selenium.web.utils.CommonDataTestIds.SELECT_FILTER;
-import static solutions.bjjeire.selenium.web.utils.GymsPageDataTestIds.*;
+import static solutions.bjjeire.selenium.web.utils.GymsPageDataTestIds.GYMS_LIST_ITEM;
+import static solutions.bjjeire.selenium.web.utils.GymsPageDataTestIds.GYMS_PAGE_HEADER_TITLE;
+import static solutions.bjjeire.selenium.web.utils.GymsPageDataTestIds.GYMS_PAGE_HEADER_TOTAL;
 
 @Component
 @Scope("prototype")

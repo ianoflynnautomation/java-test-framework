@@ -11,6 +11,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import solutions.bjjeire.core.data.common.County;
+import solutions.bjjeire.core.data.events.BjjEvent;
 import solutions.bjjeire.core.data.events.BjjEventFactory;
 import solutions.bjjeire.core.data.events.BjjEventType;
 import solutions.bjjeire.core.plugins.Browser;
@@ -48,7 +49,7 @@ public class EventTests extends JunitWebTest {
 
         @Override
         protected void afterEach() {
-                testDataManager.teardownEvents(this.createdEventIds, this.authToken);
+                testDataManager.teardown(BjjEvent.class, this.createdEventIds, this.authToken);
 
                 browserService.clearLocalStorage();
                 browserService.clearSessionStorage();
@@ -60,7 +61,8 @@ public class EventTests extends JunitWebTest {
         @ValueSource(strings = { "Cork", "Kildare" })
         public void filterByCounty_shouldShowOnlyEventsForSelectedCounty(String countyStr) {
                 County county = County.valueOf(countyStr);
-                createdEventIds.addAll(testDataManager.seedEvents(List.of(
+
+                createdEventIds.addAll(testDataManager.seed(List.of(
                                 BjjEventFactory.createBjjEvent(b -> b.county(county).name(county + " Seminar 1")),
                                 BjjEventFactory.createBjjEvent(b -> b.county(county).name(county + " Seminar 2")),
                                 BjjEventFactory.createBjjEvent(b -> b.county(County.Dublin).name("Dublin Open Mat"))),
@@ -76,7 +78,8 @@ public class EventTests extends JunitWebTest {
         @Test
         public void filterByEventType_shouldShowOnlyEventsOfSelectedType() {
                 BjjEventType eventTypeToFilter = BjjEventType.SEMINAR;
-                createdEventIds.addAll(testDataManager.seedEvents(List.of(
+
+                createdEventIds.addAll(testDataManager.seed(List.of(
                                 BjjEventFactory.createBjjEvent(
                                                 b -> b.type(BjjEventType.SEMINAR).name("Cork Seminar 1")),
                                 BjjEventFactory.createBjjEvent(
@@ -101,7 +104,8 @@ public class EventTests extends JunitWebTest {
                 // Arrange
                 County county = County.valueOf(countyStr);
                 BjjEventType eventType = BjjEventType.fromString(eventTypeStr);
-                createdEventIds.addAll(testDataManager.seedEvents(List.of(
+
+                createdEventIds.addAll(testDataManager.seed(List.of(
                                 BjjEventFactory.createBjjEvent(b -> b.county(county).type(BjjEventType.SEMINAR)
                                                 .name("Cork Seminar")),
                                 BjjEventFactory.createBjjEvent(b -> b.county(county).type(BjjEventType.TOURNAMENT)
@@ -121,7 +125,8 @@ public class EventTests extends JunitWebTest {
         @Test
         @DisplayName("Should show empty list when filtering for a county with no matching events")
         public void filterForCountyWithNoMatchingEvents_shouldShowEmptyList() {
-                createdEventIds.addAll(testDataManager.seedEvents(List.of(
+
+                createdEventIds.addAll(testDataManager.seed(List.of(
                                 BjjEventFactory.createBjjEvent(b -> b.county(County.Dublin))), authToken));
 
                 eventsPage.open();
@@ -136,5 +141,4 @@ public class EventTests extends JunitWebTest {
                 eventsPage.selectCounty("Wexford")
                                 .assertNoDataInList();
         }
-
 }

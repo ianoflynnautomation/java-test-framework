@@ -1,8 +1,8 @@
 package solutions.bjjeire.cucumber.steps.common;
 
+import io.cucumber.java.en.Given;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import io.cucumber.java.en.Given;
 import solutions.bjjeire.cucumber.context.ScenarioContext;
 import solutions.bjjeire.selenium.web.data.TestDataManager;
 
@@ -15,9 +15,9 @@ public class AuthenticationSteps {
 
     @Given("I am a user of the BJJ app")
     public void i_am_an_authenticated_user() {
-        log.info("Authenticating user and storing token in scenario context...");
+        log.debug("Authenticating user and storing token in scenario context...");
         String authToken = testDataManager.authenticate();
         scenarioContext.setAuthToken(authToken);
-        log.info("Authentication successful. Token stored in context.");
+        log.debug("Authentication successful. Token stored in context.");
     }
 }

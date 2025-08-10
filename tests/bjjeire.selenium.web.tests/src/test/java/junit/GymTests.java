@@ -10,6 +10,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import solutions.bjjeire.core.data.common.County;
+import solutions.bjjeire.core.data.gyms.Gym;
 import solutions.bjjeire.core.data.gyms.GymFactory;
 import solutions.bjjeire.core.plugins.Browser;
 import solutions.bjjeire.core.plugins.Lifecycle;
@@ -44,9 +45,12 @@ public class GymTests extends JunitWebTest {
         this.createdGymIds.clear();
     }
 
+    // @AfterEach
     @Override
     protected void afterEach() {
-        testDataManager.teardownGyms(this.createdGymIds, this.authToken);
+
+        testDataManager.teardown(Gym.class, this.createdGymIds, this.authToken);
+
         browserService.clearLocalStorage();
         browserService.clearSessionStorage();
         cookiesService.deleteAllCookies();
@@ -58,7 +62,8 @@ public class GymTests extends JunitWebTest {
     public void filterByCounty_shouldShowOnlyGymsForSelectedCounty(String countyStr) {
         // Arrange
         County county = County.valueOf(countyStr);
-        createdGymIds.addAll(testDataManager.seedGyms(List.of(
+
+        createdGymIds.addAll(testDataManager.seed(List.of(
                 GymFactory.createGym(b -> b.county(county).name(countyStr + " Gym 1")),
                 GymFactory.createGym(b -> b.county(county).name(countyStr + " Gym 2")),
                 GymFactory.createGym(b -> b.county(County.Kildare).name("Kildare Gym"))), authToken));
@@ -74,7 +79,7 @@ public class GymTests extends JunitWebTest {
     @ValueSource(strings = { "Clare", "Wexford" })
     public void filterByCountyWithNoGyms_shouldShowNoGymsMessage(String countyWithNoGyms) {
         // Arrange
-        createdGymIds.addAll(testDataManager.seedGyms(List.of(
+        createdGymIds.addAll(testDataManager.seed(List.of(
                 GymFactory.createGym(b -> b.county(County.Dublin).name("Dublin Gym"))), authToken));
 
         // Act & Assert
@@ -86,7 +91,6 @@ public class GymTests extends JunitWebTest {
     @Test
     @DisplayName("Should show empty list when no gyms exist in the system")
     public void filterWhenNoGymsExist_shouldShowEmptyList() {
-
         // Act & Assert
         gymsPage.open();
         gymsPage.selectCounty("Wexford")

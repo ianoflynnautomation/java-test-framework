@@ -1,5 +1,7 @@
 package solutions.bjjeire.cucumber.hooks;
 
+import java.util.Collection;
+
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
 import io.cucumber.java.Scenario;
@@ -13,8 +15,6 @@ import solutions.bjjeire.selenium.web.configuration.WebSettings;
 import solutions.bjjeire.selenium.web.services.BrowserService;
 import solutions.bjjeire.selenium.web.services.CookiesService;
 import solutions.bjjeire.selenium.web.services.DriverService;
-
-import java.util.Collection;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -38,7 +38,6 @@ public class BrowserLifecycleHook {
         scenarioContext.setDriver(driverService.getWrappedDriver());
         log.info("Browser prepared for scenario '{}' with config: {}", scenario.getName(), config);
     }
-
 
     @After(order = 999)
     public void afterScenario(Scenario scenario) {

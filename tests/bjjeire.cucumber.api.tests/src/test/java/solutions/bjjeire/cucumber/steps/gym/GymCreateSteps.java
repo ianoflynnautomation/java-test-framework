@@ -1,9 +1,10 @@
 package solutions.bjjeire.cucumber.steps.gym;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import org.springframework.beans.factory.annotation.Autowired;
 import solutions.bjjeire.api.services.GymService;
 import solutions.bjjeire.api.validation.ApiResponse;
 import solutions.bjjeire.api.validation.ResponseValidatorFactory;
@@ -19,7 +20,7 @@ public class GymCreateSteps {
     private TestContext testContext;
     @Autowired
     private GymService gymService;
-    @Autowired // Inject the ResponseValidatorFactory
+    @Autowired
     private ResponseValidatorFactory responseValidator;
 
     @Given("a new BJJ gym has been prepared")
@@ -41,7 +42,6 @@ public class GymCreateSteps {
 
     @Then("the gym should be successfully added")
     public void theGymShouldBeSuccessfullyAdded() {
-        // Corrected: Use the factory to create a ResponseValidator instance
         responseValidator.validate(testContext.getLastResponse()).statusCode(201);
     }
 

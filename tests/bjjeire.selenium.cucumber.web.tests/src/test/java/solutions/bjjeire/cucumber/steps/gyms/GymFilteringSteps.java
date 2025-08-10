@@ -1,26 +1,20 @@
 package solutions.bjjeire.cucumber.steps.gyms;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
-
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import solutions.bjjeire.core.data.common.County;
 import solutions.bjjeire.core.data.gyms.Gym;
 import solutions.bjjeire.core.data.gyms.GymFactory;
 import solutions.bjjeire.cucumber.context.ScenarioContext;
 import solutions.bjjeire.cucumber.context.TestDataContext;
-import solutions.bjjeire.cucumber.hooks.TestDataLifecycleHook;
 import solutions.bjjeire.selenium.web.data.TestDataManager;
 import solutions.bjjeire.selenium.web.pages.gyms.GymsPage;
 

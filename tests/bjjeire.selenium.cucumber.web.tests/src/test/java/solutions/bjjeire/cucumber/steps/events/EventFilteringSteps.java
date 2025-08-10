@@ -3,21 +3,19 @@ package solutions.bjjeire.cucumber.steps.events;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import solutions.bjjeire.core.data.common.County;
 import solutions.bjjeire.core.data.events.BjjEvent;
 import solutions.bjjeire.core.data.events.BjjEventFactory;
 import solutions.bjjeire.core.data.events.BjjEventType;
 import solutions.bjjeire.cucumber.context.ScenarioContext;
 import solutions.bjjeire.cucumber.context.TestDataContext;
-import solutions.bjjeire.cucumber.hooks.TestDataLifecycleHook;
 import solutions.bjjeire.selenium.web.data.TestDataManager;
 import solutions.bjjeire.selenium.web.pages.events.EventsPage;
 
@@ -29,7 +27,6 @@ public class EventFilteringSteps {
     private final TestDataManager testDataManager;
     private final ScenarioContext scenarioContext;
     private final TestDataContext testDataContext;
-
 
     @Data
     public static class EventDataRow {
@@ -81,7 +78,8 @@ public class EventFilteringSteps {
     @Then("I should see exactly {int} events for {string}")
     public void iShouldSeeExactlyExpectedCountEventsFor(int expectedCount, String county) {
         eventsPage.assertAllEventsMatchCountyFilter(county + " County");
-        eventsPage.assertEventCountInListIs(expectedCount);;
+        eventsPage.assertEventCountInListIs(expectedCount);
+        ;
     }
 
     @Then("I should not see any events")

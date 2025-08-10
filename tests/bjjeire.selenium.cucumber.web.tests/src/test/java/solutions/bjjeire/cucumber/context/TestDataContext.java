@@ -1,12 +1,12 @@
 package solutions.bjjeire.cucumber.context;
 
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import org.springframework.stereotype.Component;
 
 @Component
 public class TestDataContext {
@@ -20,7 +20,6 @@ public class TestDataContext {
     public List<String> getEntityIds(Class<?> entityType) {
         return createdEntityIds.getOrDefault(entityType, Collections.emptyList());
     }
-
 
     public void clearAll() {
         createdEntityIds.clear();
