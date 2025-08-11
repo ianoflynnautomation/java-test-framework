@@ -1,17 +1,15 @@
 package solutions.bjjeire.selenium.web.services;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.WebDriver;
 import net.logstash.logback.argument.StructuredArguments;
 
 @Slf4j
+@RequiredArgsConstructor
 public abstract class WebService {
 
     protected final DriverService driverService;
-
-    public WebService(DriverService driverService) {
-        this.driverService = driverService;
-    }
 
     public WebDriver getWrappedDriver() {
         WebDriver driver = driverService.getWrappedDriver();

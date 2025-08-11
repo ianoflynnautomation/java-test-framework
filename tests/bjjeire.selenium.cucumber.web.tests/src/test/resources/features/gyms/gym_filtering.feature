@@ -6,6 +6,7 @@ Feature: Gym Filtering
 
   Background:
     Given I am a user of the BJJ app
+    And I can access gyms
 
   Rule: Users can search gyms by county
 

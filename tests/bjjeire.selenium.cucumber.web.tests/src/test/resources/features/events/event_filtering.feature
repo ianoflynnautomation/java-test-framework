@@ -6,6 +6,7 @@ Feature: Event Filtering
 
   Background:
     Given I am a user of the BJJ app
+    And I can access events
 
   Rule: Users can search events by county
 
@@ -16,7 +17,7 @@ Feature: Event Filtering
         | <County> Seminar 1 | <County> | Seminar    |
         | <County> Seminar 2 | <County> | Seminar    |
         | Dublin IBJJF       | Dublin   | Tournament |
-      When I search for events in the county "<County>"
+      When I search events by county "<County>"
       Then I should see exactly <ExpectedCount> events for "<County>"
 
       Examples:

@@ -1,24 +1,22 @@
 package solutions.bjjeire.cucumber.hooks;
 
+import java.util.UUID;
+
+import org.slf4j.MDC;
+
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
 import io.cucumber.java.Scenario;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.logstash.logback.argument.StructuredArguments;
-import org.openqa.selenium.OutputType;
-import org.openqa.selenium.TakesScreenshot;
-import org.openqa.selenium.WebDriver;
-import org.slf4j.MDC;
-import solutions.bjjeire.cucumber.context.ScenarioContext;
-
-import java.util.UUID;
+import solutions.bjjeire.selenium.web.services.ScreenshotService;
 
 @Slf4j
 @RequiredArgsConstructor
 public class ReportingHook {
 
-    private final ScenarioContext scenarioContext;
+    private final ScreenshotService screenshotService;
 
     private static final String SCENARIO_ID_KEY = "scenarioId";
     private static final String SCENARIO_NAME_KEY = "scenarioName";
@@ -35,11 +33,13 @@ public class ReportingHook {
 
     @After(order = 10000)
     public void afterScenario(Scenario scenario) {
+
         try {
             if (scenario.isFailed()) {
                 log.error("Scenario failed",
                         StructuredArguments.keyValue("status", scenario.getStatus()));
-                captureScreenshot(scenario);
+
+                screenshotService.takeScreenshotOnFailure(scenario);
             } else {
                 log.info("Scenario finished successfully",
                         StructuredArguments.keyValue("status", scenario.getStatus()));
@@ -47,21 +47,6 @@ public class ReportingHook {
         } finally {
             log.info("--- SCENARIO END ---");
             MDC.clear();
-        }
-    }
-
-    private void captureScreenshot(Scenario scenario) {
-        WebDriver driver = scenarioContext.getDriver();
-        if (driver == null) {
-            log.warn("Driver was null, cannot take screenshot for scenario: {}", scenario.getName());
-            return;
-        }
-        try {
-            final byte[] screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.BYTES);
-            scenario.attach(screenshot, "image/png", "failure-screenshot");
-            log.info("Screenshot attached to report for failed scenario.");
-        } catch (Exception e) {
-            log.error("Failed to capture or attach screenshot.", e);
         }
     }
 }

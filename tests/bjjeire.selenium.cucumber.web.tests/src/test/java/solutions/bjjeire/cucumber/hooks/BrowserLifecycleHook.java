@@ -35,6 +35,7 @@ public class BrowserLifecycleHook extends UsesPlugins {
     private void configureCucumberPlugins() {
         if (!IS_CUCUMBER_CONFIGURED.get()) {
             log.info("Configuring plugins for Cucumber execution...");
+            // Add Plugins here
             addPlugin(BrowserLifecyclePlugin.class);
             IS_CUCUMBER_CONFIGURED.set(true);
         }
@@ -67,7 +68,6 @@ public class BrowserLifecycleHook extends UsesPlugins {
         }
 
         try {
-
             TestResult result = scenario.isFailed() ? TestResult.FAILURE : TestResult.SUCCESS;
             solutions.bjjeire.core.plugins.ScenarioContext finalCoreContext = new solutions.bjjeire.core.plugins.ScenarioContext(
                     initialCoreContext.getScenarioName(), result, initialCoreContext.getBrowserConfiguration());
