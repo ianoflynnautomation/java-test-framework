@@ -1,19 +1,20 @@
 package solutions.bjjeire.cucumber.actions;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+
 import io.cucumber.datatable.DataTable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 import solutions.bjjeire.core.data.gyms.Gym;
 import solutions.bjjeire.core.data.gyms.GymFactory;
 import solutions.bjjeire.cucumber.context.ScenarioContext;
 import solutions.bjjeire.cucumber.context.TestDataContext;
 import solutions.bjjeire.cucumber.data.GymDataRow;
 import solutions.bjjeire.selenium.web.data.TestDataManager;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -42,4 +43,3 @@ public class GymActions {
         log.info("Seeded {} BJJ gym(s) for the test.", createdIds.size());
     }
 }
-

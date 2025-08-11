@@ -1,19 +1,20 @@
 package solutions.bjjeire.cucumber.actions;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+
 import io.cucumber.datatable.DataTable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 import solutions.bjjeire.core.data.events.BjjEvent;
 import solutions.bjjeire.core.data.events.BjjEventFactory;
 import solutions.bjjeire.cucumber.context.ScenarioContext;
 import solutions.bjjeire.cucumber.context.TestDataContext;
 import solutions.bjjeire.cucumber.data.EventDataRow;
 import solutions.bjjeire.selenium.web.data.TestDataManager;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -43,4 +44,3 @@ public class EventActions {
         log.info("Seeded {} BJJ event(s) via API.", createdIds.size());
     }
 }
-
