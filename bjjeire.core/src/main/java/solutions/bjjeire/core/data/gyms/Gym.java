@@ -1,11 +1,11 @@
 package solutions.bjjeire.core.data.gyms;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 import solutions.bjjeire.core.data.common.County;
 import solutions.bjjeire.core.data.common.Location;
 import solutions.bjjeire.core.data.common.SocialMedia;
-
-import java.time.LocalDateTime;
-import java.util.List;
 
 public record Gym(
         String id,
@@ -24,10 +24,6 @@ public record Gym(
         String timetableUrl,
         String imageUrl) {
 
-    /**
-     * A manual toBuilder() method to create a mutable Builder from an immutable record instance.
-     * This is essential for creating variations of an object for testing.
-     */
     public Builder toBuilder() {
         return new Builder()
                 .id(this.id)

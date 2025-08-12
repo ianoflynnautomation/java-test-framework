@@ -1,5 +1,6 @@
 package solutions.bjjeire.core.plugins.testng;
 
+import net.logstash.logback.argument.StructuredArguments;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.ITestResult;
 import org.testng.annotations.AfterClass;
@@ -23,65 +24,66 @@ public abstract class BaseTest extends AbstractTestNGSpringContextTests {
 
     @BeforeClass(alwaysRun = true)
     public void beforeClass() {
+        var testClassName = this.getClass().getSimpleName();
+        log.info("Executing @BeforeClass phase", StructuredArguments.keyValue("testClass", testClassName));
         try {
             if (!CONFIGURATION_EXECUTED.get()) {
                 configure();
                 CONFIGURATION_EXECUTED.set(true);
             }
-            var testClass = this.getClass();
-            PluginExecutionEngine.preBeforeClass(testClass);
+            PluginExecutionEngine.preBeforeClass(this.getClass());
             beforeAll();
-            // postBeforeClass was removed from the engine's public API for simplification.
         } catch (Exception e) {
-            log.error("An error occurred during the @BeforeClass execution phase.", e);
-            // beforeClassFailed was removed from the engine. Handle critical failures here
-            // if needed.
+            log.error("Error during @BeforeClass phase",
+                    StructuredArguments.keyValue("testClass", testClassName),
+                    e);
         }
     }
 
     @BeforeMethod(alwaysRun = true)
     public void beforeMethodCore(ITestResult result) {
+        log.info("Executing @BeforeMethod phase", StructuredArguments.keyValue("testName", result.getName()));
         try {
             var methodInfo = this.getClass().getMethod(result.getMethod().getMethodName());
             PluginExecutionEngine.preBeforeTest(CURRENT_TEST_RESULT.get(), methodInfo);
             beforeEach();
-            // postBeforeTest was removed from the engine's public API for simplification.
         } catch (Exception e) {
-            log.error("An error occurred during the @BeforeMethod execution phase for test: {}", result.getName(), e);
+            log.error("Error during @BeforeMethod phase",
+                    StructuredArguments.keyValue("testName", result.getName()),
+                    e);
             PluginExecutionEngine.beforeTestFailed(e);
         }
     }
 
     @AfterMethod(alwaysRun = true)
     public void afterMethodCore(ITestResult result) {
+        log.info("Executing @AfterMethod phase", StructuredArguments.keyValue("testName", result.getName()));
         try {
-            var testClass = this.getClass();
-            var methodInfo = testClass.getMethod(result.getMethod().getMethodName());
+            var methodInfo = this.getClass().getMethod(result.getMethod().getMethodName());
             afterEach();
-            // preAfterTest was removed. All "after" logic is consolidated into
-            // postAfterTest.
             PluginExecutionEngine.postAfterTest(CURRENT_TEST_RESULT.get(), CURRENT_TEST_TIME_RECORD.get(), methodInfo,
                     result.getThrowable());
         } catch (Exception e) {
-            log.error("An error occurred during the @AfterMethod execution phase for test: {}", result.getName(), e);
-            // afterTestFailed was removed. The exception is now passed directly to
-            // postAfterTest.
+            log.error("Error during @AfterMethod phase",
+                    StructuredArguments.keyValue("testName", result.getName()),
+                    e);
         }
     }
 
     @AfterClass(alwaysRun = true)
     public void afterClassCore() {
+        var testClassName = this.getClass().getSimpleName();
+        log.info("Executing @AfterClass phase", StructuredArguments.keyValue("testClass", testClassName));
         try {
-            var testClass = this.getClass();
             afterAll();
-            // preAfterClass was removed. All "after class" logic is in postAfterClass.
-            PluginExecutionEngine.postAfterClass(testClass);
+            PluginExecutionEngine.postAfterClass(this.getClass());
         } catch (Exception e) {
-            log.error("An error occurred during the @AfterClass execution phase.", e);
+            log.error("Error during @AfterClass phase",
+                    StructuredArguments.keyValue("testClass", testClassName),
+                    e);
         }
     }
 
-    // Hook methods for subclasses to override
     protected void configure() {
     }
 

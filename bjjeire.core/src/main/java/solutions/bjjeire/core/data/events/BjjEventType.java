@@ -14,11 +14,9 @@ public enum BjjEventType {
 
     OTHER("Other");
 
-
     private final String eventType;
 
-    BjjEventType(String eventType)
-    {
+    BjjEventType(String eventType) {
         this.eventType = eventType;
     }
 
@@ -31,7 +29,7 @@ public enum BjjEventType {
         return Arrays.stream(values())
                 .filter(type -> type.eventType.equalsIgnoreCase(text))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("No BjjEventType constant with text '" + text + "' found"));
+                .orElseThrow(
+                        () -> new IllegalArgumentException("No BjjEventType constant with text '" + text + "' found"));
     }
 }
-

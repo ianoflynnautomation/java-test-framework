@@ -1,18 +1,24 @@
 package solutions.bjjeire.core.data.events;
 
-import com.github.javafaker.Faker;
-import org.bson.types.ObjectId;
-import solutions.bjjeire.core.data.common.County;
-import solutions.bjjeire.core.data.common.GeoCoordinates;
-import solutions.bjjeire.core.data.common.Location;
-import solutions.bjjeire.core.data.common.SocialMedia;
-
 import java.math.BigDecimal;
-import java.time.*;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
+
+import org.bson.types.ObjectId;
+
+import com.github.javafaker.Faker;
+
+import solutions.bjjeire.core.data.common.County;
+import solutions.bjjeire.core.data.common.GeoCoordinates;
+import solutions.bjjeire.core.data.common.Location;
+import solutions.bjjeire.core.data.common.SocialMedia;
 
 public class BjjEventFactory {
 
@@ -72,65 +78,57 @@ public class BjjEventFactory {
     }
 
     public static CreateBjjEventCommand createPayloadWithInvalidDetails(Map<String, String> invalidDetails) {
-        // Start with a valid builder to make it mutable
+       
         BjjEvent.Builder builder = getValidBjjEvent().toBuilder();
 
-        // Iterate over the map from the DataTable and apply the invalid/custom details
+        
         invalidDetails.forEach((field, value) -> {
             switch (field) {
-                case "Data.Name":
-                    builder.name(value); // Handles empty or null names
-                    break;
-                case "Data.Pricing.Amount":
-                    // Get the existing pricing model to modify just the price
+                case "Data.Name" -> builder.name(value);
+                case "Data.Pricing.Amount" -> {
                     PricingModel existingPricing = builder.build().pricing();
                     PricingModel invalidPricing = new PricingModel(
                             existingPricing.type(),
-                            new BigDecimal(value), // Set the invalid price from the DataTable
+                            new BigDecimal(value), 
                             existingPricing.durationDays(),
                             existingPricing.currency());
                     builder.pricing(invalidPricing);
-                    break;
-                // Add other cases here for different fields you might want to make invalid
-                default:
-                    // It's often better to ignore unknown fields than to fail the test setup.
-                    System.out.println("WARN: Unknown field '" + field + "' in invalid data table. Ignoring.");
+                }
+        
+                default -> System.out.println("WARN: Unknown field '" + field + "' in invalid data table. Ignoring.");
             }
         });
 
-        // Build the invalid event and wrap it in the command object
+
         return new CreateBjjEventCommand(builder.build());
     }
 
     public static CreateBjjEventCommand createInvalidEvent(String invalidReason) {
-        // Start with a builder from a valid event to make it mutable
+
         BjjEvent.Builder builder = getValidBjjEvent().toBuilder();
 
-        // Modify the builder to make the event data invalid
+ 
         switch (invalidReason) {
-            case "missing name":
-                builder.name(""); // Set the name to be empty
-                break;
-            case "negative price":
+            case "missing name" -> builder.name("");
+            case "negative price" -> {
                 BjjEvent tempEventForPrice = builder.build();
                 PricingModel invalidPricing = new PricingModel(
                         tempEventForPrice.pricing().type(),
-                        new BigDecimal("-10.00"), // Set a negative price
+                        new BigDecimal("-10.00"), 
                         tempEventForPrice.pricing().durationDays(),
                         tempEventForPrice.pricing().currency());
                 builder.pricing(invalidPricing);
-                break;
-            case "invalid date":
+            }
+            case "invalid date" -> {
                 BjjEvent tempEventForDate = builder.build();
                 BjjEventSchedule invalidSchedule = new BjjEventSchedule(
                         tempEventForDate.schedule().scheduleType(),
-                        LocalDate.now().minusDays(1), // Set start date to the past
+                        LocalDate.now().minusDays(1), 
                         tempEventForDate.schedule().endDate(),
                         tempEventForDate.schedule().hours());
                 builder.schedule(invalidSchedule);
-                break;
-            default:
-                throw new IllegalArgumentException(
+            }
+            default -> throw new IllegalArgumentException(
                         "Unsupported invalid reason for test data generation: " + invalidReason);
         }
         return new CreateBjjEventCommand(builder.build());

@@ -29,7 +29,6 @@ public class TimestampBuilder {
         SimpleDateFormat ft = new SimpleDateFormat("yyyyMMddHHmmssSS");
         String datetime = ft.format(dNow);
         try {
-            Thread.sleep(1);
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -1,6 +1,5 @@
 package solutions.bjjeire.core.plugins;
 
-
 public class ScenarioContext {
     private final String scenarioName;
     private final TestResult testResult;

@@ -1,7 +1,7 @@
 package solutions.bjjeire.core.data.events;
 
 public enum EventStatus {
-    Postponed ,
+    Postponed,
     Upcoming,
     RegistrationOpen,
     RegistrationClosed,

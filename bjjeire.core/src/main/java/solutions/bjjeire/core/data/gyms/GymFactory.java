@@ -1,16 +1,19 @@
 package solutions.bjjeire.core.data.gyms;
 
-import com.github.javafaker.Faker;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.List;
+import java.util.UUID;
+import java.util.function.Consumer;
+
 import org.bson.types.ObjectId;
+
+import com.github.javafaker.Faker;
+
 import solutions.bjjeire.core.data.common.County;
 import solutions.bjjeire.core.data.common.GeoCoordinates;
 import solutions.bjjeire.core.data.common.Location;
 import solutions.bjjeire.core.data.common.SocialMedia;
-
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.*;
-import java.util.function.Consumer;
 
 public class GymFactory {
 
@@ -61,28 +64,20 @@ public class GymFactory {
         return builder.build();
     }
 
-    @SuppressWarnings("unchecked")
     public static CreateGymCommand createInvalidGym(String invalidReason) {
-        // Start with a builder from a valid gym to make it mutable
+     
         Gym.Builder builder = getValidGym().toBuilder();
 
-        // Modify the builder to make the gym data invalid
+
         switch (invalidReason) {
-            case "missing name":
-                builder.name(null); // Set name to null to trigger validation
-                break;
-            case "long description":
-                builder.description(faker.lorem().characters(1001)); // Exceeds max length
-                break;
-            case "invalid website":
-                builder.website("not-a-valid-url"); // Invalid URL format
-                break;
-            default:
-                throw new IllegalArgumentException(
+            case "missing name" -> builder.name(null);
+            case "long description" -> builder.description(faker.lorem().characters(1001));
+            case "invalid website" -> builder.website("not-a-valid-url");
+            default -> throw new IllegalArgumentException(
                         "Unsupported invalid reason for test data generation: " + invalidReason);
         }
 
-        // Build the invalid gym and wrap it in the command object
+
         return new CreateGymCommand(builder.build());
     }
 

@@ -6,4 +6,5 @@ public enum ClassCategory {
     BJJNoGiAllLevels,
     Wrestling,
     Judo,
-    KidsBJJ }
+    KidsBJJ
+}

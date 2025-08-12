@@ -7,7 +7,6 @@ import solutions.bjjeire.core.plugins.junit.JunitBaseTest;
 import solutions.bjjeire.selenium.web.configuration.SeleniumConfig;
 import solutions.bjjeire.selenium.web.plugins.BrowserLifecyclePlugin;
 
-
 @ActiveProfiles("development")
 @SpringBootTest(classes = SeleniumConfig.class)
 public abstract class JunitWebTest extends JunitBaseTest {

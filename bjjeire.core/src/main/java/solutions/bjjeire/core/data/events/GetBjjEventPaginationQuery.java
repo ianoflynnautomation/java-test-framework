@@ -1,13 +1,8 @@
 package solutions.bjjeire.core.data.events;
 
-
 import solutions.bjjeire.core.data.common.County;
 
-/**
- * A specific query class for retrieving BJJ events with optional filters.
- * Corresponds to the C# GetBjjEventPaginationQuery.
- */
-public class GetBjjEventPaginationQuery  {
+public class GetBjjEventPaginationQuery {
     private County county;
     private BjjEventType type;
 
