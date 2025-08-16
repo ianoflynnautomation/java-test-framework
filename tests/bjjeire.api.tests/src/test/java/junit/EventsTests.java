@@ -22,7 +22,7 @@ import solutions.bjjeire.core.data.events.CreateBjjEventResponse;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.testng.AssertJUnit.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @RequiredArgsConstructor
 @Execution(ExecutionMode.CONCURRENT)

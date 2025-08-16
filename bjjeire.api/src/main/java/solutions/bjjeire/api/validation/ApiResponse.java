@@ -1,5 +1,6 @@
 package solutions.bjjeire.api.validation;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -10,13 +11,13 @@ import solutions.bjjeire.api.models.ApiAssertionException;
 import java.io.IOException;
 import java.time.Duration;
 
+@Getter
 @RequiredArgsConstructor
 public class ApiResponse {
+
     private final ResponseEntity<String> responseEntity;
-    @Getter
     private final Duration executionTime;
     private final ObjectMapper objectMapper;
-    @Getter
     private final String requestPath;
 
 
@@ -28,6 +29,14 @@ public class ApiResponse {
         return responseEntity.getBody();
     }
 
+    public HttpHeaders getHeaders() {
+        return responseEntity.getHeaders();
+    }
+
+    public String header(String name) {
+        return responseEntity.getHeaders().getFirst(name);
+    }
+
     public <T> T as(Class<T> type) {
         String body = getBodyAsString();
         if (body == null || body.isBlank()) {
@@ -37,17 +46,16 @@ public class ApiResponse {
             return objectMapper.readValue(body, type);
         } catch (IOException e) {
             throw new ApiAssertionException(
-                    String.format("Failed to deserialize response body to type '%s'. Error: %s", type.getSimpleName(),
-                            e.getMessage()),
+                    String.format("Failed to deserialize response body to type '%s'. Error: %s", type.getSimpleName(), e.getMessage()),
                     requestPath, body, e);
         }
     }
 
-    public ResponseValidator should() {
-        return new ResponseValidator(this);
+    public JsonNode asJsonNode() {
+        return as(JsonNode.class);
     }
 
-    public HttpHeaders getHeaders() {
-        return responseEntity.getHeaders();
+    public ResponseValidator should() {
+        return new ResponseValidator(this);
     }
 }
