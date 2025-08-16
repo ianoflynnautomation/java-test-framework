@@ -1,10 +1,14 @@
 package junit;
 
+import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import solutions.bjjeire.api.infrastructure.junit.ApiTestBase;
 import solutions.bjjeire.api.services.AuthService;
@@ -15,9 +19,14 @@ import solutions.bjjeire.core.data.events.BjjEventFactory;
 import solutions.bjjeire.core.data.events.CreateBjjEventCommand;
 import solutions.bjjeire.core.data.events.CreateBjjEventResponse;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.testng.AssertJUnit.assertNotNull;
+
+@RequiredArgsConstructor
 @Execution(ExecutionMode.CONCURRENT)
+@DisplayName("BJJ Events API")
 public class EventsTests extends ApiTestBase {
 
     @Autowired private EventService eventService;
@@ -30,29 +39,53 @@ public class EventsTests extends ApiTestBase {
         this.authToken = authService.authenticateAsAdmin();
     }
 
-    @Test
-    @DisplayName("Should create a BJJ event successfully with a valid auth token")
-    void createBjjEvent_withValidData_shouldReturn201() {
+        @Nested
+        @DisplayName("Create Event (POST /api/bjjevent)")
+        class CreateEventScenarios {
+
+            @Test
+            @DisplayName("Should return 201 Created for a valid event")
+            void createBjjEvent_withValidData_shouldReturn201() {
+                // Arrange
+                BjjEvent eventToCreate = BjjEventFactory.getValidBjjEvent();
+                CreateBjjEventCommand command = new CreateBjjEventCommand(eventToCreate);
+
+                // Act
+                ApiResponse apiResponse = eventService.createEvent(authToken, command).block();
+
+                // Assert
+                assertAll("Verify successful event creation",
+                        () -> apiResponse.should().statusCode(201),
+                        () -> apiResponse.should().bodySatisfies(CreateBjjEventResponse.class, responseBody -> {
+                            assertNotNull(responseBody.data().id(), "Event ID should not be null");
+
+                            org.assertj.core.api.Assertions.assertThat(responseBody.data())
+                                    .usingRecursiveComparison()
+                                    .ignoringFields("id", "createdOnUtc", "updatedOnUtc")
+                                    .isEqualTo(eventToCreate);
+
+                            registerForCleanup(() -> eventService.deleteEvent(authToken, responseBody.data().id()));
+                        })
+                );
+            }
+        }
+
+    @ParameterizedTest(name = "Run #{index}: Field=''{0}'', Value=''{1}''")
+    @CsvSource({
+            "Data.Name,           '', 'Event Name is required.'",
+            "Data.Pricing.Amount, -10.00, 'Amount must be greater than 0.'"
+    })
+    @DisplayName("Should return 400 Bad Request for various invalid data points")
+    void createBjjEvent_withInvalidData_shouldReturn400(String field, String invalidValue, String errorMessage) {
         // Arrange
-        BjjEvent eventToCreate = BjjEventFactory.getValidBjjEvent();
-        CreateBjjEventCommand command = new CreateBjjEventCommand(eventToCreate);
+        Object invalidPayload = BjjEventFactory.createPayloadWithInvalidDetails(Map.of(field, invalidValue));
 
         // Act
-        ApiResponse apiResponse = eventService.createEvent(authToken, command).block();
-        assertThat(apiResponse.getStatusCode()).isEqualTo(201);
-
-        CreateBjjEventResponse responseBody = apiResponse.as(CreateBjjEventResponse.class);
-
-        // Alternatively, direct cleanup after test
-        registerForCleanup(() -> eventService.deleteEvent(this.authToken, responseBody.data().id()));
+        ApiResponse apiResponse = eventService.attemptToCreateEvent(authToken, invalidPayload).block();
 
         // Assert
-        assertThat(responseBody).isNotNull();
-        assertThat(responseBody.data()).isNotNull();
-        assertThat(responseBody.data().id()).isNotNull().isNotBlank();
-        assertThat(responseBody.data())
-                .usingRecursiveComparison()
-                .ignoringFields("id", "createdOnUtc", "updatedOnUtc")
-                .isEqualTo(eventToCreate);
+        apiResponse.should()
+                .statusCode(400)
+                .containsErrorForField(field, errorMessage);
     }
 }

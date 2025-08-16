@@ -16,7 +16,7 @@ import java.util.Map;
 
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class ApiRequest {
+public class ApiRequestBuilder {
     private final HttpMethod method;
     private final String path;
     private final MultiValueMap<String, String> headers;
@@ -50,7 +50,6 @@ public class ApiRequest {
             return this;
         }
 
-        // Convenience methods for common HTTP methods
         public Builder get(String path) {
             this.method = HttpMethod.GET;
             this.path = path;
@@ -153,11 +152,11 @@ public class ApiRequest {
             return this;
         }
 
-        public ApiRequest build() {
+        public ApiRequestBuilder build() {
             if (method == null || path == null) {
                 throw new IllegalStateException("HTTP method and path must be set before building the request.");
             }
-            return new ApiRequest(method, path, headers, queryParams, body, contentType, acceptableMediaTypes,
+            return new ApiRequestBuilder(method, path, headers, queryParams, body, contentType, acceptableMediaTypes,
                     authentication);
         }
     }

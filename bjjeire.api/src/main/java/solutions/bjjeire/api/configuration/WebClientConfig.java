@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.http.codec.json.Jackson2JsonDecoder;
@@ -17,17 +18,14 @@ import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 @Component
+@RequiredArgsConstructor
 public class WebClientConfig {
+
         private final ApiSettings settings;
         private final ObjectMapper objectMapper;
-
-        public WebClientConfig(ApiSettings settings, ObjectMapper objectMapper) {
-                this.settings = settings;
-                this.objectMapper = objectMapper;
-        }
+        private final int BUFFER_SIZE =  16 * 1024 * 1024;
 
         public WebClient buildWebClient(WebClient.Builder webClientBuilder) {
-                final int bufferSize = 16 * 1024 * 1024;
 
                 ExchangeStrategies strategies = ExchangeStrategies.builder()
                                 .codecs(configurer -> {
@@ -37,7 +35,7 @@ public class WebClientConfig {
                                         configurer.defaultCodecs().jackson2JsonDecoder(
                                                         new Jackson2JsonDecoder(objectMapper,
                                                                         MediaType.APPLICATION_JSON));
-                                        configurer.defaultCodecs().maxInMemorySize(bufferSize);
+                                        configurer.defaultCodecs().maxInMemorySize(BUFFER_SIZE);
                                 })
                                 .build();
 

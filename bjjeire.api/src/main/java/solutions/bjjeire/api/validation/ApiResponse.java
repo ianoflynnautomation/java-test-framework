@@ -2,6 +2,7 @@ package solutions.bjjeire.api.validation;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import solutions.bjjeire.api.models.ApiAssertionException;
@@ -9,6 +10,7 @@ import solutions.bjjeire.api.models.ApiAssertionException;
 import java.io.IOException;
 import java.time.Duration;
 
+@RequiredArgsConstructor
 public class ApiResponse {
     private final ResponseEntity<String> responseEntity;
     @Getter
@@ -17,13 +19,6 @@ public class ApiResponse {
     @Getter
     private final String requestPath;
 
-    public ApiResponse(ResponseEntity<String> responseEntity, Duration executionTime, ObjectMapper objectMapper,
-            String requestPath) {
-        this.responseEntity = responseEntity;
-        this.executionTime = executionTime;
-        this.objectMapper = objectMapper;
-        this.requestPath = requestPath;
-    }
 
     public int getStatusCode() {
         return responseEntity.getStatusCode().value();
@@ -46,6 +41,10 @@ public class ApiResponse {
                             e.getMessage()),
                     requestPath, body, e);
         }
+    }
+
+    public ResponseValidator should() {
+        return new ResponseValidator(this);
     }
 
     public HttpHeaders getHeaders() {

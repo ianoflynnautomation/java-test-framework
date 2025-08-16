@@ -4,5 +4,5 @@ import reactor.core.publisher.Mono;
 import solutions.bjjeire.api.validation.ApiResponse;
 
 public interface Client {
-    Mono<ApiResponse> execute(ApiRequest request);
+    Mono<ApiResponse> execute(ApiRequestBuilder request);
 }

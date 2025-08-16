@@ -5,10 +5,8 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import solutions.bjjeire.api.services.EventService;
 import solutions.bjjeire.api.validation.ApiResponse;
-import solutions.bjjeire.api.validation.ResponseValidatorFactory;
 import solutions.bjjeire.core.data.events.BjjEvent;
 import solutions.bjjeire.core.data.events.BjjEventFactory;
 import solutions.bjjeire.core.data.events.CreateBjjEventCommand;
@@ -17,13 +15,14 @@ import solutions.bjjeire.cucumber.context.TestContext;
 
 import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 @Slf4j
 @RequiredArgsConstructor
 public class EventCreateSteps {
 
     private final TestContext testContext;
     private final EventService eventService;
-    private final ResponseValidatorFactory responseValidator;
 
     @Given("a new event has been prepared")
     public void aNewEventHasBeenPrepared() {
@@ -59,16 +58,16 @@ public class EventCreateSteps {
 
     @Then("the event should be successfully added")
     public void theEventShouldBeSuccessfullyAdded() {
-        // Use the factory to create a ResponseValidator instance
-        responseValidator.validate(testContext.getLastResponse()).statusCode(201);
+        ApiResponse response = testContext.getLastResponse();
+        response.should().statusCode(201);
     }
 
     @Then("the Admin should be notified that adding the event failed for {string} with message {string}")
     public void adminIsNotifiedThatTheEventCreationFailedForWithMessage(String field, String errorMessage) {
-        // Use the factory to create a ResponseValidator instance
-        responseValidator.validate(testContext.getLastResponse())
+        ApiResponse response = testContext.getLastResponse();
+        response.should()
                 .statusCode(400)
-                .validationError()
                 .containsErrorForField(field, errorMessage);
+
     }
 }

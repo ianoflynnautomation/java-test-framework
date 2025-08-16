@@ -3,7 +3,7 @@ package solutions.bjjeire.api.services;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
-import solutions.bjjeire.api.client.ApiRequest;
+import solutions.bjjeire.api.client.ApiRequestBuilder;
 import solutions.bjjeire.api.client.Client;
 import solutions.bjjeire.api.configuration.ApiSettings;
 import solutions.bjjeire.api.validation.ApiResponse;
@@ -20,7 +20,7 @@ public class AuthService {
 
 
     public String authenticateAsAdmin() {
-        ApiRequest request = ApiRequest.builder().get("/generate-token")
+        ApiRequestBuilder request = ApiRequestBuilder.builder().get("/generate-token")
                 .queryParams(Map.of("userId", "dev-user@example.com", "role", "Admin"))
                 .build();
 
@@ -40,7 +40,7 @@ public class AuthService {
     }
 
     public Mono<ApiResponse> authenticateWithCredentials(String userId, String role) {
-        ApiRequest request = ApiRequest.builder().get("/generate-token")
+        ApiRequestBuilder request = ApiRequestBuilder.builder().get("/generate-token")
                 .queryParams(Map.of("userId", userId, "role", role))
                 .build();
         return httpClient.execute(request);

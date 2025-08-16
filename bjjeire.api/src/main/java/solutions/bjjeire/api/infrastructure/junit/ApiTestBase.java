@@ -5,21 +5,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.ApplicationContext;
 
 import solutions.bjjeire.api.configuration.TestConfiguration;
 
+@Slf4j
 @SpringBootTest(classes = TestConfiguration.class)
 public abstract class ApiTestBase {
-
-    @BeforeAll
-    static void setup(@Autowired ApplicationContext applicationContext) {
-    }
 
     private final ConcurrentLinkedQueue<Runnable> cleanupActions = new ConcurrentLinkedQueue<>();
 
@@ -30,8 +24,7 @@ public abstract class ApiTestBase {
     @AfterEach
     void runCleanup() {
         if (!cleanupActions.isEmpty()) {
-            System.out.println("--- JUnit Teardown: Executing " + cleanupActions.size()
-                    + " cleanup action(s) for thread " + Thread.currentThread().getName() + " ---");
+            log.info("Executing {} cleanup action(s) for thread {}", cleanupActions.size(), Thread.currentThread().getName());
             List<Runnable> actions = new ArrayList<>(cleanupActions);
             Collections.reverse(actions);
             actions.forEach(Runnable::run);

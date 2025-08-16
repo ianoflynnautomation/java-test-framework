@@ -1,68 +1,89 @@
 package solutions.bjjeire.api.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import net.logstash.logback.argument.StructuredArguments;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import solutions.bjjeire.api.utils.RetryPolicy;
 import solutions.bjjeire.api.validation.ApiResponse;
 
 import java.time.Duration;
-import net.logstash.logback.argument.StructuredArguments;
 
+@Slf4j
+@Component
+@RequiredArgsConstructor
 public class RequestExecutor {
-    private static final Logger logger = LoggerFactory.getLogger(RequestExecutor.class);
+
     private final WebClient webClient;
     private final RetryPolicy retryPolicy;
-    private final RequestBodyHandler bodyHandler;
-    private final WebClientRequestFactory requestFactory;
+    private final ObjectMapper objectMapper;
 
-    public RequestExecutor(WebClient webClient, RetryPolicy retryPolicy,  RequestBodyHandler bodyHandler) {
-        this.webClient = webClient;
-        this.retryPolicy = retryPolicy;
-        this.bodyHandler = bodyHandler;
-        this.requestFactory = new WebClientRequestFactory(webClient, bodyHandler);
-    }
 
-    public Mono<ApiResponse> execute(ApiRequest request) {
+    public Mono<ApiResponse> execute(ApiRequestBuilder request) {
         long startTime = System.nanoTime();
 
-        WebClient.RequestHeadersSpec<?> requestSpec = requestFactory.create(request);
-
-        return requestSpec.exchangeToMono(clientResponse ->
-                        clientResponse.toEntity(String.class)
-                                .map(responseEntity -> new ApiResponse(
-                                        responseEntity,
-                                        Duration.ofNanos(System.nanoTime() - startTime),
-                                        bodyHandler.getObjectMapper(),
-                                        request.getPath()))
+        return createRequestSpec(request)
+                .exchangeToMono(clientResponse -> clientResponse.toEntity(String.class)
+                        .map(responseEntity -> new ApiResponse(
+                                responseEntity,
+                                Duration.ofNanos(System.nanoTime() - startTime),
+                                objectMapper,
+                                request.getPath()))
                 )
                 .doOnSuccess(response -> logApiInteraction(request, response, Duration.ofNanos(System.nanoTime() - startTime)))
-                .doOnError(error -> logger.error("API request execution failed",
-                        StructuredArguments.kv("eventType", "api_failure"),
-                        StructuredArguments.kv("url", request.getPath()),
-                        StructuredArguments.kv("method", request.getMethod().name()),
-                        StructuredArguments.kv("error", error.getMessage()),
-                        error))
+                .doOnError(error -> logApiFailure(request, error))
                 .retryWhen(retryPolicy.getRetrySpec(request.getPath(), request.getMethod()));
     }
 
-    private WebClient.RequestHeadersSpec<?> buildRequestSpec(ApiRequest request) {
+    private WebClient.RequestHeadersSpec<?> createRequestSpec(ApiRequestBuilder request) {
         WebClient.RequestBodySpec requestBodySpec = webClient
                 .method(request.getMethod())
-                .uri(request.getPath())
-                .headers(httpHeaders -> httpHeaders.addAll(request.getHeaders()));
+                .uri(uriBuilder -> uriBuilder.path(request.getPath()).queryParams(request.getQueryParams()).build())
+                .headers(headers -> {
+                    headers.addAll(request.getHeaders());
+                    if (request.getAuthentication() != null) {
+                        request.getAuthentication().apply(headers);
+                    }
+                })
+                .accept(request.getAcceptableMediaTypes().toArray(new MediaType[0]));
 
-        if (request.getBody() != null) {
-            return requestBodySpec.bodyValue(request.getBody());
-        }
-
-        return requestBodySpec;
+        return handleBody(requestBodySpec, request);
     }
 
-    private void logApiInteraction(ApiRequest request, ApiResponse response, Duration duration) {
-        logger.info("API Request-Response Cycle",
+    @SuppressWarnings("unchecked")
+    private WebClient.RequestHeadersSpec<?> handleBody(WebClient.RequestBodySpec requestBodySpec, ApiRequestBuilder request) {
+        if (request.getBody() == null) {
+            return requestBodySpec;
+        }
+
+        MediaType contentType = request.getContentType();
+        Object body = request.getBody();
+
+        if (MediaType.MULTIPART_FORM_DATA.isCompatibleWith(contentType)) {
+            if (!(body instanceof MultiValueMap)) {
+                throw new IllegalArgumentException("For MULTIPART_FORM_DATA, the body must be a MultiValueMap.");
+            }
+            return requestBodySpec.body(BodyInserters.fromMultipartData((MultiValueMap<String, ?>) body));
+        }
+
+        if (MediaType.APPLICATION_FORM_URLENCODED.isCompatibleWith(contentType)) {
+            if (!(body instanceof MultiValueMap)) {
+                throw new IllegalArgumentException("For APPLICATION_FORM_URLENCODED, the body must be a MultiValueMap.");
+            }
+            return requestBodySpec.body(BodyInserters.fromFormData((MultiValueMap<String, String>) body));
+        }
+
+        return requestBodySpec.contentType(contentType).bodyValue(body);
+    }
+
+    private void logApiInteraction(ApiRequestBuilder request, ApiResponse response, Duration duration) {
+        log.info("API Interaction",
                 StructuredArguments.kv("eventType", "api_interaction"),
                 StructuredArguments.kv("http_method", request.getMethod().name()),
                 StructuredArguments.kv("url", request.getPath()),
@@ -72,12 +93,21 @@ public class RequestExecutor {
                 StructuredArguments.kv("duration_ms", duration.toMillis()));
     }
 
+    private void logApiFailure(ApiRequestBuilder request, Throwable error) {
+        log.error("API Request Execution Failed",
+                StructuredArguments.kv("eventType", "api_failure"),
+                StructuredArguments.kv("url", request.getPath()),
+                StructuredArguments.kv("method", request.getMethod().name()),
+                StructuredArguments.kv("error", error.getMessage()),
+                error);
+    }
+
     private Object safeSerializeBody(Object body) {
         if (body == null) return null;
         try {
-            return bodyHandler.getObjectMapper().convertValue(body, Object.class);
+            return objectMapper.convertValue(body, Object.class);
         } catch (Exception e) {
-            logger.warn("Failed to serialize request body for logging", StructuredArguments.kv("error", e.getMessage()));
+            log.warn("Failed to serialize request body for logging", StructuredArguments.kv("error", e.getMessage()));
             return "unserializable_body";
         }
     }

@@ -2,14 +2,12 @@ package solutions.bjjeire.cucumber.steps.gym;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import solutions.bjjeire.api.services.GymService;
 import solutions.bjjeire.api.validation.ApiResponse;
-import solutions.bjjeire.api.validation.ResponseValidatorFactory;
 import solutions.bjjeire.core.data.gyms.CreateGymCommand;
 import solutions.bjjeire.core.data.gyms.CreateGymResponse;
 import solutions.bjjeire.core.data.gyms.Gym;
@@ -21,10 +19,7 @@ import solutions.bjjeire.cucumber.context.TestContext;
 public class GymCreateSteps {
 
     private final TestContext testContext;
-
     private final  GymService gymService;
-
-    private final ResponseValidatorFactory responseValidator;
 
     @Given("a new BJJ gym has been prepared")
     public void aNewGymHasBeenPrepared() {
@@ -45,7 +40,8 @@ public class GymCreateSteps {
 
     @Then("the gym should be successfully added")
     public void theGymShouldBeSuccessfullyAdded() {
-        responseValidator.validate(testContext.getLastResponse()).statusCode(201);
+        ApiResponse response = testContext.getLastResponse();
+        response.should().statusCode(201);
     }
 
 }

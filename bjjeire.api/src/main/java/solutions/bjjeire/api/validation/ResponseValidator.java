@@ -7,7 +7,6 @@ import com.networknt.schema.JsonSchema;
 import com.networknt.schema.JsonSchemaFactory;
 import com.networknt.schema.SpecVersion;
 import com.networknt.schema.ValidationMessage;
-import io.opentelemetry.api.baggage.Baggage;
 import lombok.RequiredArgsConstructor;
 import solutions.bjjeire.api.models.ApiAssertionException;
 import solutions.bjjeire.api.models.errors.ValidationErrorResponse;
@@ -23,17 +22,8 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 @RequiredArgsConstructor
 public class ResponseValidator {
+
     private final ApiResponse response;
-
-    private String getCurrentTestName() {
-        return Baggage.current().getEntryValue("test.name") != null ? Baggage.current().getEntryValue("test.name")
-                : "unknown_test";
-    }
-
-    private String getCurrentTestSuite() {
-        return Baggage.current().getEntryValue("test.suite") != null ? Baggage.current().getEntryValue("test.suite")
-                : "unknown_suite";
-    }
 
     public ResponseValidator statusCode(int expectedStatusCode) {
         if (response.getStatusCode() != expectedStatusCode) {
@@ -112,27 +102,21 @@ public class ResponseValidator {
     }
 
     public ResponseValidator containsErrorForField(String field, String expectedMessage) {
+        ValidationErrorResponse errorResponse = response.as(ValidationErrorResponse.class);
+        boolean matchFound = errorResponse.errors().stream()
+                .anyMatch(error -> field.equals(error.field()) && expectedMessage.equals(error.message()));
 
-        try {
-            ValidationErrorResponse errorResponse = response.as(ValidationErrorResponse.class);
-            boolean matchFound = errorResponse.errors().stream()
-                    .anyMatch(error -> field.equals(error.field()) && expectedMessage.equals(error.message()));
-            if (!matchFound) {
-                String availableErrors = errorResponse.errors().stream()
-                        .map(e -> String.format("  - Field: '%s', Message: '%s'", e.field(), e.message()))
-                        .collect(Collectors.joining("\n"));
-                throw new ApiAssertionException(
-                        String.format(
-                                "Expected to find error for field '%s' with message '%s', but it was not found.\nAvailable errors:\n%s",
-                                field, expectedMessage, availableErrors),
-                        response.getRequestPath(), response.getBodyAsString());
-            }
-            return this;
-        } catch (ApiAssertionException e) {
-            throw e;
-        } finally {
-
+        if (!matchFound) {
+            String availableErrors = errorResponse.errors().stream()
+                    .map(e -> String.format("  - Field: '%s', Message: '%s'", e.field(), e.message()))
+                    .collect(Collectors.joining("\n"));
+            throw new ApiAssertionException(
+                    String.format(
+                            "Expected to find error for field '%s' with message '%s', but it was not found.\nAvailable errors:\n%s",
+                            field, expectedMessage, availableErrors),
+                    response.getRequestPath(), response.getBodyAsString());
         }
+        return this;
     }
 
     public ResponseValidator containsAllErrors(Map<String, String> expectedErrors) {
@@ -162,16 +146,14 @@ public class ResponseValidator {
     }
 
     public ResponseValidator jsonPath(String jsonPathExpression, Consumer<Object> consumer) {
-
-        String body = null;
+        String body = response.getBodyAsString();
+        if (body == null || body.isBlank()) {
+            throw new ApiAssertionException("Cannot perform JSONPath assertion on an empty response body.",
+                    response.getRequestPath(), "");
+        }
         try {
-            body = response.getBodyAsString();
-            if (body == null || body.isBlank()) {
-                throw new ApiAssertionException("Cannot perform JSONPath assertion on an empty response body.",
-                        response.getRequestPath(), "");
-            }
             Object extractedValue = JsonPath.read(body, jsonPathExpression);
-            consumer.accept(extractedValue);
+            consumer.accept(extractedValue); // Custom assertion logic is executed here
             return this;
         } catch (PathNotFoundException e) {
             throw new ApiAssertionException(
@@ -185,8 +167,6 @@ public class ResponseValidator {
             throw new ApiAssertionException(
                     String.format("Failed to evaluate JSONPath '%s'. Error: %s", jsonPathExpression, e.getMessage()),
                     response.getRequestPath(), body, e);
-        } finally {
-
         }
     }
 

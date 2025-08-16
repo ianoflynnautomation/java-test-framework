@@ -1,7 +1,7 @@
 package solutions.bjjeire.api.utils;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
@@ -14,14 +14,12 @@ import net.logstash.logback.argument.StructuredArguments;
 import reactor.util.retry.Retry;
 import solutions.bjjeire.api.configuration.ApiSettings;
 
+@Slf4j
 @Component
+@RequiredArgsConstructor
 public class RetryPolicy {
-    private static final Logger logger = LoggerFactory.getLogger(RetryPolicy.class);
-    private final ApiSettings apiSettings;
 
-    public RetryPolicy(ApiSettings apiSettings) {
-        this.apiSettings = apiSettings;
-    }
+    private final ApiSettings apiSettings;
 
     public Retry getRetrySpec(String endpoint, HttpMethod method) {
         if (!isIdempotent(method) || apiSettings.getMaxRetryAttempts() <= 0) {
@@ -32,7 +30,7 @@ public class RetryPolicy {
                 .filter(this::isRetryableException)
                 .doBeforeRetry(retrySignal -> {
                     long attempt = retrySignal.totalRetriesInARow() + 1;
-                    logger.warn("Retrying API request",
+                    log.warn("Retrying API request",
                             StructuredArguments.kv("eventType", "api_retry"),
                             StructuredArguments.kv("endpoint", endpoint),
                             StructuredArguments.kv("method", method.name()),
@@ -40,7 +38,7 @@ public class RetryPolicy {
                             StructuredArguments.kv("reason", retrySignal.failure().getMessage()));
                 })
                 .onRetryExhaustedThrow((retrySpec, retrySignal) -> {
-                    logger.error("Retry attempts exhausted for API request",
+                    log.error("Retry attempts exhausted for API request",
                             StructuredArguments.kv("eventType", "api_retry_exhausted"),
                             StructuredArguments.kv("endpoint", endpoint),
                             StructuredArguments.kv("method", method.name()),
