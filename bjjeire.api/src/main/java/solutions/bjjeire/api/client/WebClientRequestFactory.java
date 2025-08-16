@@ -1,16 +1,14 @@
 package solutions.bjjeire.api.client;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.reactive.function.client.WebClient;
 import solutions.bjjeire.api.http.auth.Authentication;
 
+@RequiredArgsConstructor
 public class WebClientRequestFactory {
+
     private final WebClient webClient;
     private final RequestBodyHandler bodyHandler;
-
-    public WebClientRequestFactory(WebClient webClient, RequestBodyHandler bodyHandler) {
-        this.webClient = webClient;
-        this.bodyHandler = bodyHandler;
-    }
 
     public WebClient.RequestHeadersSpec<?> create(ApiRequest request) {
         WebClient.RequestBodySpec requestBodySpec = webClient

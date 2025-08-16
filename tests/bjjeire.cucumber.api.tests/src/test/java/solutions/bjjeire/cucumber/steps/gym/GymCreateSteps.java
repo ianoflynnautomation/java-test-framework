@@ -1,5 +1,7 @@
 package solutions.bjjeire.cucumber.steps.gym;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import io.cucumber.java.en.Given;
@@ -14,14 +16,15 @@ import solutions.bjjeire.core.data.gyms.Gym;
 import solutions.bjjeire.core.data.gyms.GymFactory;
 import solutions.bjjeire.cucumber.context.TestContext;
 
+@Slf4j
+@RequiredArgsConstructor
 public class GymCreateSteps {
 
-    @Autowired
-    private TestContext testContext;
-    @Autowired
-    private GymService gymService;
-    @Autowired
-    private ResponseValidatorFactory responseValidator;
+    private final TestContext testContext;
+
+    private final  GymService gymService;
+
+    private final ResponseValidatorFactory responseValidator;
 
     @Given("a new BJJ gym has been prepared")
     public void aNewGymHasBeenPrepared() {

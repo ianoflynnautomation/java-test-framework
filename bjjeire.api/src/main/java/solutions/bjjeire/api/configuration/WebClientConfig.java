@@ -52,9 +52,7 @@ public class WebClientConfig {
                                                                 settings.getConnectTimeoutMillis(),
                                                                 TimeUnit.MILLISECONDS)));
 
-                // The OpenTelemetryWebClientFilter is applied here to ensure trace context
-                // propagation.
-                return webClientBuilder
+                    return webClientBuilder
                                 .baseUrl(settings.getBaseUrl())
                                 .clientConnector(new ReactorClientHttpConnector(httpClient))
                                 .exchangeStrategies(strategies)

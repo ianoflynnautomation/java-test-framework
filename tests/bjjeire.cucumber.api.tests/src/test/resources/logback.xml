@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <!-- Console Appender for structured JSON logs -->
     <appender name="CONSOLE_JSON" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
             <fieldNames>
@@ -10,29 +9,12 @@
                 <level>logLevel</level>
                 <logger>loggerName</logger>
                 <stackTrace>stackTrace</stackTrace>
-                <version>[ignore]</version>
-            </fieldNames>
-            <!-- Custom fields from application.yml via Spring properties -->
+                <version>[ignore]</version> </fieldNames>
             <customFields>{"service_name":"${spring.application.name:-api-testing-framework}","environment":"${api-settings.environment:-development}"}</customFields>
-            <!-- Automatically include all MDC properties as top-level fields -->
             <includeMdc>true</includeMdc>
-            <!-- Optionally, you can explicitly include specific MDC keys if not all are desired -->
-            <!-- <includeMdcKeyName>traceId</includeMdcKeyName> -->
-            <!-- <includeMdcKeyName>spanId</includeMdcKeyName> -->
-            <!-- <includeMdcKeyName>test_id</includeMdcKeyName> -->
-            <!-- ... other test-related MDC keys ... -->
-            <!-- Removed the problematic <throwableConverter> element -->
         </encoder>
     </appender>
 
-    <!-- OpenTelemetry Appender for sending logs to OTLP Collector -->
-    <appender name="OTLP" class="io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender">
-        <!-- Capture all MDC attributes and send them as log attributes to OTLP -->
-        <captureMdcAttributes>*</captureMdcAttributes>
-        <!-- No encoder needed here, OTel Appender handles the conversion to OTLP LogRecords -->
-    </appender>
-
-    <!-- File Appender for structured JSON logs (for local debugging/archiving) -->
     <appender name="FILE_JSON" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>logs/app.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
@@ -44,27 +26,21 @@
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
             <customFields>{"service_name":"${spring.application.name:-api-testing-framework}","environment":"${api-settings.environment:-development}"}</customFields>
             <includeMdc>true</includeMdc>
-            <!-- Removed the problematic <throwableConverter> element -->
         </encoder>
     </appender>
 
-    <!-- Root logger configuration -->
     <root level="INFO">
         <appender-ref ref="CONSOLE_JSON"/>
         <appender-ref ref="FILE_JSON"/>
-        <appender-ref ref="OTLP"/>
     </root>
 
-    <!-- Specific logger for your framework classes -->
-    <logger name="solutions.bjjeire.api" level="DEBUG" additivity="false">
+    <logger name="solutions.bjjeire" level="DEBUG" additivity="false">
         <appender-ref ref="CONSOLE_JSON"/>
         <appender-ref ref="FILE_JSON"/>
-        <appender-ref ref="OTLP"/>
     </logger>
-    <!-- Other loggers for third-party libraries -->
+
     <logger name="org.springframework" level="INFO"/>
     <logger name="reactor.netty" level="INFO"/>
     <logger name="io.netty" level="INFO"/>
     <logger name="com.jayway.jsonpath" level="INFO"/>
-    <logger name="io.opentelemetry" level="DEBUG"/> <!-- Keep OTel internal logs visible for debugging -->
 </configuration>

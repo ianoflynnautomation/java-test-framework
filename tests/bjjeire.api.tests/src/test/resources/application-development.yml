@@ -1,6 +1,6 @@
 spring:
     application:
-        name: api-testing-framework # Used as default service name if not overridden
+        name: api-testing-framework
 
 api-settings:
     baseUrl: http://localhost:5003
@@ -8,55 +8,7 @@ api-settings:
     responseTimeoutMillis: 10000
     maxRetryAttempts: 3
     pauseBetweenFailuresMillis: 1000
-    tracingExporter: otlp # Configures OTel exporter type
-    otlpLogEndpoint: http://otel-collector:4317 # OTLP endpoint for logs
-    jaegerEndpoint: http://jaeger:4318 # Jaeger endpoint (less critical as OTel Collector forwards)
     sensitiveFields:
         - password
         - token
-    serviceName: api-testing-framework # Used for OpenTelemetry resource.service.name
-    environment: development # Used for OpenTelemetry resource.deployment.environment
-    testType: junit_api # Configurable test type for spans and metrics
-
-management:
-    endpoints:
-        web:
-            exposure:
-                include: prometheus,health,info # Expose Prometheus endpoint for scraping
-    otlp:
-        tracing:
-            endpoint: http://otel-collector:4317/v1/traces # OTLP endpoint for traces
-        metrics:
-            endpoint: http://otel-collector:4317/v1/metrics # OTLP endpoint for metrics
-        logging:
-            endpoint: http://otel-collector:4317/v1/logs # OTLP endpoint for logs (if using Spring Boot's OTLP log appender)
-    metrics:
-        export:
-            otlp:
-                enabled: true # Enable OTLP export for metrics (to OpenTelemetry Collector)
-            prometheus:
-                enabled: true # Enable Prometheus exposition via /actuator/prometheus
-        distribution:
-            sla: # Service Level Agreements for histograms (defines buckets for Prometheus)
-                api_request_duration_seconds: 0.1s,0.5s,1s,5s
-                test_case_duration_seconds: 0.5s,1s,5s,30s
-        enable:
-            exemplars: true # Enable exemplars for linking traces to metrics
-    tracing:
-        sampling:
-            probability: 1.0 # Sample all traces (ideal for testing environments)
-
-otel:
-    service:
-        name: ${api-settings.serviceName} # Use service name from api-settings
-    resource:
-        attributes:
-            deployment.environment: ${api-settings.environment} # Use environment from api-settings
-            service.version: 1.0-SNAPSHOT # Service version (can be dynamic via Maven/Git properties)
-            # test.type is now sourced from api-settings.testType and added in TestLifecycleLogger
-    instrumentation:
-        logback:
-            enabled: true # Enable automatic Logback instrumentation for OTLP logs
-        webclient:
-            enabled: true # Enable automatic WebClient instrumentation for tracing
-    propagators: tracecontext,baggage # Standard propagators
+    environment: development

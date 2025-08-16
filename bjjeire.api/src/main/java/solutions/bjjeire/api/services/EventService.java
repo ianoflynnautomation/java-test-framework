@@ -1,5 +1,6 @@
 package solutions.bjjeire.api.services;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import solutions.bjjeire.api.client.ApiRequest;
@@ -14,14 +15,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service("bjjEventService")
+@RequiredArgsConstructor
 public class EventService {
+
     private final Client httpClient;
     private final ApiSettings settings;
-
-    public EventService(Client httpClient, ApiSettings settings) {
-        this.httpClient = httpClient;
-        this.settings = settings;
-    }
 
     public Mono<ApiResponse> createEvent(String authToken, CreateBjjEventCommand command) {
         ApiRequest request = ApiRequest.builder().post("/api/bjjevent")

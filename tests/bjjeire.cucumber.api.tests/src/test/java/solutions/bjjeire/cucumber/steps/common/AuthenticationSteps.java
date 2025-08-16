@@ -1,6 +1,8 @@
 package solutions.bjjeire.cucumber.steps.common;
 
 import io.cucumber.java.en.Given;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,14 +11,12 @@ import solutions.bjjeire.cucumber.context.TestContext;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Slf4j
+@RequiredArgsConstructor
 public class AuthenticationSteps {
 
-    private static final Logger logger = LoggerFactory.getLogger(AuthenticationSteps.class);
-
-    @Autowired
-    private TestContext testState;
-    @Autowired
-    private AuthService authService;
+    private final TestContext testState;
+    private final AuthService authService;
 
     @Given("Admin is authenticated")
     public void adminAndyIsAuthenticated() {

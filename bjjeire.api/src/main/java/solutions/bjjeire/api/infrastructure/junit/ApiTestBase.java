@@ -13,15 +13,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
 
 import solutions.bjjeire.api.configuration.TestConfiguration;
-import solutions.bjjeire.api.utils.TestLifecycleLogger;
 
 @SpringBootTest(classes = TestConfiguration.class)
-@ExtendWith(TestLifecycleLogger.class)
 public abstract class ApiTestBase {
 
     @BeforeAll
     static void setup(@Autowired ApplicationContext applicationContext) {
-        TestLifecycleLogger.SpringContext.setApplicationContext(applicationContext);
     }
 
     private final ConcurrentLinkedQueue<Runnable> cleanupActions = new ConcurrentLinkedQueue<>();

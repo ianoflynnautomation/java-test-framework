@@ -1,5 +1,6 @@
 package solutions.bjjeire.api.services;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import solutions.bjjeire.api.client.ApiRequest;
@@ -15,14 +16,11 @@ import java.util.Map;
 
 
 @Service
+@RequiredArgsConstructor
 public class GymService {
     private final Client httpClient;
     private final ApiSettings settings;
 
-    public GymService(Client httpClient, ApiSettings settings) {
-        this.httpClient = httpClient;
-        this.settings = settings;
-    }
 
     public Mono<ApiResponse> createGym(String authToken, CreateGymCommand command) {
         ApiRequest request = ApiRequest.builder().post("/api/gym")

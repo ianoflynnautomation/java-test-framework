@@ -9,6 +9,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 @Getter
 public class RequestBodyHandler {
+
     private final ObjectMapper objectMapper;
 
     public RequestBodyHandler(ObjectMapper objectMapper) {

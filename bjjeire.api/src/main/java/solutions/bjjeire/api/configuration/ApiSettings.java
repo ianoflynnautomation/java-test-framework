@@ -31,18 +31,8 @@ public class ApiSettings {
     @PositiveOrZero(message = "Pause between failures must be zero or positive")
     private long pauseBetweenFailuresMillis = 1000;
 
-    @NotBlank(message = "Tracing exporter must not be blank")
-    private String tracingExporter = "otlp";
-
-    private String jaegerEndpoint = "http://jaeger:4318";
-
-    @NotBlank(message = "OTLP log endpoint must not be blank")
-    private String otlpLogEndpoint = "http://otel-collector:4317";
-
     private List<String> sensitiveFields;
     private String serviceName;
     private String environment;
 
-    // New property for test type
-    private String testType = "junit_test"; // Default value
 }

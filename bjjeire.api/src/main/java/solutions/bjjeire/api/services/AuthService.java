@@ -1,5 +1,6 @@
 package solutions.bjjeire.api.services;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import solutions.bjjeire.api.client.ApiRequest;
@@ -11,14 +12,12 @@ import solutions.bjjeire.core.data.common.GenerateTokenResponse;
 import java.util.Map;
 
 @Service
+@RequiredArgsConstructor
 public class AuthService {
+
     private final Client httpClient;
     private final ApiSettings settings;
 
-    public AuthService(Client httpClient, ApiSettings settings) {
-        this.httpClient = httpClient;
-        this.settings = settings;
-    }
 
     public String authenticateAsAdmin() {
         ApiRequest request = ApiRequest.builder().get("/generate-token")

@@ -1,19 +1,14 @@
 package solutions.bjjeire.selenium.web.pages;
 
+import lombok.RequiredArgsConstructor;
 import solutions.bjjeire.selenium.web.services.ComponentCreateService;
 import solutions.bjjeire.selenium.web.services.NavigationService;
 
+@RequiredArgsConstructor
 public abstract class WebPage {
 
     protected final NavigationService navigationService;
     protected final ComponentCreateService componentCreateService;
-
-    public WebPage(NavigationService navigationService,
-            ComponentCreateService componentCreateService) {
-
-        this.navigationService = navigationService;
-        this.componentCreateService = componentCreateService;
-    }
 
     protected abstract String getUrl();
 

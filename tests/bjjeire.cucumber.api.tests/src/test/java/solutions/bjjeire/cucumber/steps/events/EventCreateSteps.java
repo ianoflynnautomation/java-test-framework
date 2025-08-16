@@ -3,6 +3,8 @@ package solutions.bjjeire.cucumber.steps.events;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import solutions.bjjeire.api.services.EventService;
 import solutions.bjjeire.api.validation.ApiResponse;
@@ -15,14 +17,13 @@ import solutions.bjjeire.cucumber.context.TestContext;
 
 import java.util.Map;
 
+@Slf4j
+@RequiredArgsConstructor
 public class EventCreateSteps {
 
-    @Autowired
-    private TestContext testContext;
-    @Autowired
-    private EventService eventService;
-    @Autowired // Inject the ResponseValidatorFactory
-    private ResponseValidatorFactory responseValidator;
+    private final TestContext testContext;
+    private final EventService eventService;
+    private final ResponseValidatorFactory responseValidator;
 
     @Given("a new event has been prepared")
     public void aNewEventHasBeenPrepared() {
