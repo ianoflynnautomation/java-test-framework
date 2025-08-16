@@ -20,7 +20,6 @@ public class ApiResponse {
     private final ObjectMapper objectMapper;
     private final String requestPath;
 
-
     public int getStatusCode() {
         return responseEntity.getStatusCode().value();
     }
@@ -46,7 +45,8 @@ public class ApiResponse {
             return objectMapper.readValue(body, type);
         } catch (IOException e) {
             throw new ApiAssertionException(
-                    String.format("Failed to deserialize response body to type '%s'. Error: %s", type.getSimpleName(), e.getMessage()),
+                    String.format("Failed to deserialize response body to type '%s'. Error: %s", type.getSimpleName(),
+                            e.getMessage()),
                     requestPath, body, e);
         }
     }

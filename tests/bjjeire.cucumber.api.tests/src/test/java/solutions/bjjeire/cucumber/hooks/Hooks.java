@@ -9,7 +9,6 @@ import net.logstash.logback.argument.StructuredArguments;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-import org.springframework.beans.factory.annotation.Autowired;
 import solutions.bjjeire.api.services.EventService;
 import solutions.bjjeire.api.services.GymService;
 import solutions.bjjeire.core.data.events.BjjEvent;
@@ -30,7 +29,6 @@ public class Hooks {
     private static final Logger logger = LoggerFactory.getLogger(Hooks.class);
     private static final ThreadLocal<Long> startTime = new ThreadLocal<>();
     private static final ThreadLocal<String> currentScenarioId = new ThreadLocal<>();
-
 
     @Before
     public void setup(Scenario scenario) {
@@ -139,8 +137,7 @@ public class Hooks {
 
         logger.error("Scenario failure context",
                 StructuredArguments.kv("eventType", "failure_details"),
-                StructuredArguments.kv("context", failureContext)
-        );
+                StructuredArguments.kv("context", failureContext));
 
         try {
             String failureJson = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(failureContext);

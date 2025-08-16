@@ -15,8 +15,6 @@ import solutions.bjjeire.cucumber.context.TestContext;
 
 import java.util.Map;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 @Slf4j
 @RequiredArgsConstructor
 public class EventCreateSteps {

@@ -1,10 +1,8 @@
 package solutions.bjjeire.api.configuration;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.netty.channel.ChannelOption;
-import io.netty.handler.timeout.ReadTimeoutHandler;
-import io.netty.handler.timeout.WriteTimeoutHandler;
-import lombok.RequiredArgsConstructor;
+import java.time.Duration;
+import java.util.concurrent.TimeUnit;
+
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.http.codec.json.Jackson2JsonDecoder;
@@ -12,10 +10,14 @@ import org.springframework.http.codec.json.Jackson2JsonEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.netty.http.client.HttpClient;
 
-import java.time.Duration;
-import java.util.concurrent.TimeUnit;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import io.netty.channel.ChannelOption;
+import io.netty.handler.timeout.ReadTimeoutHandler;
+import io.netty.handler.timeout.WriteTimeoutHandler;
+import lombok.RequiredArgsConstructor;
+import reactor.netty.http.client.HttpClient;
 
 @Component
 @RequiredArgsConstructor
@@ -23,7 +25,7 @@ public class WebClientConfig {
 
         private final ApiSettings settings;
         private final ObjectMapper objectMapper;
-        private final int BUFFER_SIZE =  16 * 1024 * 1024;
+        private final int BUFFER_SIZE = 16 * 1024 * 1024;
 
         public WebClient buildWebClient(WebClient.Builder webClientBuilder) {
 
@@ -50,7 +52,7 @@ public class WebClientConfig {
                                                                 settings.getConnectTimeoutMillis(),
                                                                 TimeUnit.MILLISECONDS)));
 
-                    return webClientBuilder
+                return webClientBuilder
                                 .baseUrl(settings.getBaseUrl())
                                 .clientConnector(new ReactorClientHttpConnector(httpClient))
                                 .exchangeStrategies(strategies)

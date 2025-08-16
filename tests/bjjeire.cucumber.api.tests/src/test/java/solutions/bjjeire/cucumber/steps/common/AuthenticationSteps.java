@@ -3,9 +3,6 @@ package solutions.bjjeire.cucumber.steps.common;
 import io.cucumber.java.en.Given;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import solutions.bjjeire.api.services.AuthService;
 import solutions.bjjeire.cucumber.context.TestContext;
 

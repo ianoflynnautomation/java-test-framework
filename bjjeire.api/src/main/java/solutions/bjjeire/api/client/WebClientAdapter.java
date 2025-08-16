@@ -1,10 +1,10 @@
 package solutions.bjjeire.api.client;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 import solutions.bjjeire.api.validation.ApiResponse;
-
 
 @Component
 @RequiredArgsConstructor

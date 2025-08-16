@@ -5,10 +5,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import lombok.extern.slf4j.Slf4j;
 import solutions.bjjeire.api.configuration.TestConfiguration;
 
 @Slf4j
@@ -24,7 +24,8 @@ public abstract class ApiTestBase {
     @AfterEach
     void runCleanup() {
         if (!cleanupActions.isEmpty()) {
-            log.info("Executing {} cleanup action(s) for thread {}", cleanupActions.size(), Thread.currentThread().getName());
+            log.info("Executing {} cleanup action(s) for thread {}", cleanupActions.size(),
+                    Thread.currentThread().getName());
             List<Runnable> actions = new ArrayList<>(cleanupActions);
             Collections.reverse(actions);
             actions.forEach(Runnable::run);

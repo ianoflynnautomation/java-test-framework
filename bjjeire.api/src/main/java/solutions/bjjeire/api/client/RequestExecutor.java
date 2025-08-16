@@ -24,7 +24,6 @@ public class RequestExecutor {
     private final RetryPolicy retryPolicy;
     private final ObjectMapper objectMapper;
 
-
     public Mono<ApiResponse> execute(ApiRequestBuilder request) {
         long startTime = System.nanoTime();
 
@@ -34,9 +33,9 @@ public class RequestExecutor {
                                 responseEntity,
                                 Duration.ofNanos(System.nanoTime() - startTime),
                                 objectMapper,
-                                request.getPath()))
-                )
-                .doOnSuccess(response -> logApiInteraction(request, response, Duration.ofNanos(System.nanoTime() - startTime)))
+                                request.getPath())))
+                .doOnSuccess(response -> logApiInteraction(request, response,
+                        Duration.ofNanos(System.nanoTime() - startTime)))
                 .doOnError(error -> logApiFailure(request, error))
                 .retryWhen(retryPolicy.getRetrySpec(request.getPath(), request.getMethod()));
     }
@@ -57,7 +56,8 @@ public class RequestExecutor {
     }
 
     @SuppressWarnings("unchecked")
-    private WebClient.RequestHeadersSpec<?> handleBody(WebClient.RequestBodySpec requestBodySpec, ApiRequestBuilder request) {
+    private WebClient.RequestHeadersSpec<?> handleBody(WebClient.RequestBodySpec requestBodySpec,
+            ApiRequestBuilder request) {
         if (request.getBody() == null) {
             return requestBodySpec;
         }
@@ -74,7 +74,8 @@ public class RequestExecutor {
 
         if (MediaType.APPLICATION_FORM_URLENCODED.isCompatibleWith(contentType)) {
             if (!(body instanceof MultiValueMap)) {
-                throw new IllegalArgumentException("For APPLICATION_FORM_URLENCODED, the body must be a MultiValueMap.");
+                throw new IllegalArgumentException(
+                        "For APPLICATION_FORM_URLENCODED, the body must be a MultiValueMap.");
             }
             return requestBodySpec.body(BodyInserters.fromFormData((MultiValueMap<String, String>) body));
         }
@@ -103,7 +104,8 @@ public class RequestExecutor {
     }
 
     private Object safeSerializeBody(Object body) {
-        if (body == null) return null;
+        if (body == null)
+            return null;
         try {
             return objectMapper.convertValue(body, Object.class);
         } catch (Exception e) {
@@ -113,7 +115,8 @@ public class RequestExecutor {
     }
 
     private String truncateBody(String body, int maxLength) {
-        if (body == null) return null;
+        if (body == null)
+            return null;
         return body.length() > maxLength ? body.substring(0, maxLength) + "..." : body;
     }
 }

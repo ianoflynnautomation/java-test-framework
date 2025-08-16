@@ -19,21 +19,17 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-
 @RequiredArgsConstructor
 public class ResponseValidator {
 
     private final ApiResponse response;
 
-
     public ResponseValidator statusCode(int expectedStatusCode) {
-        return executeAssertion(() ->
-                assertThat(response.getStatusCode())
-                        .withFailMessage("Expected status code <%d> but was <%d>.", expectedStatusCode, response.getStatusCode())
-                        .isEqualTo(expectedStatusCode)
-        );
+        return executeAssertion(() -> assertThat(response.getStatusCode())
+                .withFailMessage("Expected status code <%d> but was <%d>.", expectedStatusCode,
+                        response.getStatusCode())
+                .isEqualTo(expectedStatusCode));
     }
-
 
     public ResponseValidator contentContains(String expectedSubstring) {
         return executeAssertion(() -> {
@@ -44,15 +40,12 @@ public class ResponseValidator {
         });
     }
 
-
     public ResponseValidator executionTimeUnder(Duration maxDuration) {
-        return executeAssertion(() ->
-                assertThat(response.getExecutionTime())
-                        .withFailMessage("Request execution time %s was over the expected max of %s.", response.getExecutionTime(), maxDuration)
-                        .isLessThanOrEqualTo(maxDuration)
-        );
+        return executeAssertion(() -> assertThat(response.getExecutionTime())
+                .withFailMessage("Request execution time %s was over the expected max of %s.",
+                        response.getExecutionTime(), maxDuration)
+                .isLessThanOrEqualTo(maxDuration));
     }
-
 
     public ResponseValidator matchesJsonSchemaInClasspath(String schemaPath) {
         try (InputStream schemaStream = getClass().getClassLoader().getResourceAsStream(schemaPath)) {
@@ -72,7 +65,8 @@ public class ResponseValidator {
 
             return this;
         } catch (Exception e) {
-            throw new ApiAssertionException("Failed during JSON schema validation.", response.getRequestPath(), response.getBodyAsString(), e);
+            throw new ApiAssertionException("Failed during JSON schema validation.", response.getRequestPath(),
+                    response.getBodyAsString(), e);
         }
     }
 
@@ -80,7 +74,8 @@ public class ResponseValidator {
         return executeAssertion(() -> {
             ValidationErrorResponse errorResponse = response.as(ValidationErrorResponse.class);
             assertThat(errorResponse.errors())
-                    .withFailMessage("Expected to find error for field '%s' with message '%s', but it was not found.", field, expectedMessage)
+                    .withFailMessage("Expected to find error for field '%s' with message '%s', but it was not found.",
+                            field, expectedMessage)
                     .anyMatch(error -> field.equals(error.field()) && expectedMessage.equals(error.message()));
         });
     }
@@ -94,7 +89,8 @@ public class ResponseValidator {
                         .withFailMessage("JSONPath '%s' assertion failed.", jsonPathExpression)
                         .isEqualTo(expectedValue);
             } catch (PathNotFoundException e) {
-                throw new AssertionError(String.format("JSONPath expression '%s' not found in response body.", jsonPathExpression), e);
+                throw new AssertionError(
+                        String.format("JSONPath expression '%s' not found in response body.", jsonPathExpression), e);
             }
         });
     }
@@ -108,7 +104,8 @@ public class ResponseValidator {
 
     private String getAndValidateBody() {
         String body = response.getBodyAsString();
-        assertThat(body).withFailMessage("Cannot perform assertion on an empty response body.").isNotNull().isNotBlank();
+        assertThat(body).withFailMessage("Cannot perform assertion on an empty response body.").isNotNull()
+                .isNotBlank();
         return body;
     }
 

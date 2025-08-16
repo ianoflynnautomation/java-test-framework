@@ -1,15 +1,17 @@
 package solutions.bjjeire.api.utils;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpMethod;
-import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.client.WebClientRequestException;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.time.Duration;
+
+import org.springframework.http.HttpMethod;
+import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.logstash.logback.argument.StructuredArguments;
 import reactor.util.retry.Retry;
 import solutions.bjjeire.api.configuration.ApiSettings;
@@ -26,7 +28,9 @@ public class RetryPolicy {
             return Retry.fixedDelay(0, Duration.ZERO);
         }
 
-        return Retry.backoff(apiSettings.getMaxRetryAttempts(), Duration.ofMillis(apiSettings.getPauseBetweenFailuresMillis()))
+        return Retry
+                .backoff(apiSettings.getMaxRetryAttempts(),
+                        Duration.ofMillis(apiSettings.getPauseBetweenFailuresMillis()))
                 .filter(this::isRetryableException)
                 .doBeforeRetry(retrySignal -> {
                     long attempt = retrySignal.totalRetriesInARow() + 1;

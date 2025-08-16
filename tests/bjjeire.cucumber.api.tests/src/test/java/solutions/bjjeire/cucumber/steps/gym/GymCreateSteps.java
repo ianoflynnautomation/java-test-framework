@@ -19,7 +19,7 @@ import solutions.bjjeire.cucumber.context.TestContext;
 public class GymCreateSteps {
 
     private final TestContext testContext;
-    private final  GymService gymService;
+    private final GymService gymService;
 
     @Given("a new BJJ gym has been prepared")
     public void aNewGymHasBeenPrepared() {

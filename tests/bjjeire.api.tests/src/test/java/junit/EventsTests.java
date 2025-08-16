@@ -1,6 +1,9 @@
 package junit;
 
-import lombok.RequiredArgsConstructor;
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -10,6 +13,8 @@ import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import lombok.RequiredArgsConstructor;
 import solutions.bjjeire.api.infrastructure.junit.ApiTestBase;
 import solutions.bjjeire.api.services.AuthService;
 import solutions.bjjeire.api.services.EventService;
@@ -19,18 +24,15 @@ import solutions.bjjeire.core.data.events.BjjEventFactory;
 import solutions.bjjeire.core.data.events.CreateBjjEventCommand;
 import solutions.bjjeire.core.data.events.CreateBjjEventResponse;
 
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
 @RequiredArgsConstructor
 @Execution(ExecutionMode.CONCURRENT)
 @DisplayName("BJJ Events API")
 public class EventsTests extends ApiTestBase {
 
-    @Autowired private EventService eventService;
-    @Autowired private AuthService authService;
+    @Autowired
+    private EventService eventService;
+    @Autowired
+    private AuthService authService;
 
     private String authToken;
 
@@ -39,36 +41,35 @@ public class EventsTests extends ApiTestBase {
         this.authToken = authService.authenticateAsAdmin();
     }
 
-        @Nested
-        @DisplayName("Create Event (POST /api/bjjevent)")
-        class CreateEventScenarios {
+    @Nested
+    @DisplayName("Create Event (POST /api/bjjevent)")
+    class CreateEventScenarios {
 
-            @Test
-            @DisplayName("Should return 201 Created for a valid event")
-            void createBjjEvent_withValidData_shouldReturn201() {
-                // Arrange
-                BjjEvent eventToCreate = BjjEventFactory.getValidBjjEvent();
-                CreateBjjEventCommand command = new CreateBjjEventCommand(eventToCreate);
+        @Test
+        @DisplayName("Should return 201 Created for a valid event")
+        void createBjjEvent_withValidData_shouldReturn201() {
+            // Arrange
+            BjjEvent eventToCreate = BjjEventFactory.getValidBjjEvent();
+            CreateBjjEventCommand command = new CreateBjjEventCommand(eventToCreate);
 
-                // Act
-                ApiResponse apiResponse = eventService.createEvent(authToken, command).block();
+            // Act
+            ApiResponse apiResponse = eventService.createEvent(authToken, command).block();
 
-                // Assert
-                assertAll("Verify successful event creation",
-                        () -> apiResponse.should().statusCode(201),
-                        () -> apiResponse.should().bodySatisfies(CreateBjjEventResponse.class, responseBody -> {
-                            assertNotNull(responseBody.data().id(), "Event ID should not be null");
+            // Assert
+            assertAll("Verify successful event creation",
+                    () -> apiResponse.should().statusCode(201),
+                    () -> apiResponse.should().bodySatisfies(CreateBjjEventResponse.class, responseBody -> {
+                        assertNotNull(responseBody.data().id(), "Event ID should not be null");
 
-                            org.assertj.core.api.Assertions.assertThat(responseBody.data())
-                                    .usingRecursiveComparison()
-                                    .ignoringFields("id", "createdOnUtc", "updatedOnUtc")
-                                    .isEqualTo(eventToCreate);
+                        org.assertj.core.api.Assertions.assertThat(responseBody.data())
+                                .usingRecursiveComparison()
+                                .ignoringFields("id", "createdOnUtc", "updatedOnUtc")
+                                .isEqualTo(eventToCreate);
 
-                            registerForCleanup(() -> eventService.deleteEvent(authToken, responseBody.data().id()));
-                        })
-                );
-            }
+                        registerForCleanup(() -> eventService.deleteEvent(authToken, responseBody.data().id()));
+                    }));
         }
+    }
 
     @ParameterizedTest(name = "Run #{index}: Field=''{0}'', Value=''{1}''")
     @CsvSource({
