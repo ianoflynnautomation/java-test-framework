@@ -9,9 +9,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import lombok.RequiredArgsConstructor;
+import solutions.bjjeire.api.endpoints.GymEndpoints;
 import solutions.bjjeire.api.infrastructure.junit.ApiTestBase;
+import solutions.bjjeire.api.services.ApiService;
 import solutions.bjjeire.api.services.AuthService;
-import solutions.bjjeire.api.services.GymService;
 import solutions.bjjeire.api.validation.ApiResponse;
 import solutions.bjjeire.core.data.gyms.CreateGymCommand;
 import solutions.bjjeire.core.data.gyms.CreateGymResponse;
@@ -23,14 +24,14 @@ import solutions.bjjeire.core.data.gyms.GymFactory;
 class GymTests extends ApiTestBase {
 
     @Autowired
-    private GymService gymService;
+    private ApiService apiService;
     @Autowired
     private AuthService authService;
     private String authToken;
 
     @BeforeEach
     void setup() {
-        this.authToken = authService.authenticateAsAdmin();
+        this.authToken = authService.getTokenFor("admin").block();
     }
 
     @Nested
@@ -45,7 +46,7 @@ class GymTests extends ApiTestBase {
             CreateGymCommand command = new CreateGymCommand(gymToCreate);
 
             // Act
-            ApiResponse apiResponse = gymService.createGym(authToken, command).block();
+            ApiResponse apiResponse = apiService.post(authToken, GymEndpoints.GYMS, command).block();
 
             // Assert
             assertAll("Verify successful gym creation",
@@ -54,7 +55,8 @@ class GymTests extends ApiTestBase {
                         assertEquals(gymToCreate.name(), responseBody.data().name(),
                                 "Gym name should match the request");
 
-                        registerForCleanup(() -> gymService.deleteGym(authToken, responseBody.data().id()));
+                        registerForCleanup(() -> apiService
+                                .delete(authToken, GymEndpoints.gymById(responseBody.data().id())).block());
                     }));
         }
     }

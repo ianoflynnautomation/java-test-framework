@@ -1,4 +1,4 @@
-package solutions.bjjeire.api.configuration;
+package solutions.bjjeire.api.config;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;

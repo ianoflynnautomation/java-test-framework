@@ -9,7 +9,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import lombok.extern.slf4j.Slf4j;
-import solutions.bjjeire.api.configuration.TestConfiguration;
+import solutions.bjjeire.api.config.TestConfiguration;
 
 @Slf4j
 @SpringBootTest(classes = TestConfiguration.class)

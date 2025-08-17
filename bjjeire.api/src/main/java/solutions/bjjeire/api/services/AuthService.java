@@ -5,42 +5,47 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import solutions.bjjeire.api.client.ApiRequestBuilder;
 import solutions.bjjeire.api.client.Client;
-import solutions.bjjeire.api.configuration.ApiSettings;
+import solutions.bjjeire.api.config.TestUsersConfig;
+import solutions.bjjeire.api.endpoints.AuthEndpoints;
+import solutions.bjjeire.api.models.AuthenticationFailedException;
 import solutions.bjjeire.api.validation.ApiResponse;
 import solutions.bjjeire.core.data.common.GenerateTokenResponse;
 
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
 public class AuthService {
 
     private final Client httpClient;
-    private final ApiSettings settings;
+    private final TestUsersConfig testUsersConfig;
+
+    private final Map<String, Mono<String>> cachedUserTokens = new ConcurrentHashMap<>();
 
 
-    public String authenticateAsAdmin() {
-        ApiRequestBuilder request = ApiRequestBuilder.builder().get("/generate-token")
-                .queryParams(Map.of("userId", "dev-user@example.com", "role", "Admin"))
-                .build();
-
-        ApiResponse response = httpClient.execute(request).block();
-
-        if (response == null) {
-            throw new IllegalStateException("Authentication response was null. Check API connectivity or response.");
-        }
-
-        if (response.getStatusCode() != 200) {
-            throw new IllegalStateException(
-                    String.format("Authentication failed with status code: %d. Response body: %s",
-                            response.getStatusCode(), response.getBodyAsString()));
-        }
-
-        return response.as(GenerateTokenResponse.class).token();
+    public Mono<String> getTokenFor(String userKey) {
+        return cachedUserTokens.computeIfAbsent(userKey, this::authenticate);
     }
 
+    private Mono<String> authenticate(String userKey) {
+        TestUsersConfig.User user = testUsersConfig.getUser(userKey);
+
+        return authenticateWithCredentials(user.getUserId(), user.getRole())
+                .flatMap(response -> {
+                    if (response.getStatusCode() != 200) {
+                        String errorMessage = String.format(
+                                "Authentication for user '%s' failed with status code: %d. Response: %s",
+                                userKey, response.getStatusCode(), response.getBodyAsString());
+                        return Mono.error(new AuthenticationFailedException(errorMessage));
+                    }
+                    return Mono.just(response.as(GenerateTokenResponse.class).token());
+                });
+    }
+
+
     public Mono<ApiResponse> authenticateWithCredentials(String userId, String role) {
-        ApiRequestBuilder request = ApiRequestBuilder.builder().get("/generate-token")
+        ApiRequestBuilder request = ApiRequestBuilder.builder().get(AuthEndpoints.GENERATE_TOKEN)
                 .queryParams(Map.of("userId", userId, "role", role))
                 .build();
         return httpClient.execute(request);

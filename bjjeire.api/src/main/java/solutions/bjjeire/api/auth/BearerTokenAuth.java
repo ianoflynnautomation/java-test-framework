@@ -1,4 +1,4 @@
-package solutions.bjjeire.api.http.auth;
+package solutions.bjjeire.api.auth;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;

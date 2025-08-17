@@ -7,8 +7,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import solutions.bjjeire.api.http.auth.Authentication;
-import solutions.bjjeire.api.http.auth.NoAuth;
+import solutions.bjjeire.api.auth.Authentication;
+import solutions.bjjeire.api.auth.NoAuth;
 
 import java.util.Collections;
 import java.util.List;

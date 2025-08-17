@@ -5,7 +5,8 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import solutions.bjjeire.api.services.EventService;
+import solutions.bjjeire.api.endpoints.BjjEventEndpoints;
+import solutions.bjjeire.api.services.ApiService;
 import solutions.bjjeire.api.validation.ApiResponse;
 import solutions.bjjeire.core.data.events.BjjEvent;
 import solutions.bjjeire.core.data.events.BjjEventFactory;
@@ -20,7 +21,7 @@ import java.util.Map;
 public class EventCreateSteps {
 
     private final TestContext testContext;
-    private final EventService eventService;
+    private final ApiService apiService;
 
     @Given("a new event has been prepared")
     public void aNewEventHasBeenPrepared() {
@@ -37,7 +38,7 @@ public class EventCreateSteps {
     @When("the Admin adds the new event")
     public void adminAddsTheNewEvent() {
         CreateBjjEventCommand command = (CreateBjjEventCommand) testContext.getRequestPayload();
-        ApiResponse response = eventService.createEvent(testContext.getAuthToken(), command).block();
+        ApiResponse response = apiService.post(testContext.getAuthToken(), BjjEventEndpoints.BJJ_EVENTS, command).block();
         testContext.setLastResponse(response);
 
         if (response.getStatusCode() == 201) {
@@ -48,8 +49,9 @@ public class EventCreateSteps {
 
     @When("the Admin attempts to add the new event")
     public void adminAttemptsToCreateTheBjjEvent() {
-        ApiResponse response = eventService.attemptToCreateEvent(
+        ApiResponse response = apiService.post(
                 testContext.getAuthToken(),
+                BjjEventEndpoints.BJJ_EVENTS,
                 testContext.getRequestPayload()).block();
         testContext.setLastResponse(response);
     }

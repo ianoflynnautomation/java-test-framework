@@ -1,6 +1,8 @@
 spring:
     application:
         name: api-testing-framework
+    config:
+        import: "classpath:test-users.yml"
 
 api-settings:
     baseUrl: http://localhost:5003

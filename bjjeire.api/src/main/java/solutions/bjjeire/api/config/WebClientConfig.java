@@ -1,4 +1,4 @@
-package solutions.bjjeire.api.configuration;
+package solutions.bjjeire.api.config;
 
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;

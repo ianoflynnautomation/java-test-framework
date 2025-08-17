@@ -6,7 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import solutions.bjjeire.api.services.GymService;
+import solutions.bjjeire.api.endpoints.GymEndpoints;
+import solutions.bjjeire.api.services.ApiService;
 import solutions.bjjeire.api.validation.ApiResponse;
 import solutions.bjjeire.core.data.gyms.CreateGymCommand;
 import solutions.bjjeire.core.data.gyms.CreateGymResponse;
@@ -19,7 +20,8 @@ import solutions.bjjeire.cucumber.context.TestContext;
 public class GymCreateSteps {
 
     private final TestContext testContext;
-    private final GymService gymService;
+    private final ApiService apiService;
+
 
     @Given("a new BJJ gym has been prepared")
     public void aNewGymHasBeenPrepared() {
@@ -29,7 +31,7 @@ public class GymCreateSteps {
     @When("the Admin adds the new BJJ gym")
     public void adminAddsTheNewGym() {
         CreateGymCommand command = (CreateGymCommand) testContext.getRequestPayload();
-        ApiResponse response = gymService.createGym(testContext.getAuthToken(), command).block();
+        ApiResponse response = apiService.post(testContext.getAuthToken(), GymEndpoints.GYMS, command).block();
         testContext.setLastResponse(response);
 
         if (response.getStatusCode() == 201) {

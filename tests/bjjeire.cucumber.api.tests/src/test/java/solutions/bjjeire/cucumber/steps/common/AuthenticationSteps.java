@@ -17,7 +17,7 @@ public class AuthenticationSteps {
 
     @Given("Admin is authenticated")
     public void adminAndyIsAuthenticated() {
-        String token = authService.authenticateAsAdmin();
+        String token = authService.getTokenFor("admin").block();
         testState.setAuthToken(token);
         assertNotNull(testState.getAuthToken(), "Authentication token should not be null.");
         assertFalse(testState.getAuthToken().isBlank(), "Authentication token should not be blank.");

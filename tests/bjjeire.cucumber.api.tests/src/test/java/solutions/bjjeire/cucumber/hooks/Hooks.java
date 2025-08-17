@@ -9,8 +9,9 @@ import net.logstash.logback.argument.StructuredArguments;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-import solutions.bjjeire.api.services.EventService;
-import solutions.bjjeire.api.services.GymService;
+import solutions.bjjeire.api.endpoints.BjjEventEndpoints;
+import solutions.bjjeire.api.endpoints.GymEndpoints;
+import solutions.bjjeire.api.services.ApiService;
 import solutions.bjjeire.core.data.events.BjjEvent;
 import solutions.bjjeire.core.data.gyms.Gym;
 import solutions.bjjeire.cucumber.context.TestContext;
@@ -22,8 +23,7 @@ import java.util.concurrent.TimeUnit;
 public class Hooks {
 
     private final TestContext testContext;
-    private final EventService eventService;
-    private final GymService gymService;
+    private final ApiService apiService;
     private final ObjectMapper objectMapper;
 
     private static final Logger logger = LoggerFactory.getLogger(Hooks.class);
@@ -98,22 +98,20 @@ public class Hooks {
     private void cleanupEntity(Object entity) {
         try {
             if (entity instanceof BjjEvent event) {
-                eventService.deleteEvent(testContext.getAuthToken(), event.id());
+                apiService.delete(testContext.getAuthToken(), BjjEventEndpoints.bjjEventById(event.id())).block();
                 logger.debug("Cleaned up BjjEvent",
                         StructuredArguments.kv("eventType", "resource_cleanup_success"),
-                        StructuredArguments.kv("entity_type", "BjjEvent"),
                         StructuredArguments.kv("entity_id", event.id()));
             } else if (entity instanceof Gym gym) {
-                gymService.deleteGym(testContext.getAuthToken(), gym.id());
+                apiService.delete(testContext.getAuthToken(), GymEndpoints.gymById(gym.id())).block();
                 logger.debug("Cleaned up Gym",
                         StructuredArguments.kv("eventType", "resource_cleanup_success"),
-                        StructuredArguments.kv("entity_type", "Gym"),
                         StructuredArguments.kv("entity_id", gym.id()));
             }
         } catch (Exception e) {
             logger.error("Error during cleanup for entity",
                     StructuredArguments.kv("eventType", "resource_cleanup_failure"),
-                    StructuredArguments.kv("entity", entity.toString()),
+                    StructuredArguments.kv("entity_type", entity.getClass().getSimpleName()),
                     e);
         }
     }

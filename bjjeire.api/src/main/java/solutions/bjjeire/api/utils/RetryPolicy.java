@@ -14,7 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.logstash.logback.argument.StructuredArguments;
 import reactor.util.retry.Retry;
-import solutions.bjjeire.api.configuration.ApiSettings;
+import solutions.bjjeire.api.config.ApiSettings;
 
 @Slf4j
 @Component

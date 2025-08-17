@@ -1,0 +1,4 @@
+users:
+  admin:
+    userId: "admin-user@example.com"
+    role: "Admin"
