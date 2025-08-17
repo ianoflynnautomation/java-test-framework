@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.logstash.logback.argument.StructuredArguments;
 import reactor.util.retry.Retry;
 import solutions.bjjeire.api.config.ApiSettings;
+import solutions.bjjeire.api.exceptions.ApiException;
 
 @Slf4j
 @Component
@@ -53,15 +54,20 @@ public class RetryPolicy {
     }
 
     private boolean isRetryableException(Throwable throwable) {
+        if (throwable instanceof ApiException) {
+            return false;
+        }
+
         if (throwable instanceof WebClientRequestException) {
             Throwable cause = throwable.getCause();
             return cause instanceof SocketTimeoutException ||
                     cause instanceof UnknownHostException || cause instanceof IOException;
         }
-        if (throwable instanceof WebClientResponseException) {
-            int statusCode = ((WebClientResponseException) throwable).getStatusCode().value();
+        if (throwable instanceof WebClientResponseException webClientResponseException) {
+            int statusCode = webClientResponseException.getStatusCode().value();
             return statusCode == 429 || (statusCode >= 500 && statusCode < 600);
         }
+
         return false;
     }
 

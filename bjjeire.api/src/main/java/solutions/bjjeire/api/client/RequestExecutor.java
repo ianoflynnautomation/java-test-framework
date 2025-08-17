@@ -10,6 +10,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import solutions.bjjeire.api.exceptions.ApiRequestException;
 import solutions.bjjeire.api.utils.RetryPolicy;
 import solutions.bjjeire.api.validation.ApiResponse;
 
@@ -34,8 +35,7 @@ public class RequestExecutor {
                                 Duration.ofNanos(System.nanoTime() - startTime),
                                 objectMapper,
                                 request.getPath())))
-                .doOnSuccess(response -> logApiInteraction(request, response,
-                        Duration.ofNanos(System.nanoTime() - startTime)))
+                .doOnSuccess(this::logApiInteraction)
                 .doOnError(error -> logApiFailure(request, error))
                 .retryWhen(retryPolicy.getRetrySpec(request.getPath(), request.getMethod()));
     }
@@ -67,14 +67,16 @@ public class RequestExecutor {
 
         if (MediaType.MULTIPART_FORM_DATA.isCompatibleWith(contentType)) {
             if (!(body instanceof MultiValueMap)) {
-                throw new IllegalArgumentException("For MULTIPART_FORM_DATA, the body must be a MultiValueMap.");
+
+                throw new ApiRequestException("For MULTIPART_FORM_DATA, the body must be a MultiValueMap.");
             }
             return requestBodySpec.body(BodyInserters.fromMultipartData((MultiValueMap<String, ?>) body));
         }
 
         if (MediaType.APPLICATION_FORM_URLENCODED.isCompatibleWith(contentType)) {
             if (!(body instanceof MultiValueMap)) {
-                throw new IllegalArgumentException(
+
+                throw new ApiRequestException(
                         "For APPLICATION_FORM_URLENCODED, the body must be a MultiValueMap.");
             }
             return requestBodySpec.body(BodyInserters.fromFormData((MultiValueMap<String, String>) body));
@@ -83,15 +85,13 @@ public class RequestExecutor {
         return requestBodySpec.contentType(contentType).bodyValue(body);
     }
 
-    private void logApiInteraction(ApiRequestBuilder request, ApiResponse response, Duration duration) {
+    private void logApiInteraction(ApiResponse response) {
         log.info("API Interaction",
                 StructuredArguments.kv("eventType", "api_interaction"),
-                StructuredArguments.kv("http_method", request.getMethod().name()),
-                StructuredArguments.kv("url", request.getPath()),
-                StructuredArguments.kv("request_body", safeSerializeBody(request.getBody())),
+                StructuredArguments.kv("url", response.getRequestPath()),
                 StructuredArguments.kv("response_status_code", response.getStatusCode()),
                 StructuredArguments.kv("response_body", truncateBody(response.getBodyAsString(), 1000)),
-                StructuredArguments.kv("duration_ms", duration.toMillis()));
+                StructuredArguments.kv("duration_ms", response.getExecutionTime().toMillis()));
     }
 
     private void logApiFailure(ApiRequestBuilder request, Throwable error) {
@@ -101,17 +101,6 @@ public class RequestExecutor {
                 StructuredArguments.kv("method", request.getMethod().name()),
                 StructuredArguments.kv("error", error.getMessage()),
                 error);
-    }
-
-    private Object safeSerializeBody(Object body) {
-        if (body == null)
-            return null;
-        try {
-            return objectMapper.convertValue(body, Object.class);
-        } catch (Exception e) {
-            log.warn("Failed to serialize request body for logging", StructuredArguments.kv("error", e.getMessage()));
-            return "unserializable_body";
-        }
     }
 
     private String truncateBody(String body, int maxLength) {

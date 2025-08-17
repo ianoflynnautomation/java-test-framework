@@ -1,4 +1,4 @@
-package solutions.bjjeire.api.models;
+package solutions.bjjeire.api.exceptions;
 
 import java.io.IOException;
 

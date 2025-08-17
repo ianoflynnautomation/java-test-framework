@@ -1,18 +1,19 @@
 package solutions.bjjeire.api.services;
 
-import lombok.RequiredArgsConstructor;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.springframework.stereotype.Service;
+
+import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 import solutions.bjjeire.api.client.ApiRequestBuilder;
 import solutions.bjjeire.api.client.Client;
 import solutions.bjjeire.api.config.TestUsersConfig;
 import solutions.bjjeire.api.endpoints.AuthEndpoints;
-import solutions.bjjeire.api.models.AuthenticationFailedException;
+import solutions.bjjeire.api.exceptions.AuthenticationFailedException;
 import solutions.bjjeire.api.validation.ApiResponse;
 import solutions.bjjeire.core.data.common.GenerateTokenResponse;
-
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
@@ -22,7 +23,6 @@ public class AuthService {
     private final TestUsersConfig testUsersConfig;
 
     private final Map<String, Mono<String>> cachedUserTokens = new ConcurrentHashMap<>();
-
 
     public Mono<String> getTokenFor(String userKey) {
         return cachedUserTokens.computeIfAbsent(userKey, this::authenticate);
@@ -42,7 +42,6 @@ public class AuthService {
                     return Mono.just(response.as(GenerateTokenResponse.class).token());
                 });
     }
-
 
     public Mono<ApiResponse> authenticateWithCredentials(String userId, String role) {
         ApiRequestBuilder request = ApiRequestBuilder.builder().get(AuthEndpoints.GENERATE_TOKEN)

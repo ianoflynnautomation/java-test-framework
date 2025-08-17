@@ -1,4 +1,4 @@
-package solutions.bjjeire.api.models;
+package solutions.bjjeire.api.exceptions;
 
 public class AuthenticationFailedException extends RuntimeException {
 

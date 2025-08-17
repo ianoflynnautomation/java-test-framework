@@ -8,7 +8,7 @@ import com.networknt.schema.JsonSchemaFactory;
 import com.networknt.schema.SpecVersion;
 import com.networknt.schema.ValidationMessage;
 import lombok.RequiredArgsConstructor;
-import solutions.bjjeire.api.models.ApiAssertionException;
+import solutions.bjjeire.api.exceptions.ApiAssertionException;
 import solutions.bjjeire.api.models.errors.ValidationErrorResponse;
 
 import java.io.InputStream;
@@ -26,7 +26,7 @@ public class ResponseValidator {
 
     public ResponseValidator statusCode(int expectedStatusCode) {
         return executeAssertion(() -> assertThat(response.getStatusCode())
-                .withFailMessage("Expected status code <%d> but was <%d>.", expectedStatusCode,
+                .withFailMessage("Expected status code <%d> but was <%d>", expectedStatusCode,
                         response.getStatusCode())
                 .isEqualTo(expectedStatusCode));
     }
@@ -35,38 +35,44 @@ public class ResponseValidator {
         return executeAssertion(() -> {
             String body = getAndValidateBody();
             assertThat(body)
-                    .withFailMessage("Response content did not contain the expected substring '%s'.", expectedSubstring)
+                    .withFailMessage("Response content did not contain the expected substring '%s'", expectedSubstring)
                     .contains(expectedSubstring);
         });
     }
 
     public ResponseValidator executionTimeUnder(Duration maxDuration) {
         return executeAssertion(() -> assertThat(response.getExecutionTime())
-                .withFailMessage("Request execution time %s was over the expected max of %s.",
+                .withFailMessage("Request execution time <%s> was not less than or equal to <%s>",
                         response.getExecutionTime(), maxDuration)
                 .isLessThanOrEqualTo(maxDuration));
     }
 
     public ResponseValidator matchesJsonSchemaInClasspath(String schemaPath) {
         try (InputStream schemaStream = getClass().getClassLoader().getResourceAsStream(schemaPath)) {
-            assertThat(schemaStream)
-                    .withFailMessage("Schema file not found in classpath: %s", schemaPath)
-                    .isNotNull();
+            if (schemaStream == null) {
+                throw new ApiAssertionException(
+                        String.format("Schema file not found in classpath: %s", schemaPath),
+                        response.getRequestPath(),
+                        "Schema validation could not be performed.");
+            }
 
             JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7);
             JsonSchema schema = factory.getSchema(schemaStream);
-            JsonNode jsonNode = response.as(JsonNode.class);
+            JsonNode jsonNode = response.asJsonNode();
 
             Set<ValidationMessage> errors = schema.validate(jsonNode);
-            assertThat(errors)
-                    .withFailMessage(() -> "JSON schema validation failed with errors:\n- " +
-                            errors.stream().map(ValidationMessage::getMessage).collect(Collectors.joining("\n- ")))
-                    .isEmpty();
+
+            if (!errors.isEmpty()) {
+                String validationErrors = errors.stream()
+                        .map(ValidationMessage::getMessage)
+                        .collect(Collectors.joining("\n- ", "\n- ", ""));
+                throw new AssertionError("JSON schema validation failed with errors:" + validationErrors);
+            }
 
             return this;
         } catch (Exception e) {
-            throw new ApiAssertionException("Failed during JSON schema validation.", response.getRequestPath(),
-                    response.getBodyAsString(), e);
+            throw new ApiAssertionException("An unexpected error occurred during JSON schema validation.",
+                    response.getRequestPath(), response.getBodyAsString(), e);
         }
     }
 
@@ -86,7 +92,8 @@ public class ResponseValidator {
             try {
                 Object actualValue = JsonPath.read(body, jsonPathExpression);
                 assertThat(actualValue)
-                        .withFailMessage("JSONPath '%s' assertion failed.", jsonPathExpression)
+                        .withFailMessage("JSONPath '%s' assertion failed. Expected <%s> but was <%s>.",
+                                jsonPathExpression, expectedValue, actualValue)
                         .isEqualTo(expectedValue);
             } catch (PathNotFoundException e) {
                 throw new AssertionError(
@@ -102,10 +109,28 @@ public class ResponseValidator {
         });
     }
 
+    public ResponseValidator hasHeader(String headerName) {
+        return executeAssertion(() -> assertThat(response.getHeaders().containsKey(headerName))
+                .withFailMessage("Expected header '%s' to be present, but it was not found.", headerName)
+                .isTrue());
+    }
+
+    public ResponseValidator header(String headerName, String expectedValue) {
+        return executeAssertion(() -> {
+            hasHeader(headerName);
+            assertThat(response.header(headerName))
+                    .withFailMessage("Expected header '%s' to have value '%s', but was '%s'.",
+                            headerName, expectedValue, response.header(headerName))
+                    .isEqualTo(expectedValue);
+        });
+    }
+
     private String getAndValidateBody() {
         String body = response.getBodyAsString();
-        assertThat(body).withFailMessage("Cannot perform assertion on an empty response body.").isNotNull()
-                .isNotBlank();
+        if (body == null || body.isBlank()) {
+            throw new ApiAssertionException("Cannot perform assertion because the response body is empty.",
+                    response.getRequestPath(), body);
+        }
         return body;
     }
 
@@ -114,7 +139,7 @@ public class ResponseValidator {
             assertion.run();
             return this;
         } catch (AssertionError e) {
-            throw new ApiAssertionException("Custom body assertion failed: " + e.getMessage(),
+            throw new ApiAssertionException(e.getMessage(),
                     response.getRequestPath(), response.getBodyAsString(), e);
         }
     }
