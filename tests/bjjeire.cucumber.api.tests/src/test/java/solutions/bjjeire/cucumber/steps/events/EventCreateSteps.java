@@ -1,13 +1,16 @@
 package solutions.bjjeire.cucumber.steps.events;
 
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import solutions.bjjeire.api.auth.BearerTokenAuth;
-import solutions.bjjeire.api.endpoints.BjjEventEndpoints;
-import solutions.bjjeire.api.services.ApiService;
+import solutions.bjjeire.api.client.BjjEventsApiClient;
 import solutions.bjjeire.api.validation.ApiResponse;
 import solutions.bjjeire.core.data.events.BjjEvent;
 import solutions.bjjeire.core.data.events.BjjEventFactory;
@@ -15,14 +18,13 @@ import solutions.bjjeire.core.data.events.CreateBjjEventCommand;
 import solutions.bjjeire.core.data.events.CreateBjjEventResponse;
 import solutions.bjjeire.cucumber.context.TestContext;
 
-import java.util.Map;
-
 @Slf4j
 @RequiredArgsConstructor
 public class EventCreateSteps {
 
     private final TestContext testContext;
-    private final ApiService apiService;
+    @Autowired
+    private BjjEventsApiClient eventsApiClient;
 
     @Given("a new event has been prepared")
     public void aNewEventHasBeenPrepared() {
@@ -39,7 +41,8 @@ public class EventCreateSteps {
     @When("the Admin adds the new event")
     public void adminAddsTheNewEvent() {
         CreateBjjEventCommand command = (CreateBjjEventCommand) testContext.getRequestPayload();
-        ApiResponse response = apiService.post(new BearerTokenAuth(testContext.getAuthToken()), BjjEventEndpoints.BJJ_EVENTS, command).block();
+        ApiResponse response = eventsApiClient.createEvent(new BearerTokenAuth(testContext.getAuthToken()), command)
+                .block();
         testContext.setLastResponse(response);
 
         if (response.getStatusCode() == 201) {
@@ -50,9 +53,8 @@ public class EventCreateSteps {
 
     @When("the Admin attempts to add the new event")
     public void adminAttemptsToCreateTheBjjEvent() {
-        ApiResponse response = apiService.post(
+        ApiResponse response = eventsApiClient.createEventWithInvalidPayload(
                 new BearerTokenAuth(testContext.getAuthToken()),
-                BjjEventEndpoints.BJJ_EVENTS,
                 testContext.getRequestPayload()).block();
         testContext.setLastResponse(response);
     }

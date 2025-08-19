@@ -17,7 +17,7 @@
         <!-- Internal Modules -->
         <dependency>
             <groupId>solutions.bjjeire</groupId>
-            <artifactId>bjjeire.core</artifactId>
+            <artifactId>bjjeire.api</artifactId>
         </dependency>
 
         <!-- Provided -->

@@ -3,19 +3,20 @@ package solutions.bjjeire.selenium.web.configuration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import solutions.bjjeire.api.config.ApiSettings;
 
 @Configuration
 @ComponentScan(basePackages = {
         "solutions.bjjeire.selenium.web",
         "solutions.bjjeire.core",
-        "solutions.bjjeire.cucumber"
+        "solutions.bjjeire.cucumber",
+        "solutions.bjjeire.api"
 })
-@EnableConfigurationProperties({ WebSettings.class, UrlSettings.class, ApiSettings.class })
-@Import(WebClientConfig.class)
+@EnableConfigurationProperties({
+        WebSettings.class,
+        UrlSettings.class,
+        ApiSettings.class,
+       // TestUsersConfig.class
+})
 public class SeleniumConfig {
-
-
-
 }
-    

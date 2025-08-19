@@ -1,96 +1,44 @@
+
 package solutions.bjjeire.selenium.web.data;
 
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.logstash.logback.argument.StructuredArguments;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import solutions.bjjeire.core.data.common.GenerateTokenResponse;
-import solutions.bjjeire.selenium.web.configuration.ApiSettings;
-import solutions.bjjeire.selenium.web.data.strategy.EntityApiStrategy;
+import solutions.bjjeire.api.auth.BearerTokenAuth;
+import solutions.bjjeire.api.client.BjjEventsApiClient;
+import solutions.bjjeire.api.client.GymsApiClient;
+import solutions.bjjeire.api.services.AuthService;
+import solutions.bjjeire.core.data.events.BjjEvent;
+import solutions.bjjeire.core.data.events.CreateBjjEventCommand;
+import solutions.bjjeire.core.data.events.CreateBjjEventResponse;
+import solutions.bjjeire.core.data.gyms.CreateGymCommand;
+import solutions.bjjeire.core.data.gyms.CreateGymResponse;
+import solutions.bjjeire.core.data.gyms.Gym;
 
 @Service
 @Slf4j
 @Primary
 @Profile("development")
+@RequiredArgsConstructor
 public class ApiTestDataManager implements TestDataManager {
 
-    private final ApiSettings apiSettings;
-    private final Duration apiTimeout;
-    private final GenericApiClient apiClient;
-    private final ObjectMapper objectMapper;
-    private final WebClient webClient;
-    private final Map<Class<?>, EntityApiStrategy<?, ?, ?>> strategies;
-
-    public ApiTestDataManager(
-            ApiSettings apiSettings,
-            GenericApiClient apiClient,
-            ObjectMapper objectMapper,
-            WebClient webClient,
-            List<EntityApiStrategy<?, ?, ?>> strategyList) {
-        this.apiSettings = apiSettings;
-        this.apiClient = apiClient;
-        this.objectMapper = objectMapper;
-        this.webClient = webClient;
-        this.apiTimeout = Duration.ofSeconds(apiSettings.getTimeoutSeconds());
-        this.strategies = strategyList.stream()
-                .collect(Collectors.toMap(EntityApiStrategy::getEntityType, Function.identity()));
-        log.info("ApiTestDataManager initialized",
-                StructuredArguments.keyValue("eventName", "apiTestDataManagerInit"),
-                StructuredArguments.keyValue("strategyCount", strategies.size()));
-    }
+    private final AuthService authService;
+    private final BjjEventsApiClient eventsApiClient;
+    private final GymsApiClient gymsApiClient;
 
     @Override
     public String authenticate() {
-        var adminUser = apiSettings.getAdmin();
-        log.info("Authenticating user for API access",
-                StructuredArguments.keyValue("eventName", "apiAuthenticationStart"),
-                StructuredArguments.keyValue("user", adminUser.getUser()));
-
-        return webClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path("/generate-token")
-                        .queryParam("userId", adminUser.getUser())
-                        .queryParam("role", adminUser.getRole())
-                        .build())
-                .retrieve()
-                .onStatus(status -> !status.is2xxSuccessful(), response -> response.bodyToMono(String.class)
-                        .flatMap(body -> {
-                            log.error("API Authentication failed",
-                                    StructuredArguments.keyValue("eventName", "apiAuthenticationFailed"),
-                                    StructuredArguments.keyValue("httpStatus", response.statusCode().value()),
-                                    StructuredArguments.keyValue("responseBody", body));
-                            return Mono.error(new IllegalStateException(
-                                    "Could not authenticate due to HTTP error: " + response.statusCode()));
-                        }))
-                .bodyToMono(GenerateTokenResponse.class)
-                .map(response -> {
-                    if (response != null && response.token() != null) {
-                        log.debug("Successfully acquired auth token",
-                                StructuredArguments.keyValue("eventName", "apiAuthenticationSuccess"));
-                        return response.token();
-                    } else {
-                        log.error("API Authentication failed, response body or token was null",
-                                StructuredArguments.keyValue("eventName", "apiAuthenticationFailed"),
-                                StructuredArguments.keyValue("reason", "Null response or token"));
-                        throw new IllegalStateException("Authentication failed. Response body or token was null.");
-                    }
-                })
-                .block(apiTimeout);
+        log.info("Authenticating user for UI test data setup via API framework");
+        return authService.getTokenFor("admin").block(Duration.ofSeconds(10));
     }
 
     @Override
@@ -99,17 +47,26 @@ public class ApiTestDataManager implements TestDataManager {
             return Collections.emptyList();
         }
 
-        validateAuthToken(authToken);
-        Class<?> entityType = entities.get(0).getClass();
-        log.info("Seeding entities via API",
-                StructuredArguments.keyValue("eventName", "apiSeedStart"),
-                StructuredArguments.keyValue("entityType", entityType.getSimpleName()),
-                StructuredArguments.keyValue("count", entities.size()));
+        log.info("Seeding {} entities for UI test", entities.size(),
+                StructuredArguments.keyValue("entityType", entities.get(0).getClass().getSimpleName()));
+
+        BearerTokenAuth auth = new BearerTokenAuth(authToken);
 
         return Flux.fromIterable(entities)
-                .flatMap(entity -> seedSingleEntity(entity, authToken))
+                .flatMap(entity -> {
+                    if (entity instanceof BjjEvent event) {
+                        return eventsApiClient.createEvent(auth, new CreateBjjEventCommand(event))
+                                .map(response -> response.as(CreateBjjEventResponse.class).data().id());
+                    }
+                    if (entity instanceof Gym gym) {
+                        return gymsApiClient.createGym(auth, new CreateGymCommand(gym))
+                                .map(response -> response.as(CreateGymResponse.class).data().id());
+                    }
+                    return Flux.error(
+                            new IllegalArgumentException("Unsupported entity type for seeding: " + entity.getClass()));
+                })
                 .collectList()
-                .block(apiTimeout);
+                .block(Duration.ofSeconds(30));
     }
 
     @Override
@@ -118,80 +75,24 @@ public class ApiTestDataManager implements TestDataManager {
             return;
         }
 
-        EntityApiStrategy<?, ?, ?> strategy = getStrategyForType(entityType);
-        log.info("Cleaning up entities via API",
-                StructuredArguments.keyValue("eventName", "apiTeardownStart"),
-                StructuredArguments.keyValue("entityType", entityType.getSimpleName()),
-                StructuredArguments.keyValue("count", ids.size()));
-
-        Flux.fromIterable(ids)
-                .flatMap(id -> apiClient.delete(strategy.getApiPath() + "/", id, authToken))
-                .then()
-                .block(apiTimeout);
-
-        log.info("API data cleanup complete",
-                StructuredArguments.keyValue("eventName", "apiTeardownSuccess"),
+        log.info("Tearing down {} entities for UI test", ids.size(),
                 StructuredArguments.keyValue("entityType", entityType.getSimpleName()));
-    }
 
-    @SuppressWarnings("unchecked")
-    private <T> Mono<String> seedSingleEntity(T entity, String authToken) {
-        EntityApiStrategy<T, ?, ?> strategy = (EntityApiStrategy<T, ?, ?>) getStrategyForType(entity.getClass());
-        return doSeed(entity, authToken, strategy);
-    }
+        BearerTokenAuth auth = new BearerTokenAuth(authToken);
 
-    private <T_ENTITY, T_COMMAND, T_RESPONSE> Mono<String> doSeed(
-            T_ENTITY entity,
-            String authToken,
-            EntityApiStrategy<T_ENTITY, T_COMMAND, T_RESPONSE> strategy) {
-        T_COMMAND command = strategy.createCommand(entity);
-        logJsonRequest(strategy.getApiPath(), command);
+        var teardownFlux = Flux.fromIterable(ids)
+                .flatMap(id -> {
+                    if (BjjEvent.class.equals(entityType)) {
+                        return eventsApiClient.deleteEvent(auth, id);
+                    }
+                    if (Gym.class.equals(entityType)) {
+                        return gymsApiClient.deleteGym(auth, id);
+                    }
+                    return Flux
+                            .error(new IllegalArgumentException("Unsupported entity type for teardown: " + entityType));
+                });
 
-        return apiClient.post(
-                strategy.getApiPath(),
-                command,
-                authToken,
-                strategy.getResponseClass())
-                .map(strategy::getIdFromResponse)
-                .doOnSuccess(id -> log.debug("Successfully created entity",
-                        StructuredArguments.keyValue("eventName", "apiEntityCreated"),
-                        StructuredArguments.keyValue("entityType", strategy.getEntityType().getSimpleName()),
-                        StructuredArguments.keyValue("entityName", strategy.getEntityName(entity)),
-                        StructuredArguments.keyValue("entityId", id)));
-    }
-
-    private EntityApiStrategy<?, ?, ?> getStrategyForType(Class<?> entityType) {
-        EntityApiStrategy<?, ?, ?> strategy = strategies.get(entityType);
-        if (strategy == null) {
-            log.error("No data management strategy found for entity type",
-                    StructuredArguments.keyValue("eventName", "apiStrategyNotFound"),
-                    StructuredArguments.keyValue("entityType", entityType.getName()));
-            throw new IllegalArgumentException("No data management strategy found for type: " + entityType.getName());
-        }
-        return strategy;
-    }
-
-    private void validateAuthToken(String authToken) {
-        if (authToken == null || authToken.isBlank()) {
-            log.error("Authentication token was null or blank for an API operation",
-                    StructuredArguments.keyValue("eventName", "apiAuthTokenInvalid"));
-            throw new IllegalArgumentException("Authentication token must be provided for API operations.");
-        }
-    }
-
-    private void logJsonRequest(String url, Object command) {
-        if (log.isDebugEnabled()) {
-            try {
-                String jsonBody = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(command);
-                log.debug("Attempting API POST request",
-                        StructuredArguments.keyValue("eventName", "apiPostAttempt"),
-                        StructuredArguments.keyValue("url", url),
-                        StructuredArguments.keyValue("requestBody", jsonBody));
-            } catch (JsonProcessingException e) {
-                log.warn("Could not serialize request body to JSON for logging",
-                        StructuredArguments.keyValue("eventName", "jsonSerializationFailed"),
-                        e);
-            }
-        }
+        teardownFlux.then().block(Duration.ofSeconds(30));
+        log.info("Teardown complete for {}", entityType.getSimpleName());
     }
 }

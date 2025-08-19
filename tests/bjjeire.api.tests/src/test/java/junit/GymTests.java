@@ -10,9 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import lombok.RequiredArgsConstructor;
 import solutions.bjjeire.api.auth.BearerTokenAuth;
-import solutions.bjjeire.api.endpoints.GymEndpoints;
+import solutions.bjjeire.api.client.GymsApiClient;
 import solutions.bjjeire.api.infrastructure.junit.ApiTestBase;
-import solutions.bjjeire.api.services.ApiService;
 import solutions.bjjeire.api.services.AuthService;
 import solutions.bjjeire.api.validation.ApiResponse;
 import solutions.bjjeire.core.data.gyms.CreateGymCommand;
@@ -24,10 +23,8 @@ import solutions.bjjeire.core.data.gyms.GymFactory;
 @RequiredArgsConstructor
 class GymTests extends ApiTestBase {
 
-    @Autowired
-    private ApiService apiService;
-    @Autowired
-    private AuthService authService;
+    @Autowired private GymsApiClient gymsApiClient;
+    @Autowired private AuthService authService;
     private String authToken;
 
     @BeforeEach
@@ -47,7 +44,7 @@ class GymTests extends ApiTestBase {
             CreateGymCommand command = new CreateGymCommand(gymToCreate);
 
             // Act
-            ApiResponse apiResponse = apiService.post(new BearerTokenAuth(authToken), GymEndpoints.GYMS, command).block();
+            ApiResponse apiResponse = gymsApiClient.createGym(new BearerTokenAuth(authToken), command).block();
 
             // Assert
             apiResponse.should().isCreated()
@@ -59,8 +56,7 @@ class GymTests extends ApiTestBase {
                                 .ignoringFields("id")
                                 .isEqualTo(gymToCreate);
 
-                        registerForCleanup(() -> apiService
-                                .delete(new BearerTokenAuth(authToken), GymEndpoints.gymById(responseBody.data().id())).block());
+                        registerForCleanup(() -> gymsApiClient.deleteGym(new BearerTokenAuth(authToken), responseBody.data().id()).block());
                     });
         }
     }

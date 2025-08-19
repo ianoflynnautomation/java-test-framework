@@ -16,9 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import lombok.RequiredArgsConstructor;
 import solutions.bjjeire.api.auth.BearerTokenAuth;
-import solutions.bjjeire.api.endpoints.BjjEventEndpoints;
+import solutions.bjjeire.api.client.BjjEventsApiClient;
 import solutions.bjjeire.api.infrastructure.junit.ApiTestBase;
-import solutions.bjjeire.api.services.ApiService;
 import solutions.bjjeire.api.services.AuthService;
 import solutions.bjjeire.api.validation.ApiResponse;
 import solutions.bjjeire.core.data.events.BjjEvent;
@@ -31,10 +30,8 @@ import solutions.bjjeire.core.data.events.CreateBjjEventResponse;
 @DisplayName("BJJ Events API")
 public class EventsTests extends ApiTestBase {
 
-    @Autowired
-    private ApiService apiService;
-    @Autowired
-    private AuthService authService;
+    @Autowired private BjjEventsApiClient eventsApiClient;
+    @Autowired private AuthService authService;
 
     private String authToken;
 
@@ -55,7 +52,7 @@ public class EventsTests extends ApiTestBase {
             CreateBjjEventCommand command = new CreateBjjEventCommand(eventToCreate);
 
             // Act
-            ApiResponse apiResponse = apiService.post(new BearerTokenAuth(authToken), BjjEventEndpoints.BJJ_EVENTS, command).block();
+            ApiResponse apiResponse = eventsApiClient.createEvent(new BearerTokenAuth(authToken), command).block();
 
             // Assert
             apiResponse.should().isCreated()
@@ -70,8 +67,7 @@ public class EventsTests extends ApiTestBase {
                                 .ignoringFields("id", "createdOnUtc", "updatedOnUtc")
                                 .isEqualTo(eventToCreate);
 
-                        registerForCleanup(() -> apiService
-                                .delete(new BearerTokenAuth(authToken), BjjEventEndpoints.bjjEventById(responseBody.data().id())).block());
+                        registerForCleanup(() -> eventsApiClient.deleteEvent(new BearerTokenAuth(authToken), responseBody.data().id()).block());
                     });
         }
 
@@ -86,7 +82,7 @@ public class EventsTests extends ApiTestBase {
             Object invalidPayload = BjjEventFactory.createPayloadWithInvalidDetails(Map.of(field, invalidValue));
 
             // Act
-            ApiResponse apiResponse = apiService.post(new BearerTokenAuth(authToken), BjjEventEndpoints.BJJ_EVENTS, invalidPayload).block();
+            ApiResponse apiResponse = eventsApiClient.createEventWithInvalidPayload(new BearerTokenAuth(authToken), invalidPayload).block();
 
             // Assert
             apiResponse.should().isBadRequest()

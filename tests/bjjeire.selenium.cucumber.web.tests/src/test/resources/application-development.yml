@@ -1,3 +1,9 @@
+spring:
+  application:
+    name: api-ui-framework
+  config:
+    import: "classpath:test-users.yml"
+
 troubleshooting-settings:
   debug-information-enabled: true
 
@@ -47,12 +53,20 @@ web-settings:
       arguments:
         - name: "bjjeire_run"
 
-api:
-  backend-url: "http://localhost:5003"
-  buffer-size-mb: 16
-  timeout-seconds: 30
+api-settings:
+  baseUrl: http://localhost:5003
+  connectTimeoutMillis: 5000
+  responseTimeoutMillis: 10000
+  maxRetryAttempts: 3
+  pauseBetweenFailuresMillis: 1000
+  sensitiveFields:
+    - password
+    - token
+  environment: development
+
+users:
   admin:
-    user: "dev-user@example.com"
+    userId: "dev-user@example.com"
     role: "Admin"
 
 url-settings:

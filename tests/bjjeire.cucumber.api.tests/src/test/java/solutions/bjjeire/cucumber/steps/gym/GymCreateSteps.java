@@ -6,9 +6,9 @@ import lombok.extern.slf4j.Slf4j;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import org.springframework.beans.factory.annotation.Autowired;
 import solutions.bjjeire.api.auth.BearerTokenAuth;
-import solutions.bjjeire.api.endpoints.GymEndpoints;
-import solutions.bjjeire.api.services.ApiService;
+import solutions.bjjeire.api.client.GymsApiClient;
 import solutions.bjjeire.api.validation.ApiResponse;
 import solutions.bjjeire.core.data.gyms.CreateGymCommand;
 import solutions.bjjeire.core.data.gyms.CreateGymResponse;
@@ -21,7 +21,7 @@ import solutions.bjjeire.cucumber.context.TestContext;
 public class GymCreateSteps {
 
     private final TestContext testContext;
-    private final ApiService apiService;
+    @Autowired private GymsApiClient gymsApiClient;
 
 
     @Given("a new BJJ gym has been prepared")
@@ -32,7 +32,7 @@ public class GymCreateSteps {
     @When("the Admin adds the new BJJ gym")
     public void adminAddsTheNewGym() {
         CreateGymCommand command = (CreateGymCommand) testContext.getRequestPayload();
-        ApiResponse response = apiService.post(new BearerTokenAuth(testContext.getAuthToken()), GymEndpoints.GYMS, command).block();
+        ApiResponse response = gymsApiClient.createGym(new BearerTokenAuth(testContext.getAuthToken()), command).block();
         testContext.setLastResponse(response);
 
         if (response.getStatusCode() == 201) {

@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 import solutions.bjjeire.api.client.ApiRequestBuilder;
 import solutions.bjjeire.api.client.Client;
+import solutions.bjjeire.api.client.RequestExecutor;
 import solutions.bjjeire.api.config.TestUsersConfig;
 import solutions.bjjeire.api.endpoints.AuthEndpoints;
 import solutions.bjjeire.api.exceptions.AuthenticationFailedException;
@@ -19,7 +20,7 @@ import solutions.bjjeire.core.data.common.GenerateTokenResponse;
 @RequiredArgsConstructor
 public class AuthService {
 
-    private final Client httpClient;
+    private final RequestExecutor requestExecutor;
     private final TestUsersConfig testUsersConfig;
 
     private final Map<String, Mono<String>> cachedUserTokens = new ConcurrentHashMap<>();
@@ -47,6 +48,6 @@ public class AuthService {
         ApiRequestBuilder request = ApiRequestBuilder.builder().get(AuthEndpoints.GENERATE_TOKEN)
                 .queryParams(Map.of("userId", userId, "role", role))
                 .build();
-        return httpClient.execute(request);
+        return requestExecutor.execute(request);
     }
 }

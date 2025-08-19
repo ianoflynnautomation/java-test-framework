@@ -1,29 +1,42 @@
 package solutions.bjjeire.cucumber.hooks;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
 import io.cucumber.java.Scenario;
 import lombok.RequiredArgsConstructor;
 import net.logstash.logback.argument.StructuredArguments;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
+import solutions.bjjeire.api.auth.BearerTokenAuth;
+import solutions.bjjeire.api.client.BjjEventsApiClient;
+import solutions.bjjeire.api.client.GymsApiClient;
 import solutions.bjjeire.api.endpoints.BjjEventEndpoints;
 import solutions.bjjeire.api.endpoints.GymEndpoints;
-import solutions.bjjeire.api.services.ApiService;
 import solutions.bjjeire.core.data.events.BjjEvent;
 import solutions.bjjeire.core.data.gyms.Gym;
 import solutions.bjjeire.cucumber.context.TestContext;
-
-import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 @RequiredArgsConstructor
 public class Hooks {
 
     private final TestContext testContext;
-    private final ApiService apiService;
+    @Autowired
+    private BjjEventsApiClient eventsApiClient;
+    @Autowired
+    private GymsApiClient gymsApiClient;
     private final ObjectMapper objectMapper;
 
     private static final Logger logger = LoggerFactory.getLogger(Hooks.class);
@@ -98,12 +111,14 @@ public class Hooks {
     private void cleanupEntity(Object entity) {
         try {
             if (entity instanceof BjjEvent event) {
-                apiService.delete(testContext.getAuthToken(), BjjEventEndpoints.bjjEventById(event.id())).block();
+                eventsApiClient.deleteEvent(new BearerTokenAuth(testContext.getAuthToken()),
+                        BjjEventEndpoints.bjjEventById(event.id())).block();
                 logger.debug("Cleaned up BjjEvent",
                         StructuredArguments.kv("eventType", "resource_cleanup_success"),
                         StructuredArguments.kv("entity_id", event.id()));
             } else if (entity instanceof Gym gym) {
-                apiService.delete(testContext.getAuthToken(), GymEndpoints.gymById(gym.id())).block();
+                gymsApiClient.deleteGym(new BearerTokenAuth(testContext.getAuthToken()), GymEndpoints.gymById(gym.id()))
+                        .block();
                 logger.debug("Cleaned up Gym",
                         StructuredArguments.kv("eventType", "resource_cleanup_success"),
                         StructuredArguments.kv("entity_id", gym.id()));
