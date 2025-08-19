@@ -1,8 +1,8 @@
-# BJJ Test Automation Framework
+# Java UI and Api Test Automation Framework
 
 ## Introduction
 
-The BJJ Test Automation Framework is a comprehensive, enterprise-grade testing solution built with Java that supports both API and UI testing using both BDD (Cucumber) and traditional JUnit approaches. This framework is designed to provide robust, scalable, and maintainable test automation for a BJJ (Brazilian Jiu-Jitsu) application.
+The Java Test Automation Framework built with Java that supports both API and UI testing using both BDD (Cucumber) and traditional JUnit approaches. This framework is designed to provide robust, scalable, and maintainable test automation for a BJJ (Brazilian Jiu-Jitsu) application.
 
 **Key Technologies:**
 - **Java 17** - Core programming language

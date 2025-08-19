@@ -2,6 +2,8 @@ package solutions.bjjeire.api.validation;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +19,8 @@ import solutions.bjjeire.api.exceptions.ApiResponseDeserializationException;
 @Getter
 @RequiredArgsConstructor
 public class ApiResponse {
+
+    private final Map<Class<?>, Object> deserializedBodyCache = new ConcurrentHashMap<>();
 
     private final ResponseEntity<String> responseEntity;
     private final Duration executionTime;
@@ -39,20 +43,24 @@ public class ApiResponse {
         return responseEntity.getHeaders().getFirst(name);
     }
 
+    @SuppressWarnings("unchecked")
     public <T> T as(Class<T> type) {
-        String body = getBodyAsString();
-        if (body == null || body.isBlank()) {
-            throw new ApiAssertionException("Cannot deserialize response body because it is empty.", requestPath, body);
-        }
-        try {
-            return objectMapper.readValue(body, type);
-        } catch (IOException e) {
-            throw new ApiResponseDeserializationException(
-                    e.getMessage(),
-                    body,
-                    type.getSimpleName(),
-                    e);
-        }
+
+        return (T) deserializedBodyCache.computeIfAbsent(type, key -> {
+            String body = getBodyAsString();
+            if (body == null || body.isBlank()) {
+                throw new ApiAssertionException("Cannot deserialize response body because it is empty.", requestPath, body);
+            }
+            try {
+                return objectMapper.readValue(body, key);
+            } catch (IOException e) {
+                throw new ApiResponseDeserializationException(
+                        e.getMessage(),
+                        body,
+                        type.getSimpleName(),
+                        e);
+            }
+        });
     }
 
     public JsonNode asJsonNode() {

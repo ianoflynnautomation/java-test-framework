@@ -55,10 +55,10 @@
         <maven-surefire-plugin.version>3.5.3</maven-surefire-plugin.version>
         <netty.version>4.1.109.Final</netty.version>
         <logstash-logback-encoder.version>7.4</logstash-logback-encoder.version>
-        <io.micrometer.version>1.12.5</io.micrometer.version> <!-- Aligned with Spring Boot 3.2.5 -->
+        <io.micrometer.version>1.12.5</io.micrometer.version>
         <opentelemetry.version>1.52.0</opentelemetry.version>
         <opentelemetry-instrumentation.version>2.18.1</opentelemetry-instrumentation.version>
-        <checkstyle.version>3.4.0</checkstyle.version> <!-- Added for maven-checkstyle-plugin -->
+        <checkstyle.version>3.4.0</checkstyle.version>
     </properties>
 
     <dependencyManagement>

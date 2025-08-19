@@ -24,14 +24,60 @@ public class ResponseValidator {
 
     private final ApiResponse response;
 
-    public ResponseValidator statusCode(int expectedStatusCode) {
+    public ResponseValidator and() {
+        return this;
+    }
+
+    public ResponseValidator hasStatusCode(int expectedStatusCode) {
         return executeAssertion(() -> assertThat(response.getStatusCode())
                 .withFailMessage("Expected status code <%d> but was <%d>", expectedStatusCode,
                         response.getStatusCode())
                 .isEqualTo(expectedStatusCode));
     }
 
-    public ResponseValidator contentContains(String expectedSubstring) {
+    public ResponseValidator isOk() {
+        return hasStatusCode(200);
+    }
+
+    public ResponseValidator isCreated() {
+        return hasStatusCode(201);
+    }
+
+    public ResponseValidator isBadRequest() {
+        return hasStatusCode(400);
+    }
+
+    public ResponseValidator isUnauthorized() {
+        return hasStatusCode(401);
+    }
+
+    public ResponseValidator isForbidden() {
+        return hasStatusCode(403);
+    }
+
+    public ResponseValidator isNotFound() {
+        return hasStatusCode(404);
+    }
+
+
+    public ResponseValidator hasHeader(String headerName) {
+        return executeAssertion(() -> assertThat(response.getHeaders().containsKey(headerName))
+                .withFailMessage("Expected header '%s' to be present, but it was not found.", headerName)
+                .isTrue());
+    }
+
+    public ResponseValidator hasHeader(String headerName, String expectedValue) {
+        return executeAssertion(() -> {
+            hasHeader(headerName);
+            assertThat(response.header(headerName))
+                    .withFailMessage("Expected header '%s' to have value '%s', but was '%s'.",
+                            headerName, expectedValue, response.header(headerName))
+                    .isEqualTo(expectedValue);
+        });
+    }
+
+
+    public ResponseValidator bodyContainsText(String expectedSubstring) {
         return executeAssertion(() -> {
             String body = getAndValidateBody();
             assertThat(body)
@@ -40,14 +86,7 @@ public class ResponseValidator {
         });
     }
 
-    public ResponseValidator executionTimeUnder(Duration maxDuration) {
-        return executeAssertion(() -> assertThat(response.getExecutionTime())
-                .withFailMessage("Request execution time <%s> was not less than or equal to <%s>",
-                        response.getExecutionTime(), maxDuration)
-                .isLessThanOrEqualTo(maxDuration));
-    }
-
-    public ResponseValidator matchesJsonSchemaInClasspath(String schemaPath) {
+    public ResponseValidator bodyMatchesSchema(String schemaPath) {
         try (InputStream schemaStream = getClass().getClassLoader().getResourceAsStream(schemaPath)) {
             if (schemaStream == null) {
                 throw new ApiAssertionException(
@@ -76,7 +115,7 @@ public class ResponseValidator {
         }
     }
 
-    public ResponseValidator containsErrorForField(String field, String expectedMessage) {
+    public ResponseValidator bodyContainsErrorForField(String field, String expectedMessage) {
         return executeAssertion(() -> {
             ValidationErrorResponse errorResponse = response.as(ValidationErrorResponse.class);
             assertThat(errorResponse.errors())
@@ -86,7 +125,7 @@ public class ResponseValidator {
         });
     }
 
-    public ResponseValidator jsonPath(String jsonPathExpression, Object expectedValue) {
+    public ResponseValidator bodyHasJsonPathValue(String jsonPathExpression, Object expectedValue) {
         return executeAssertion(() -> {
             String body = getAndValidateBody();
             try {
@@ -109,21 +148,14 @@ public class ResponseValidator {
         });
     }
 
-    public ResponseValidator hasHeader(String headerName) {
-        return executeAssertion(() -> assertThat(response.getHeaders().containsKey(headerName))
-                .withFailMessage("Expected header '%s' to be present, but it was not found.", headerName)
-                .isTrue());
+
+    public ResponseValidator hasExecutionTimeUnder(Duration maxDuration) {
+        return executeAssertion(() -> assertThat(response.getExecutionTime())
+                .withFailMessage("Request execution time <%s> was not less than or equal to <%s>",
+                        response.getExecutionTime(), maxDuration)
+                .isLessThanOrEqualTo(maxDuration));
     }
 
-    public ResponseValidator header(String headerName, String expectedValue) {
-        return executeAssertion(() -> {
-            hasHeader(headerName);
-            assertThat(response.header(headerName))
-                    .withFailMessage("Expected header '%s' to have value '%s', but was '%s'.",
-                            headerName, expectedValue, response.header(headerName))
-                    .isEqualTo(expectedValue);
-        });
-    }
 
     private String getAndValidateBody() {
         String body = response.getBodyAsString();

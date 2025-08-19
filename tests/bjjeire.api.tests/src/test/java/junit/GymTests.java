@@ -1,7 +1,7 @@
 package junit;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.test.util.AssertionErrors.assertNotNull;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import lombok.RequiredArgsConstructor;
+import solutions.bjjeire.api.auth.BearerTokenAuth;
 import solutions.bjjeire.api.endpoints.GymEndpoints;
 import solutions.bjjeire.api.infrastructure.junit.ApiTestBase;
 import solutions.bjjeire.api.services.ApiService;
@@ -46,18 +47,21 @@ class GymTests extends ApiTestBase {
             CreateGymCommand command = new CreateGymCommand(gymToCreate);
 
             // Act
-            ApiResponse apiResponse = apiService.post(authToken, GymEndpoints.GYMS, command).block();
+            ApiResponse apiResponse = apiService.post(new BearerTokenAuth(authToken), GymEndpoints.GYMS, command).block();
 
             // Assert
-            assertAll("Verify successful gym creation",
-                    () -> apiResponse.should().statusCode(201),
-                    () -> apiResponse.should().bodySatisfies(CreateGymResponse.class, responseBody -> {
-                        assertEquals(gymToCreate.name(), responseBody.data().name(),
-                                "Gym name should match the request");
+            apiResponse.should().isCreated()
+                    .and().bodySatisfies(CreateGymResponse.class, responseBody -> {
+                        assertNotNull(responseBody.data().id(), "Gym ID should not be null");
+
+                        org.assertj.core.api.Assertions.assertThat(responseBody.data())
+                                .usingRecursiveComparison()
+                                .ignoringFields("id")
+                                .isEqualTo(gymToCreate);
 
                         registerForCleanup(() -> apiService
-                                .delete(authToken, GymEndpoints.gymById(responseBody.data().id())).block());
-                    }));
+                                .delete(new BearerTokenAuth(authToken), GymEndpoints.gymById(responseBody.data().id())).block());
+                    });
         }
     }
 }

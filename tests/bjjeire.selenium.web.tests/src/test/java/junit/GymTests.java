@@ -45,7 +45,6 @@ public class GymTests extends JunitWebTest {
         this.createdGymIds.clear();
     }
 
-    // @AfterEach
     @Override
     protected void afterEach() {
 

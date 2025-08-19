@@ -1,8 +1,8 @@
 package junit;
 
+import java.time.Duration;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -15,6 +15,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import lombok.RequiredArgsConstructor;
+import solutions.bjjeire.api.auth.BearerTokenAuth;
 import solutions.bjjeire.api.endpoints.BjjEventEndpoints;
 import solutions.bjjeire.api.infrastructure.junit.ApiTestBase;
 import solutions.bjjeire.api.services.ApiService;
@@ -54,12 +55,14 @@ public class EventsTests extends ApiTestBase {
             CreateBjjEventCommand command = new CreateBjjEventCommand(eventToCreate);
 
             // Act
-            ApiResponse apiResponse = apiService.post(authToken, BjjEventEndpoints.BJJ_EVENTS, command).block();
+            ApiResponse apiResponse = apiService.post(new BearerTokenAuth(authToken), BjjEventEndpoints.BJJ_EVENTS, command).block();
 
             // Assert
-            assertAll("Verify successful event creation",
-                    () -> apiResponse.should().statusCode(201),
-                    () -> apiResponse.should().bodySatisfies(CreateBjjEventResponse.class, responseBody -> {
+            apiResponse.should().isCreated()
+                    .and().hasHeader("Content-Type", "application/json")
+                    .and().hasExecutionTimeUnder(Duration.ofSeconds(1))
+                    .and().bodyMatchesSchema("schemas/CreateBjjEventResponseSchema.json")
+                    .and().bodySatisfies(CreateBjjEventResponse.class, responseBody -> {
                         assertNotNull(responseBody.data().id(), "Event ID should not be null");
 
                         org.assertj.core.api.Assertions.assertThat(responseBody.data())
@@ -68,27 +71,26 @@ public class EventsTests extends ApiTestBase {
                                 .isEqualTo(eventToCreate);
 
                         registerForCleanup(() -> apiService
-                                .delete(authToken, BjjEventEndpoints.bjjEventById(responseBody.data().id())).block());
-                    }));
+                                .delete(new BearerTokenAuth(authToken), BjjEventEndpoints.bjjEventById(responseBody.data().id())).block());
+                    });
         }
-    }
 
-    @ParameterizedTest(name = "Run #{index}: Field=''{0}'', Value=''{1}''")
-    @CsvSource({
-            "Data.Name,           '', 'Event Name is required.'",
-            "Data.Pricing.Amount, -10.00, 'Amount must be greater than 0.'"
-    })
-    @DisplayName("Should return 400 Bad Request for various invalid data points")
-    void createBjjEvent_withInvalidData_shouldReturn400(String field, String invalidValue, String errorMessage) {
-        // Arrange
-        Object invalidPayload = BjjEventFactory.createPayloadWithInvalidDetails(Map.of(field, invalidValue));
+        @ParameterizedTest(name = "Run #{index}: Field=''{0}'', Value=''{1}''")
+        @CsvSource({
+                "Data.Name,           '', 'Event Name is required.'",
+                "Data.Pricing.Amount, -10.00, 'Amount must be greater than 0.'"
+        })
+        @DisplayName("Should return 400 Bad Request for various invalid data points")
+        void createBjjEvent_withInvalidData_shouldReturn400(String field, String invalidValue, String errorMessage) {
+            // Arrange
+            Object invalidPayload = BjjEventFactory.createPayloadWithInvalidDetails(Map.of(field, invalidValue));
 
-        // Act
-        ApiResponse apiResponse = apiService.post(authToken, BjjEventEndpoints.BJJ_EVENTS, invalidPayload).block();
+            // Act
+            ApiResponse apiResponse = apiService.post(new BearerTokenAuth(authToken), BjjEventEndpoints.BJJ_EVENTS, invalidPayload).block();
 
-        // Assert
-        apiResponse.should()
-                .statusCode(400)
-                .containsErrorForField(field, errorMessage);
+            // Assert
+            apiResponse.should().isBadRequest()
+                    .and().bodyContainsErrorForField("Data.Name", "Event Name is required.");
+        }
     }
 }
