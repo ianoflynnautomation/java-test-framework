@@ -22,8 +22,10 @@ import solutions.bjjeire.selenium.web.pages.ListPageBase;
 import solutions.bjjeire.selenium.web.pages.events.data.EventCardDetails;
 import solutions.bjjeire.selenium.web.services.ComponentCreateService;
 import solutions.bjjeire.selenium.web.services.NavigationService;
-import static solutions.bjjeire.selenium.web.utils.EventsPageDataTestIds.*;
 import static solutions.bjjeire.selenium.web.utils.CommonDataTestIds.SELECT_FILTER;
+import static solutions.bjjeire.selenium.web.utils.EventsPageDataTestIds.EVENTS_LIST_ITEM;
+import static solutions.bjjeire.selenium.web.utils.EventsPageDataTestIds.EVENTS_PAGE_HEADER_TITLE;
+import static solutions.bjjeire.selenium.web.utils.EventsPageDataTestIds.EVENTS_PAGE_HEADER_TOTAL;
 
 @Component
 @Scope("prototype")

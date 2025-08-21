@@ -5,7 +5,7 @@ import solutions.bjjeire.selenium.web.components.custom.grid.NoDataState;
 import solutions.bjjeire.selenium.web.services.ComponentCreateService;
 import solutions.bjjeire.selenium.web.services.NavigationService;
 
-public class ListPageBase extends WebPage {
+public abstract class ListPageBase extends WebPage {
 
     public ListPageBase(
             NavigationService navigationService, ComponentCreateService componentCreateService) {
@@ -18,11 +18,6 @@ public class ListPageBase extends WebPage {
 
     public NoDataState noDataStateContainer() {
         return create().byDataTestId(NoDataState.class, "no-data-state");
-    }
-
-    @Override
-    protected String getUrl() {
-        return "";
     }
 
     public ListPageBase assertNoDataInList() {
