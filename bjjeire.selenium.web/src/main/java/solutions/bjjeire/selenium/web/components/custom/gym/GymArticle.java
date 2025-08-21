@@ -2,6 +2,7 @@ package solutions.bjjeire.selenium.web.components.custom.gym;
 
 import java.util.List;
 
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -22,7 +23,7 @@ import solutions.bjjeire.selenium.web.waitstrategies.WaitStrategyFactory;
 import static solutions.bjjeire.selenium.web.utils.GymsPageDataTestIds.*;
 
 @Component
-@Scope("prototype")
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class GymArticle extends WebComponent {
 
     public GymArticle(DriverService driverService, JavaScriptService javaScriptService, BrowserService browserService,

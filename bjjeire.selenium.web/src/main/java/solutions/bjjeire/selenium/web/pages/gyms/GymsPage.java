@@ -5,6 +5,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.openqa.selenium.NoSuchElementException;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -24,7 +25,7 @@ import static solutions.bjjeire.selenium.web.utils.GymsPageDataTestIds.GYMS_PAGE
 import static solutions.bjjeire.selenium.web.utils.GymsPageDataTestIds.GYMS_PAGE_HEADER_TOTAL;
 
 @Component
-@Scope("prototype")
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class GymsPage extends ListPageBase {
 
     private final UrlSettings urlSettings;

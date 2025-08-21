@@ -1,5 +1,6 @@
 package solutions.bjjeire.selenium.web.components;
 
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -17,7 +18,7 @@ import solutions.bjjeire.selenium.web.services.JavaScriptService;
 import solutions.bjjeire.selenium.web.waitstrategies.WaitStrategyFactory;
 
 @Component
-@Scope("prototype")
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class Anchor extends WebComponent
         implements ComponentText, ComponentHref, ComponentTarget, ComponentRel, ComponentAriaLabel {
 

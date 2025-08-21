@@ -3,6 +3,7 @@ package solutions.bjjeire.cucumber.actions;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -19,7 +20,7 @@ import solutions.bjjeire.selenium.web.data.TestDataManager;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-@Scope("prototype")
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class EventActions {
 
     private final TestDataManager testDataManager;
