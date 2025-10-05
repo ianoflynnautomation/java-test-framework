@@ -33,7 +33,6 @@
         <browsermob.version>2.1.5</browsermob.version>
         <bson.version>5.1.2</bson.version>
         <commons-io.version>2.19.0</commons-io.version>
-        <commons-text.version>1.13.1</commons-text.version>
         <cucumber.version>7.18.0</cucumber.version>
         <hamcrest.version>2.2</hamcrest.version>
         <jackson.version>2.17.1</jackson.version>
@@ -56,7 +55,6 @@
 
     <dependencyManagement>
         <dependencies>
-            <!-- BOM Imports: These manage versions for entire ecosystems -->
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
@@ -93,7 +91,6 @@
                 <scope>import</scope>
             </dependency>
 
-            <!-- Internal Modules -->
             <dependency>
                 <groupId>solutions.bjjeire</groupId>
                 <artifactId>bjjeire.core</artifactId>
@@ -110,19 +107,12 @@
                 <version>${project.version}</version>
             </dependency>
 
-            <!-- Jackson -->
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-databind</artifactId>
-                <version>${jackson.version}</version>
-            </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.datatype</groupId>
                 <artifactId>jackson-datatype-jsr310</artifactId>
                 <version>${jackson.version}</version>
             </dependency>
 
-            <!-- Testing Frameworks & Utilities -->
             <dependency>
                 <groupId>org.testng</groupId>
                 <artifactId>testng</artifactId>
@@ -166,7 +156,6 @@
                 <scope>compile</scope>
             </dependency>
 
-            <!-- Web & API Utilities -->
             <dependency>
                 <groupId>ru.yandex.qatools.ashot</groupId>
                 <artifactId>ashot</artifactId>
@@ -188,7 +177,6 @@
                 <version>${resilience4j.version}</version>
             </dependency>
 
-            <!-- Logging -->
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
@@ -212,7 +200,6 @@
                 <version>${logstash-logback-encoder.version}</version>
             </dependency>
 
-            <!-- General Utilities -->
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
@@ -223,11 +210,6 @@
                 <groupId>jakarta.annotation</groupId>
                 <artifactId>jakarta.annotation-api</artifactId>
                 <version>${jakarta-annotation.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-text</artifactId>
-                <version>${commons-text.version}</version>
             </dependency>
             <dependency>
                 <groupId>commons-io</groupId>
