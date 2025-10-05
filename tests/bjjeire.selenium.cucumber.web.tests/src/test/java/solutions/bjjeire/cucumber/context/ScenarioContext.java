@@ -6,7 +6,6 @@ import lombok.Setter;
 import org.openqa.selenium.WebDriver;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import solutions.bjjeire.cucumber.configuration.CucumberSpringConfiguration;
 
 @Setter
 @Getter

@@ -1,4 +1,4 @@
-users:
-  admin:
-    userId: "admin-user@example.com"
-    role: "Admin"
+#users:
+#  admin:
+#    userId: "admin-user@example.com"
+#    role: "Admin"

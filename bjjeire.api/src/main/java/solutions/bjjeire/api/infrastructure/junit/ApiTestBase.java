@@ -5,14 +5,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import org.junit.jupiter.api.AfterEach;
-import org.springframework.boot.test.context.SpringBootTest;
-
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.AfterEach;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import solutions.bjjeire.api.config.TestConfiguration;
 
 @Slf4j
-@SpringBootTest(classes = TestConfiguration.class)
+@ContextConfiguration(classes = TestConfiguration.class)
+@TestPropertySource("classpath:application.properties")
 public abstract class ApiTestBase {
 
     private final ConcurrentLinkedQueue<Runnable> cleanupActions = new ConcurrentLinkedQueue<>();

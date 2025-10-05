@@ -1,74 +1,74 @@
-spring:
-  application:
-    name: api-ui-framework
-  config:
-    import: "classpath:test-users.yml"
-
-troubleshooting-settings:
-  debug-information-enabled: true
-
-web-settings:
-  base-url: "https://localhost:60743"
-  execution-type: "regular"
-  default-browser: "firefox"
-  default-life-cycle: "reuse if started"
-  automatically-scroll-to-visible: false
-  wait-until-ready-on-element-found: false
-  screenshots-on-fail-enabled: false
-  screenshots-save-location: "${user.home}/Screenshots"
-  videos-on-fail-enabled: false
-  videos-save-location: "${user.home}/Videos"
-  artificial-delay-before-action: 0
-  timeout-settings:
-    element-wait-timeout: 30
-    page-load-timeout: 30
-    script-timeout: 1
-    wait-for-ajax-timeout: 30
-    sleep-interval: 1
-    wait-until-ready-timeout: 30
-    wait-for-java-script-animations-timeout: 30
-    wait-for-angular-timeout: 30
-    wait-for-partial-url: 30
-    validations-timeout: 30
-    element-to-be-visible-timeout: 30
-    element-to-exist-timeout: 30
-    element-to-not-exist-timeout: 30
-    element-to-be-clickable-timeout: 30
-    element-not-to-be-visible-timeout: 30
-    element-to-have-content-timeout: 15
-  grid-settings:
-    - provider-name: "browserstack"
-      url: "http://hub-cloud.browserstack.com/wd/hub/"
-      arguments:
-        - resolution: "1280x800"
-          browserstack.video: "true"
-          browserstack.networkLogs: "true"
-          browserstack.debug: "true"
-          browserstack.console: "errors"
-          browserstack.user: "myUserName"
-          browserstack.key: "myPass"
-          build: "bellatrix_run"
-    - provider-name: "grid"
-      url: "http://127.0.0.1:4444/wd/hub"
-      arguments:
-        - name: "bjjeire_run"
-
-api-settings:
-  baseUrl: http://localhost:5003
-  connectTimeoutMillis: 5000
-  responseTimeoutMillis: 10000
-  maxRetryAttempts: 3
-  pauseBetweenFailuresMillis: 1000
-  sensitiveFields:
-    - password
-    - token
-  environment: development
-
-users:
-  admin:
-    userId: "dev-user@example.com"
-    role: "Admin"
-
-url-settings:
-  event-url: "https://localhost:60743/events"
-  gym-url: "https://localhost:60743/gyms"
+#spring:
+#  application:
+#    name: api-ui-framework
+#  config:
+#    import: "classpath:test-users.yml"
+#
+#troubleshooting-settings:
+#  debug-information-enabled: true
+#
+#web-settings:
+#  base-url: "https://localhost:60743"
+#  execution-type: "regular"
+#  default-browser: "firefox"
+#  default-life-cycle: "reuse if started"
+#  automatically-scroll-to-visible: false
+#  wait-until-ready-on-element-found: false
+#  screenshots-on-fail-enabled: false
+#  screenshots-save-location: "${user.home}/Screenshots"
+#  videos-on-fail-enabled: false
+#  videos-save-location: "${user.home}/Videos"
+#  artificial-delay-before-action: 0
+#  timeout-settings:
+#    element-wait-timeout: 30
+#    page-load-timeout: 30
+#    script-timeout: 1
+#    wait-for-ajax-timeout: 30
+#    sleep-interval: 1
+#    wait-until-ready-timeout: 30
+#    wait-for-java-script-animations-timeout: 30
+#    wait-for-angular-timeout: 30
+#    wait-for-partial-url: 30
+#    validations-timeout: 30
+#    element-to-be-visible-timeout: 30
+#    element-to-exist-timeout: 30
+#    element-to-not-exist-timeout: 30
+#    element-to-be-clickable-timeout: 30
+#    element-not-to-be-visible-timeout: 30
+#    element-to-have-content-timeout: 15
+#  grid-settings:
+#    - provider-name: "browserstack"
+#      url: "http://hub-cloud.browserstack.com/wd/hub/"
+#      arguments:
+#        resolution: "1280x800"
+#        browserstack.video: "true"
+#        browserstack.networkLogs: "true"
+#        browserstack.debug: "true"
+#        browserstack.console: "errors"
+#        browserstack.user: "myUserName"
+#        browserstack.key: "myPass"
+#        build: "bellatrix_run"
+#    - provider-name: "grid"
+#      url: "http://127.0.0.1:4444/wd/hub"
+#      arguments:
+#        name: "bjjeire_run"
+#
+#api-settings:
+#  baseUrl: http://localhost:5003
+#  connectTimeoutMillis: 5000
+#  responseTimeoutMillis: 10000
+#  maxRetryAttempts: 3
+#  pauseBetweenFailuresMillis: 1000
+#  sensitiveFields:
+#    - password
+#    - token
+#  environment: development
+#
+#users:
+#  admin:
+#    userId: "dev-user@example.com"
+#    role: "Admin"
+#
+#url-settings:
+#  event-url: "https://localhost:60743/events"
+#  gym-url: "https://localhost:60743/gyms"

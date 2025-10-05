@@ -1,16 +1,16 @@
-spring:
-    application:
-        name: api-testing-framework
-    config:
-        import: "classpath:test-users.yml"
-
-api-settings:
-    baseUrl: http://localhost:5003
-    connectTimeoutMillis: 5000
-    responseTimeoutMillis: 10000
-    maxRetryAttempts: 3
-    pauseBetweenFailuresMillis: 1000
-    sensitiveFields:
-        - password
-        - token
-    environment: development
+#spring:
+#    application:
+#        name: api-testing-framework
+#    config:
+#        import: "classpath:test-users.yml"
+#
+#api-settings:
+#    baseUrl: http://localhost:5003
+#    connectTimeoutMillis: 5000
+#    responseTimeoutMillis: 10000
+#    maxRetryAttempts: 3
+#    pauseBetweenFailuresMillis: 1000
+#    sensitiveFields:
+#        - password
+#        - token
+#    environment: development

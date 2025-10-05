@@ -10,8 +10,7 @@ import org.hibernate.validator.constraints.URL;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 import solutions.bjjeire.core.plugins.Browser;
-
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 
 @ConfigurationProperties(prefix = "web-settings")
 @Data
