@@ -20,46 +20,49 @@
     </modules>
 
     <properties>
-        <spring-boot.version>3.2.5</spring-boot.version>
+        <spring-boot.version>3.3.5</spring-boot.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
+        <spring.version>6.1.10</spring.version>
+        <spring-boot.version>3.3.5</spring-boot.version>
+        <junit.bom.version>5.10.2</junit.bom.version>
+        <selenium.bom.version>4.22.0</selenium.bom.version>
         <testcontainers.version>1.19.8</testcontainers.version>
         <ashot.version>1.5.4</ashot.version>
-        <cucumber.version>7.18.0</cucumber.version>
-        <spring.version>6.1.10</spring.version>
-        <jakarta-annotation.version>2.1.1</jakarta-annotation.version>
+        <assertj.version>3.26.3</assertj.version>
         <browsermob.version>2.1.5</browsermob.version>
         <bson.version>5.1.2</bson.version>
+        <checkstyle.version>3.4.0</checkstyle.version>
         <commons-io.version>2.19.0</commons-io.version>
         <commons-lang3.version>3.17.0</commons-lang3.version>
         <commons-text.version>1.13.1</commons-text.version>
+        <cucumber.version>7.18.0</cucumber.version>
+        <hamcrest.version>2.2</hamcrest.version>
         <httpclient.version>4.5.14</httpclient.version>
         <jackson.version>2.17.1</jackson.version>
+        <jakarta-annotation.version>2.1.1</jakarta-annotation.version>
         <javafaker.version>1.0.2</javafaker.version>
         <jetbrains-annotations.version>24.1.0</jetbrains-annotations.version>
         <json-path.version>2.9.0</json-path.version>
         <jsoup.version>1.21.1</jsoup.version>
-        <junit.bom.version>5.10.2</junit.bom.version>
+        <logback.version>1.5.6</logback.version>
+        <logstash-logback-encoder.version>7.4</logstash-logback-encoder.version>
         <lombok.version>1.18.38</lombok.version>
         <mailslurp.version>16.2.1</mailslurp.version>
+        <mockito.version>5.12.0</mockito.version>
+        <netty.version>4.1.109.Final</netty.version>
         <okhttp.version>4.12.0</okhttp.version>
         <opencsv.version>5.11.2</opencsv.version>
         <resilience4j.version>2.2.0</resilience4j.version>
-        <selenium.bom.version>4.22.0</selenium.bom.version>
         <slf4j.version>2.0.13</slf4j.version>
         <testng.version>7.11.0</testng.version>
-        <hamcrest.version>2.2</hamcrest.version>
         <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
         <maven-surefire-plugin.version>3.5.3</maven-surefire-plugin.version>
-        <netty.version>4.1.109.Final</netty.version>
-        <logstash-logback-encoder.version>7.4</logstash-logback-encoder.version>
-        <checkstyle.version>3.4.0</checkstyle.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
-            <!-- BOM Imports -->
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
@@ -96,7 +99,6 @@
                 <scope>import</scope>
             </dependency>
 
-            <!-- Internal Modules -->
             <dependency>
                 <groupId>solutions.bjjeire</groupId>
                 <artifactId>bjjeire.core</artifactId>
@@ -113,10 +115,9 @@
                 <version>${project.version}</version>
             </dependency>
 
-            <!-- Spring Boot Starters -->
             <dependency>
                 <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter</artifactId>
+                <artifactId>spring-boot-starter-test</artifactId>
                 <version>${spring-boot.version}</version>
             </dependency>
             <dependency>
@@ -125,30 +126,11 @@
                 <version>${spring-boot.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-test</artifactId>
-                <version>${spring-boot.version}</version>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-validation</artifactId>
+                <version>${spring.version}</version>
                 <scope>compile</scope>
-
             </dependency>
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-validation</artifactId>
-                <version>${spring-boot.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-configuration-processor</artifactId>
-                <version>${spring-boot.version}</version>
-                <optional>true</optional>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-actuator</artifactId>
-                <version>${spring-boot.version}</version>
-            </dependency>
-
-            <!-- Jackson -->
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-core</artifactId>
@@ -170,19 +152,6 @@
                 <version>${jackson.version}</version>
             </dependency>
 
-            <!-- Testing Frameworks -->
-            <dependency>
-                <groupId>org.junit.jupiter</groupId>
-                <artifactId>junit-jupiter</artifactId>
-                <version>${junit.bom.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-test</artifactId>
-                <version>${spring.version}</version>
-                <scope>test</scope>
-            </dependency>
             <dependency>
                 <groupId>org.testng</groupId>
                 <artifactId>testng</artifactId>
@@ -213,6 +182,24 @@
                 <version>${hamcrest.version}</version>
                 <scope>test</scope>
             </dependency>
+            <dependency>
+                <groupId>org.assertj</groupId>
+                <artifactId>assertj-core</artifactId>
+                <version>${assertj.version}</version>
+                <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>${mockito.version}</version>
+                <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-junit-jupiter</artifactId>
+                <version>${mockito.version}</version>
+                <scope>compile</scope>
+            </dependency>
 
             <dependency>
                 <groupId>ru.yandex.qatools.ashot</groupId>
@@ -225,7 +212,6 @@
                 <version>${browsermob.version}</version>
             </dependency>
 
-            <!-- HTTP and JSON -->
             <dependency>
                 <groupId>com.squareup.okhttp3</groupId>
                 <artifactId>okhttp</artifactId>
@@ -240,12 +226,6 @@
                 <groupId>com.jayway.jsonpath</groupId>
                 <artifactId>json-path</artifactId>
                 <version>${json-path.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.slf4j</groupId>
-                        <artifactId>slf4j-api</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>com.networknt</groupId>
@@ -258,7 +238,29 @@
                 <version>${httpclient.version}</version>
             </dependency>
 
-            <!-- Utilities -->
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-simple</artifactId>
+                <version>${slf4j.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>${logback.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>net.logstash.logback</groupId>
+                <artifactId>logstash-logback-encoder</artifactId>
+                <version>${logstash-logback-encoder.version}</version>
+            </dependency>
+
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
@@ -266,19 +268,9 @@
                 <scope>provided</scope>
             </dependency>
             <dependency>
-                <groupId>org.jetbrains</groupId>
-                <artifactId>annotations</artifactId>
-                <version>${jetbrains-annotations.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>jakarta.annotation</groupId>
                 <artifactId>jakarta.annotation-api</artifactId>
                 <version>${jakarta-annotation.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-api</artifactId>
-                <version>${slf4j.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>
@@ -329,23 +321,11 @@
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
-                <version>33.4.8-jre</version>
-            </dependency>
-            <dependency>
-                <groupId>net.logstash.logback</groupId>
-                <artifactId>logstash-logback-encoder</artifactId>
-                <version>${logstash-logback-encoder.version}</version>
-            </dependency>
+                <version>33.2.0-jre</version> </dependency>
         </dependencies>
     </dependencyManagement>
 
     <build>
-        <testResources>
-            <testResource>
-                <directory>src/test/resources</directory>
-                <filtering>true</filtering>
-            </testResource>
-        </testResources>
         <pluginManagement>
             <plugins>
                 <plugin>
@@ -355,18 +335,6 @@
                     <configuration>
                         <source>${maven.compiler.source}</source>
                         <target>${maven.compiler.target}</target>
-                        <annotationProcessorPaths>
-                            <path>
-                                <groupId>org.projectlombok</groupId>
-                                <artifactId>lombok</artifactId>
-                                <version>${lombok.version}</version>
-                            </path>
-                            <path>
-                                <groupId>org.springframework.boot</groupId>
-                                <artifactId>spring-boot-configuration-processor</artifactId>
-                                <version>${spring-boot.version}</version>
-                            </path>
-                        </annotationProcessorPaths>
                     </configuration>
                 </plugin>
                 <plugin>
