@@ -44,8 +44,8 @@ public class EventFilteringSteps {
 
     @Then("I should see exactly {int} events for {string}")
     public void iShouldSeeExactlyExpectedCountEventsFor(int expectedCount, String county) {
-        eventsPage.assertAllEventsMatchCountyFilter(county + " County");
-        eventsPage.assertEventCountInListIs(expectedCount);
+        eventsPage.assertAllEventsMatchCountyFilter(county + " County")
+                .assertEventCountInListIs(expectedCount);
     }
 
     @Then("I should not see any events")
@@ -55,8 +55,8 @@ public class EventFilteringSteps {
 
     @Then("I should see exactly {int} events of type {string}")
     public void iShouldSeeExactlyEventsOfType(int expectedCount, String eventType) {
-        eventsPage.assertAllEventsMatchTypeFilter(BjjEventType.fromString(eventType));
-        eventsPage.assertEventCountInListIs(expectedCount);
-        eventsPage.assertTotalEventsFoundInList(expectedCount);
+        eventsPage.assertAllEventsMatchTypeFilter(BjjEventType.fromString(eventType))
+                .assertEventCountInListIs(expectedCount)
+                .assertTotalEventsFoundInList(expectedCount);
     }
 }
