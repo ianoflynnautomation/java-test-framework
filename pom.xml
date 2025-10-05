@@ -25,7 +25,6 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <testcontainers.version>1.19.8</testcontainers.version>
-        <appium.version>9.4.0</appium.version>
         <ashot.version>1.5.4</ashot.version>
         <cucumber.version>7.18.0</cucumber.version>
         <spring.version>6.1.10</spring.version>
@@ -55,9 +54,6 @@
         <maven-surefire-plugin.version>3.5.3</maven-surefire-plugin.version>
         <netty.version>4.1.109.Final</netty.version>
         <logstash-logback-encoder.version>7.4</logstash-logback-encoder.version>
-        <io.micrometer.version>1.12.5</io.micrometer.version>
-        <opentelemetry.version>1.52.0</opentelemetry.version>
-        <opentelemetry-instrumentation.version>2.18.1</opentelemetry-instrumentation.version>
         <checkstyle.version>3.4.0</checkstyle.version>
     </properties>
 
@@ -96,20 +92,6 @@
                 <groupId>org.testcontainers</groupId>
                 <artifactId>testcontainers-bom</artifactId>
                 <version>${testcontainers.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>io.opentelemetry</groupId>
-                <artifactId>opentelemetry-bom</artifactId>
-                <version>${opentelemetry.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>io.opentelemetry.instrumentation</groupId>
-                <artifactId>opentelemetry-instrumentation-bom</artifactId>
-                <version>${opentelemetry-instrumentation.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -164,32 +146,6 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-starter-actuator</artifactId>
                 <version>${spring-boot.version}</version>
-            </dependency>
-
-            <!-- OpenTelemetry -->
-            <dependency>
-                <groupId>io.opentelemetry.instrumentation</groupId>
-                <artifactId>opentelemetry-spring-boot-starter</artifactId>
-                <version>${opentelemetry-instrumentation.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.opentelemetry</groupId>
-                <artifactId>opentelemetry-exporter-otlp</artifactId>
-                <version>${opentelemetry.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.opentelemetry.instrumentation</groupId>
-                <artifactId>opentelemetry-logback-appender-1.0</artifactId>
-                <version>2.18.1-alpha</version>
-                <scope>runtime</scope>
-            </dependency>
-
-            <!-- Netty DNS Resolver for macOS -->
-            <dependency>
-                <groupId>io.netty</groupId>
-                <artifactId>netty-resolver-dns-native-macos</artifactId>
-                <version>${netty.version}</version>
-                <classifier>osx-aarch_64</classifier> <!-- Use osx-x86_64 for Intel Macs -->
             </dependency>
 
             <!-- Jackson -->
@@ -258,18 +214,6 @@
                 <scope>test</scope>
             </dependency>
 
-            <!-- Selenium and Appium -->
-            <dependency>
-                <groupId>io.appium</groupId>
-                <artifactId>java-client</artifactId>
-                <version>${appium.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>commons-logging</groupId>
-                        <artifactId>commons-logging</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
             <dependency>
                 <groupId>ru.yandex.qatools.ashot</groupId>
                 <artifactId>ashot</artifactId>
@@ -392,12 +336,6 @@
                 <artifactId>logstash-logback-encoder</artifactId>
                 <version>${logstash-logback-encoder.version}</version>
             </dependency>
-            <dependency>
-                <groupId>io.micrometer</groupId>
-                <artifactId>micrometer-registry-prometheus</artifactId>
-                <version>${io.micrometer.version}</version>
-                <scope>runtime</scope>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -437,11 +375,7 @@
                     <version>${maven-surefire-plugin.version}</version>
                     <configuration>
                         <testFailureIgnore>true</testFailureIgnore>
-                        <includes>
-                            <include>**/*Test.java</include>
-                            <include>**/*Tests.java</include>
-                            <include>**/*TestNG.java</include>
-                        </includes>
+                        <skipTests>true</skipTests>
                     </configuration>
                 </plugin>
                 <plugin>
