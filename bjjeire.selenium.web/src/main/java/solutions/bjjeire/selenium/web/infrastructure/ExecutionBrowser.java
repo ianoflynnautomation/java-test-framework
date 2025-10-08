@@ -1,29 +1,28 @@
 package solutions.bjjeire.selenium.web.infrastructure;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import org.openqa.selenium.Platform;
 import solutions.bjjeire.core.plugins.Browser;
 import solutions.bjjeire.core.plugins.DeviceName;
 import solutions.bjjeire.core.plugins.Lifecycle;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
-@Target({ ElementType.TYPE, ElementType.METHOD })
+@Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ExecutionBrowser {
-    Browser browser() default Browser.NOT_SET;
+  Browser browser() default Browser.NOT_SET;
 
-    Lifecycle lifecycle();
+  Lifecycle lifecycle();
 
-    int browserVersion() default 0;
+  int browserVersion() default 0;
 
-    Platform platform() default Platform.ANY;
+  Platform platform() default Platform.ANY;
 
-    int width() default 0;
+  int width() default 0;
 
-    int height() default 0;
+  int height() default 0;
 
-    DeviceName deviceName() default DeviceName.NOT_SET;
+  DeviceName deviceName() default DeviceName.NOT_SET;
 }

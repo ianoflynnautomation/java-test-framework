@@ -5,6 +5,6 @@ import solutions.bjjeire.core.data.common.County;
 
 @Data
 public class GymDataRow {
-    private String name;
-    private County county;
+  private String name;
+  private County county;
 }

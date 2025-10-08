@@ -1,4 +1,4 @@
-@ui @web @feature-events @Lifecycle:REUSE_IF_STARTED
+  @ui @web @feature-events @Lifecycle:REUSE_IF_STARTED
 Feature: Event Filtering
   In order to find relevant open mats, seminars and tournaments
   As a user of the BJJ app

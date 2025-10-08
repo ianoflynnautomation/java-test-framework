@@ -10,14 +10,14 @@ import solutions.bjjeire.selenium.web.data.TestDataManager;
 @RequiredArgsConstructor
 public class AuthenticationSteps {
 
-    private final TestDataManager testDataManager;
-    private final ScenarioContext scenarioContext;
+  private final TestDataManager testDataManager;
+  private final ScenarioContext scenarioContext;
 
-    @Given("I am a user of the BJJ app")
-    public void i_am_an_authenticated_user() {
-        log.debug("Authenticating user and storing token in scenario context...");
-        String authToken = testDataManager.authenticate();
-        scenarioContext.setAuthToken(authToken);
-        log.debug("Authentication successful. Token stored in context.");
-    }
+  @Given("I am a user of the BJJ app")
+  public void i_am_an_authenticated_user() {
+    log.debug("Authenticating user and storing token in scenario context...");
+    String authToken = testDataManager.authenticate();
+    scenarioContext.setAuthToken(authToken);
+    log.debug("Authentication successful. Token stored in context.");
+  }
 }

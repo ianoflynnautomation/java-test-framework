@@ -6,7 +6,7 @@ import solutions.bjjeire.core.data.events.BjjEventType;
 
 @Data
 public class EventDataRow {
-    private String name;
-    private County county;
-    private BjjEventType type;
+  private String name;
+  private County county;
+  private BjjEventType type;
 }

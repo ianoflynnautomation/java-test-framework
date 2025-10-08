@@ -10,10 +10,11 @@ import org.junit.platform.suite.api.Suite;
 @IncludeEngines("cucumber")
 @SelectClasspathResource("features")
 @ConfigurationParameter(key = Constants.GLUE_PROPERTY_NAME, value = "solutions.bjjeire.cucumber")
-@ConfigurationParameter(key = Constants.PLUGIN_PROPERTY_NAME, value = "pretty, html:target/cucumber-reports/cucumber-report.html, json:target/cucumber-reports/cucumber.json")
+@ConfigurationParameter(
+    key = Constants.PLUGIN_PROPERTY_NAME,
+    value =
+        "pretty, html:target/cucumber-reports/cucumber-report.html, json:target/cucumber-reports/cucumber.json")
 @ConfigurationParameter(key = Constants.SNIPPET_TYPE_PROPERTY_NAME, value = "camelcase")
 @ConfigurationParameter(key = "cucumber.execution.strict", value = "true")
 @ConfigurationParameter(key = "cucumber.filter.tags", value = "not @Ignore")
-public class CucumberTestRunner {
-
-}
+public class CucumberTestRunner {}

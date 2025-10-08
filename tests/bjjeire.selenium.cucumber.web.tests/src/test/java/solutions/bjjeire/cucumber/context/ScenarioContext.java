@@ -12,6 +12,6 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope(CucumberTestContext.SCOPE_CUCUMBER_GLUE)
 public class ScenarioContext {
-    private WebDriver driver;
-    private String authToken;
+  private WebDriver driver;
+  private String authToken;
 }

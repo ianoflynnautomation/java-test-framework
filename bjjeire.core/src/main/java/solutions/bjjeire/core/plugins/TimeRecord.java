@@ -6,10 +6,10 @@ import lombok.Setter;
 @Getter
 @Setter
 public class TimeRecord {
-    private long startTime;
-    private long endTime;
+  private long startTime;
+  private long endTime;
 
-    public long getDuration() {
-        return endTime - startTime;
-    }
+  public long getDuration() {
+    return endTime - startTime;
+  }
 }

@@ -5,5 +5,5 @@ import org.springframework.http.HttpHeaders;
 @FunctionalInterface
 public interface Authentication {
 
-    void apply(HttpHeaders headers);
+  void apply(HttpHeaders headers);
 }

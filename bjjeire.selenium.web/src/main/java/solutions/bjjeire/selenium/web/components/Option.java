@@ -4,7 +4,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-
 import solutions.bjjeire.selenium.web.components.contracts.ComponentDisabled;
 import solutions.bjjeire.selenium.web.components.contracts.ComponentSelected;
 import solutions.bjjeire.selenium.web.components.contracts.ComponentText;
@@ -19,37 +18,48 @@ import solutions.bjjeire.selenium.web.waitstrategies.WaitStrategyFactory;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class Option extends WebComponent
-        implements ComponentText, ComponentValue, ComponentDisabled, ComponentSelected {
+    implements ComponentText, ComponentValue, ComponentDisabled, ComponentSelected {
 
-    public Option(DriverService driverService, JavaScriptService javaScriptService, BrowserService browserService,
-            ComponentWaitService componentWaitService, WebSettings webSettings, ApplicationContext applicationContext,
-            WaitStrategyFactory waitStrategyFactory) {
-        super(driverService, javaScriptService, browserService, componentWaitService, webSettings, applicationContext,
-                waitStrategyFactory);
-    }
+  public Option(
+      DriverService driverService,
+      JavaScriptService javaScriptService,
+      BrowserService browserService,
+      ComponentWaitService componentWaitService,
+      WebSettings webSettings,
+      ApplicationContext applicationContext,
+      WaitStrategyFactory waitStrategyFactory) {
+    super(
+        driverService,
+        javaScriptService,
+        browserService,
+        componentWaitService,
+        webSettings,
+        applicationContext,
+        waitStrategyFactory);
+  }
 
-    @Override
-    public Class<?> getComponentClass() {
-        return getClass();
-    }
+  @Override
+  public Class<?> getComponentClass() {
+    return getClass();
+  }
 
-    @Override
-    public boolean isDisabled() {
-        return defaultGetDisabledAttribute();
-    }
+  @Override
+  public boolean isDisabled() {
+    return defaultGetDisabledAttribute();
+  }
 
-    @Override
-    public boolean isSelected() {
-        return findElement().isSelected();
-    }
+  @Override
+  public boolean isSelected() {
+    return findElement().isSelected();
+  }
 
-    @Override
-    public String getText() {
-        return defaultGetText();
-    }
+  @Override
+  public String getText() {
+    return defaultGetText();
+  }
 
-    @Override
-    public String getValue() {
-        return defaultGetValue();
-    }
+  @Override
+  public String getValue() {
+    return defaultGetValue();
+  }
 }

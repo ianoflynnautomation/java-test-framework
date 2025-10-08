@@ -4,7 +4,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-
 import solutions.bjjeire.selenium.web.components.contracts.ComponentText;
 import solutions.bjjeire.selenium.web.configuration.WebSettings;
 import solutions.bjjeire.selenium.web.services.BrowserService;
@@ -17,25 +16,35 @@ import solutions.bjjeire.selenium.web.waitstrategies.WaitStrategyFactory;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class Span extends WebComponent implements ComponentText {
 
-    public Span(DriverService driverService, JavaScriptService javaScriptService, BrowserService browserService,
-            ComponentWaitService componentWaitService, WebSettings webSettings, ApplicationContext applicationContext,
-            WaitStrategyFactory waitStrategyFactory) {
-        super(driverService, javaScriptService, browserService, componentWaitService, webSettings, applicationContext,
-                waitStrategyFactory);
-    }
+  public Span(
+      DriverService driverService,
+      JavaScriptService javaScriptService,
+      BrowserService browserService,
+      ComponentWaitService componentWaitService,
+      WebSettings webSettings,
+      ApplicationContext applicationContext,
+      WaitStrategyFactory waitStrategyFactory) {
+    super(
+        driverService,
+        javaScriptService,
+        browserService,
+        componentWaitService,
+        webSettings,
+        applicationContext,
+        waitStrategyFactory);
+  }
 
-    @Override
-    public Class<?> getComponentClass() {
-        return getClass();
-    }
+  @Override
+  public Class<?> getComponentClass() {
+    return getClass();
+  }
 
-    public String getHtml() {
-        return defaultGetInnerHtmlAttribute();
-    }
+  public String getHtml() {
+    return defaultGetInnerHtmlAttribute();
+  }
 
-    @Override
-    public String getText() {
-        return defaultGetText();
-    }
-
+  @Override
+  public String getText() {
+    return defaultGetText();
+  }
 }

@@ -1,14 +1,14 @@
-//package testng;
+// package testng;
 //
-//import eventpage.EventPage;
-//import org.testng.annotations.Test;
-//import solution.bjjeire.selenium.web.infrastructure.Browser;
-//import solution.bjjeire.selenium.web.infrastructure.ExecutionBrowser;
-//import solution.bjjeire.selenium.web.infrastructure.Lifecycle;
-//import solution.bjjeire.selenium.web.infrastructure.testng.WebTest;
+// import eventpage.EventPage;
+// import org.testng.annotations.Test;
+// import solution.bjjeire.selenium.web.infrastructure.Browser;
+// import solution.bjjeire.selenium.web.infrastructure.ExecutionBrowser;
+// import solution.bjjeire.selenium.web.infrastructure.Lifecycle;
+// import solution.bjjeire.selenium.web.infrastructure.testng.WebTest;
 //
-//@ExecutionBrowser(browser = Browser.CHROME, lifecycle = Lifecycle.REUSE_IF_STARTED)
-//public class EventTests extends WebTest {
+// @ExecutionBrowser(browser = Browser.CHROME, lifecycle = Lifecycle.REUSE_IF_STARTED)
+// public class EventTests extends WebTest {
 //
 //    @Override
 //    protected void afterEach() {
@@ -28,4 +28,4 @@
 //
 //
 //    }
-//}
+// }

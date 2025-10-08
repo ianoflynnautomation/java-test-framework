@@ -4,10 +4,9 @@ import java.util.List;
 
 public interface TestDataManager {
 
-    String authenticate();
+  String authenticate();
 
-    <T> List<String> seed(List<T> entities, String authToken);
+  <T> List<String> seed(List<T> entities, String authToken);
 
-    <T> void teardown(Class<T> entityType, List<String> ids, String authToken);
-
+  <T> void teardown(Class<T> entityType, List<String> ids, String authToken);
 }

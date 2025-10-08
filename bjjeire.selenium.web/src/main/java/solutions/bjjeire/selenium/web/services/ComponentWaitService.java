@@ -7,16 +7,19 @@ import solutions.bjjeire.selenium.web.waitstrategies.WaitStrategy;
 @Service
 public class ComponentWaitService extends WebService {
 
-    public ComponentWaitService(DriverService driverService) {
-        super(driverService);
-    }
+  public ComponentWaitService(DriverService driverService) {
+    super(driverService);
+  }
 
-    public void wait(WebComponent component, WaitStrategy waitStrategy) {
-        if (component.getParentWrappedElement() == null) {
-            waitStrategy.waitUntil(driverService, getWrappedDriver(), component.getFindStrategy().convert());
-        } else {
-            waitStrategy.waitUntil(driverService, component.getParentWrappedElement(),
-                    component.getFindStrategy().convert());
-        }
+  public void wait(WebComponent component, WaitStrategy waitStrategy) {
+    if (component.getParentWrappedElement() == null) {
+      waitStrategy.waitUntil(
+          driverService, getWrappedDriver(), component.getFindStrategy().convert());
+    } else {
+      waitStrategy.waitUntil(
+          driverService,
+          component.getParentWrappedElement(),
+          component.getFindStrategy().convert());
     }
+  }
 }

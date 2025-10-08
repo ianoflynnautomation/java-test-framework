@@ -7,17 +7,16 @@ import solutions.bjjeire.selenium.web.services.NavigationService;
 @RequiredArgsConstructor
 public abstract class WebPage {
 
-    protected final NavigationService navigationService;
-    protected final ComponentCreateService componentCreateService;
+  protected final NavigationService navigationService;
+  protected final ComponentCreateService componentCreateService;
 
-    protected abstract String getUrl();
+  protected abstract String getUrl();
 
-    public void open() {
-        navigationService.to(getUrl());
-    }
+  public void open() {
+    navigationService.to(getUrl());
+  }
 
-    protected ComponentCreateService create() {
-        return componentCreateService;
-    }
-    
+  protected ComponentCreateService create() {
+    return componentCreateService;
+  }
 }

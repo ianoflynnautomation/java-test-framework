@@ -1,14 +1,12 @@
 package solutions.bjjeire.cucumber.steps.events;
 
-import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Autowired;
-
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import solutions.bjjeire.api.auth.BearerTokenAuth;
 import solutions.bjjeire.api.client.BjjEventsApiClient;
 import solutions.bjjeire.api.validation.ApiResponse;
@@ -22,55 +20,58 @@ import solutions.bjjeire.cucumber.context.TestContext;
 @RequiredArgsConstructor
 public class EventCreateSteps {
 
-    private final TestContext testContext;
-    @Autowired
-    private BjjEventsApiClient eventsApiClient;
+  private final TestContext testContext;
+  @Autowired private BjjEventsApiClient eventsApiClient;
 
-    @Given("a new event has been prepared")
-    public void aNewEventHasBeenPrepared() {
-        testContext.setRequestPayload(new CreateBjjEventCommand(BjjEventFactory.getValidBjjEvent()));
+  @Given("a new event has been prepared")
+  public void aNewEventHasBeenPrepared() {
+    testContext.setRequestPayload(new CreateBjjEventCommand(BjjEventFactory.getValidBjjEvent()));
+  }
+
+  @Given("the Admin has an event with {string} set to {string}")
+  public void adminHasABjjEventWithFieldSetToInvalidValue(String field, String invalidValue) {
+    Map<String, String> invalidDetails = Map.of(field, invalidValue);
+    CreateBjjEventCommand invalidPayload =
+        BjjEventFactory.createPayloadWithInvalidDetails(invalidDetails);
+    testContext.setRequestPayload(invalidPayload);
+  }
+
+  @When("the Admin adds the new event")
+  public void adminAddsTheNewEvent() {
+    CreateBjjEventCommand command = (CreateBjjEventCommand) testContext.getRequestPayload();
+    ApiResponse response =
+        eventsApiClient
+            .createEvent(new BearerTokenAuth(testContext.getAuthToken()), command)
+            .block();
+    testContext.setLastResponse(response);
+
+    if (response.getStatusCode() == 201) {
+      BjjEvent createdEvent = response.as(CreateBjjEventResponse.class).data();
+      testContext.addEntityForCleanup(createdEvent);
     }
+  }
 
-    @Given("the Admin has an event with {string} set to {string}")
-    public void adminHasABjjEventWithFieldSetToInvalidValue(String field, String invalidValue) {
-        Map<String, String> invalidDetails = Map.of(field, invalidValue);
-        CreateBjjEventCommand invalidPayload = BjjEventFactory.createPayloadWithInvalidDetails(invalidDetails);
-        testContext.setRequestPayload(invalidPayload);
-    }
+  @When("the Admin attempts to add the new event")
+  public void adminAttemptsToCreateTheBjjEvent() {
+    ApiResponse response =
+        eventsApiClient
+            .createEventWithInvalidPayload(
+                new BearerTokenAuth(testContext.getAuthToken()), testContext.getRequestPayload())
+            .block();
+    testContext.setLastResponse(response);
+  }
 
-    @When("the Admin adds the new event")
-    public void adminAddsTheNewEvent() {
-        CreateBjjEventCommand command = (CreateBjjEventCommand) testContext.getRequestPayload();
-        ApiResponse response = eventsApiClient.createEvent(new BearerTokenAuth(testContext.getAuthToken()), command)
-                .block();
-        testContext.setLastResponse(response);
+  @Then("the event should be successfully added")
+  public void theEventShouldBeSuccessfullyAdded() {
+    ApiResponse response = testContext.getLastResponse();
+    response.should().isCreated();
+  }
 
-        if (response.getStatusCode() == 201) {
-            BjjEvent createdEvent = response.as(CreateBjjEventResponse.class).data();
-            testContext.addEntityForCleanup(createdEvent);
-        }
-    }
-
-    @When("the Admin attempts to add the new event")
-    public void adminAttemptsToCreateTheBjjEvent() {
-        ApiResponse response = eventsApiClient.createEventWithInvalidPayload(
-                new BearerTokenAuth(testContext.getAuthToken()),
-                testContext.getRequestPayload()).block();
-        testContext.setLastResponse(response);
-    }
-
-    @Then("the event should be successfully added")
-    public void theEventShouldBeSuccessfullyAdded() {
-        ApiResponse response = testContext.getLastResponse();
-        response.should().isCreated();
-    }
-
-    @Then("the Admin should be notified that adding the event failed for {string} with message {string}")
-    public void adminIsNotifiedThatTheEventCreationFailedForWithMessage(String field, String errorMessage) {
-        ApiResponse response = testContext.getLastResponse();
-        response.should()
-                .isBadRequest().and()
-                .bodyContainsErrorForField(field, errorMessage);
-
-    }
+  @Then(
+      "the Admin should be notified that adding the event failed for {string} with message {string}")
+  public void adminIsNotifiedThatTheEventCreationFailedForWithMessage(
+      String field, String errorMessage) {
+    ApiResponse response = testContext.getLastResponse();
+    response.should().isBadRequest().and().bodyContainsErrorForField(field, errorMessage);
+  }
 }

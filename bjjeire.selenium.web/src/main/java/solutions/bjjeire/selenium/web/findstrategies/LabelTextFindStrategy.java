@@ -4,26 +4,26 @@ import org.openqa.selenium.By;
 
 public class LabelTextFindStrategy extends FindStrategy {
 
-    private final String labelText;
+  private final String labelText;
 
-    public LabelTextFindStrategy(String labelText) {
-        super(buildXPath(labelText));
-        this.labelText = labelText;
-    }
+  public LabelTextFindStrategy(String labelText) {
+    super(buildXPath(labelText));
+    this.labelText = labelText;
+  }
 
-    private static String buildXPath(String labelText) {
-        return String.format(
-                ".//*[self::input or self::textarea or self::select][@id=(//label[normalize-space(.)='%s']/@for)]",
-                labelText);
-    }
+  private static String buildXPath(String labelText) {
+    return String.format(
+        ".//*[self::input or self::textarea or self::select][@id=(//label[normalize-space(.)='%s']/@for)]",
+        labelText);
+  }
 
-    @Override
-    public By convert() {
-        return By.xpath(getValue());
-    }
+  @Override
+  public By convert() {
+    return By.xpath(getValue());
+  }
 
-    @Override
-    public String toString() {
-        return String.format("by label text = '%s'", labelText);
-    }
+  @Override
+  public String toString() {
+    return String.format("by label text = '%s'", labelText);
+  }
 }

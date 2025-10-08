@@ -8,5 +8,4 @@ import solutions.bjjeire.selenium.web.configuration.SeleniumConfig;
 @CucumberContextConfiguration
 @ContextConfiguration(classes = SeleniumConfig.class)
 @TestPropertySource("classpath:application.properties")
-public class CucumberSpringConfiguration {
-}
+public class CucumberSpringConfiguration {}

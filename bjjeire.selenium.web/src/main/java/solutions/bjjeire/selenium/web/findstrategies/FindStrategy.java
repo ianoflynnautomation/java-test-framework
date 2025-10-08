@@ -6,11 +6,11 @@ import org.openqa.selenium.By;
 @Getter
 public abstract class FindStrategy {
 
-    private final String value;
+  private final String value;
 
-    protected FindStrategy(String value) {
-        this.value = value;
-    }
+  protected FindStrategy(String value) {
+    this.value = value;
+  }
 
-    public abstract By convert();
+  public abstract By convert();
 }

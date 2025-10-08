@@ -3,33 +3,34 @@ package solutions.bjjeire.core.data.events;
 import java.util.Arrays;
 
 public enum BjjEventType {
+  OPEN_MAT("Open Mat"),
 
-    OPEN_MAT("Open Mat"),
+  SEMINAR("Seminar"),
 
-    SEMINAR("Seminar"),
+  TOURNAMENT("Tournament"),
 
-    TOURNAMENT("Tournament"),
+  CAMP("Camp"),
 
-    CAMP("Camp"),
+  OTHER("Other");
 
-    OTHER("Other");
+  private final String eventType;
 
-    private final String eventType;
+  BjjEventType(String eventType) {
+    this.eventType = eventType;
+  }
 
-    BjjEventType(String eventType) {
-        this.eventType = eventType;
-    }
+  @Override
+  public String toString() {
+    return this.eventType;
+  }
 
-    @Override
-    public String toString() {
-        return this.eventType;
-    }
-
-    public static BjjEventType fromString(String text) {
-        return Arrays.stream(values())
-                .filter(type -> type.eventType.equalsIgnoreCase(text))
-                .findFirst()
-                .orElseThrow(
-                        () -> new IllegalArgumentException("No BjjEventType constant with text '" + text + "' found"));
-    }
+  public static BjjEventType fromString(String text) {
+    return Arrays.stream(values())
+        .filter(type -> type.eventType.equalsIgnoreCase(text))
+        .findFirst()
+        .orElseThrow(
+            () ->
+                new IllegalArgumentException(
+                    "No BjjEventType constant with text '" + text + "' found"));
+  }
 }

@@ -1,4 +1,3 @@
 package solutions.bjjeire.core.data.events;
 
-public record DeleteBjjEventResponse(boolean isSuccess) {
-}
+public record DeleteBjjEventResponse(boolean isSuccess) {}

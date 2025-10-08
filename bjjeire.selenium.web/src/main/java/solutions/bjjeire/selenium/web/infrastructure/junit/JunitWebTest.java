@@ -1,4 +1,5 @@
 package solutions.bjjeire.selenium.web.infrastructure.junit;
+
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
@@ -11,9 +12,9 @@ import solutions.bjjeire.selenium.web.plugins.BrowserLifecyclePlugin;
 @TestPropertySource("classpath:application.properties")
 public abstract class JunitWebTest extends JunitBaseTest {
 
-    @Override
-    protected void configure() {
-        super.configure();
-        addPlugin(BrowserLifecyclePlugin.class);
-    }
+  @Override
+  protected void configure() {
+    super.configure();
+    addPlugin(BrowserLifecyclePlugin.class);
+  }
 }

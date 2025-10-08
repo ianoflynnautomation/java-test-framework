@@ -4,7 +4,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-
 import solutions.bjjeire.selenium.web.components.contracts.ComponentChecked;
 import solutions.bjjeire.selenium.web.components.contracts.ComponentDisabled;
 import solutions.bjjeire.selenium.web.components.contracts.ComponentValue;
@@ -17,36 +16,48 @@ import solutions.bjjeire.selenium.web.waitstrategies.WaitStrategyFactory;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class RadioButton extends WebComponent implements ComponentDisabled, ComponentValue, ComponentChecked {
+public class RadioButton extends WebComponent
+    implements ComponentDisabled, ComponentValue, ComponentChecked {
 
-    public RadioButton(DriverService driverService, JavaScriptService javaScriptService, BrowserService browserService,
-            ComponentWaitService componentWaitService, WebSettings webSettings, ApplicationContext applicationContext,
-            WaitStrategyFactory waitStrategyFactory) {
-        super(driverService, javaScriptService, browserService, componentWaitService, webSettings, applicationContext,
-                waitStrategyFactory);
-    }
+  public RadioButton(
+      DriverService driverService,
+      JavaScriptService javaScriptService,
+      BrowserService browserService,
+      ComponentWaitService componentWaitService,
+      WebSettings webSettings,
+      ApplicationContext applicationContext,
+      WaitStrategyFactory waitStrategyFactory) {
+    super(
+        driverService,
+        javaScriptService,
+        browserService,
+        componentWaitService,
+        webSettings,
+        applicationContext,
+        waitStrategyFactory);
+  }
 
-    @Override
-    public Class<?> getComponentClass() {
-        return getClass();
-    }
+  @Override
+  public Class<?> getComponentClass() {
+    return getClass();
+  }
 
-    public void click() {
-        defaultClick();
-    }
+  public void click() {
+    defaultClick();
+  }
 
-    @Override
-    public boolean isDisabled() {
-        return defaultGetDisabledAttribute();
-    }
+  @Override
+  public boolean isDisabled() {
+    return defaultGetDisabledAttribute();
+  }
 
-    @Override
-    public String getValue() {
-        return defaultGetValue();
-    }
+  @Override
+  public String getValue() {
+    return defaultGetValue();
+  }
 
-    @Override
-    public boolean isChecked() {
-        return getWrappedElement().isSelected();
-    }
+  @Override
+  public boolean isChecked() {
+    return getWrappedElement().isSelected();
+  }
 }

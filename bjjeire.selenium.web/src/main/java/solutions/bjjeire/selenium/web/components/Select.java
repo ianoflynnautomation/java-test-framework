@@ -4,7 +4,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-
 import solutions.bjjeire.selenium.web.components.contracts.ComponentDisabled;
 import solutions.bjjeire.selenium.web.configuration.WebSettings;
 import solutions.bjjeire.selenium.web.services.BrowserService;
@@ -17,39 +16,51 @@ import solutions.bjjeire.selenium.web.waitstrategies.WaitStrategyFactory;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class Select extends WebComponent implements ComponentDisabled {
 
-    public Select(DriverService driverService, JavaScriptService javaScriptService, BrowserService browserService,
-            ComponentWaitService componentWaitService, WebSettings webSettings, ApplicationContext applicationContext,
-            WaitStrategyFactory waitStrategyFactory) {
-        super(driverService, javaScriptService, browserService, componentWaitService, webSettings, applicationContext,
-                waitStrategyFactory);
-    }
+  public Select(
+      DriverService driverService,
+      JavaScriptService javaScriptService,
+      BrowserService browserService,
+      ComponentWaitService componentWaitService,
+      WebSettings webSettings,
+      ApplicationContext applicationContext,
+      WaitStrategyFactory waitStrategyFactory) {
+    super(
+        driverService,
+        javaScriptService,
+        browserService,
+        componentWaitService,
+        webSettings,
+        applicationContext,
+        waitStrategyFactory);
+  }
 
-    @Override
-    public Class<?> getComponentClass() {
-        return getClass();
-    }
+  @Override
+  public Class<?> getComponentClass() {
+    return getClass();
+  }
 
-    public Option getSelected() {
-        org.openqa.selenium.support.ui.Select nativeSelect = new org.openqa.selenium.support.ui.Select(findElement());
+  public Option getSelected() {
+    org.openqa.selenium.support.ui.Select nativeSelect =
+        new org.openqa.selenium.support.ui.Select(findElement());
 
-        var optionComponent = applicationContext.getBean(Option.class);
+    var optionComponent = applicationContext.getBean(Option.class);
 
-        optionComponent.setFindStrategy(getFindStrategy());
-        optionComponent.setElementIndex(0);
-        optionComponent.setWrappedElement(nativeSelect.getFirstSelectedOption());
-        return optionComponent;
-    }
+    optionComponent.setFindStrategy(getFindStrategy());
+    optionComponent.setElementIndex(0);
+    optionComponent.setWrappedElement(nativeSelect.getFirstSelectedOption());
+    return optionComponent;
+  }
 
-    public void selectByText(String text) {
-        defaultSelectByText(text);
-    }
+  public void selectByText(String text) {
+    defaultSelectByText(text);
+  }
 
-    public void selectByIndex(int index) {
-        defaultSelectByIndex(index);
-    }
+  public void selectByIndex(int index) {
+    defaultSelectByIndex(index);
+  }
 
-    @Override
-    public boolean isDisabled() {
-        return defaultGetDisabledAttribute();
-    }
+  @Override
+  public boolean isDisabled() {
+    return defaultGetDisabledAttribute();
+  }
 }

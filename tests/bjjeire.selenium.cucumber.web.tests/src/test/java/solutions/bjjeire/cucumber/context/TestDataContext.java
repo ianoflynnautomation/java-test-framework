@@ -5,23 +5,22 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 import org.springframework.stereotype.Component;
 
 @Component
 public class TestDataContext {
 
-    private final Map<Class<?>, List<String>> createdEntityIds = new ConcurrentHashMap<>();
+  private final Map<Class<?>, List<String>> createdEntityIds = new ConcurrentHashMap<>();
 
-    public void addEntityIds(Class<?> entityType, List<String> ids) {
-        createdEntityIds.computeIfAbsent(entityType, k -> new ArrayList<>()).addAll(ids);
-    }
+  public void addEntityIds(Class<?> entityType, List<String> ids) {
+    createdEntityIds.computeIfAbsent(entityType, k -> new ArrayList<>()).addAll(ids);
+  }
 
-    public List<String> getEntityIds(Class<?> entityType) {
-        return createdEntityIds.getOrDefault(entityType, Collections.emptyList());
-    }
+  public List<String> getEntityIds(Class<?> entityType) {
+    return createdEntityIds.getOrDefault(entityType, Collections.emptyList());
+  }
 
-    public void clearAll() {
-        createdEntityIds.clear();
-    }
+  public void clearAll() {
+    createdEntityIds.clear();
+  }
 }

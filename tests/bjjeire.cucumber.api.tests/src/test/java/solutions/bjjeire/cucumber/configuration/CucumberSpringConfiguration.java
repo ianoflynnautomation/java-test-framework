@@ -8,6 +8,4 @@ import solutions.bjjeire.api.config.TestConfiguration;
 @CucumberContextConfiguration
 @ContextConfiguration(classes = TestConfiguration.class)
 @TestPropertySource("classpath:application.properties")
-public class CucumberSpringConfiguration {
-  
-}
+public class CucumberSpringConfiguration {}

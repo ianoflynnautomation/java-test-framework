@@ -1,17 +1,16 @@
 package solutions.bjjeire.selenium.web.components.contracts;
 
 import org.openqa.selenium.WebElement;
-
 import solutions.bjjeire.selenium.web.services.ComponentValidationService;
 
 public interface BjjEireComponent {
-    Class<?> getComponentClass();
+  Class<?> getComponentClass();
 
-    WebElement getWrappedElement();
+  WebElement getWrappedElement();
 
-    //FindStrategy getFindStrategy();
+  // FindStrategy getFindStrategy();
 
-    String getAttribute(String attributeName);
+  String getAttribute(String attributeName);
 
-    ComponentValidationService validator();
+  ComponentValidationService validator();
 }
