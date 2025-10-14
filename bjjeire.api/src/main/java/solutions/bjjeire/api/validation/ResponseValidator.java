@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.time.Duration;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import solutions.bjjeire.api.exceptions.ApiAssertionException;
@@ -159,12 +160,23 @@ public class ResponseValidator {
         });
   }
 
-  public <T> ResponseValidator satisfyBody(Class<T> type, Consumer<T> consumer) {
+  public <T> ResponseValidator satisfyBodyField(
+      Class<T> responseType, Predicate<T> fieldValidator, String description) {
     return executeAssertion(
         () -> {
-          T bodyAsObject = response.as(type);
-          consumer.accept(bodyAsObject);
+          T body = response.as(responseType);
+          if (!fieldValidator.test(body)) {
+            throw new AssertionError(
+                String.format(
+                    "Body field validation failed for '%s' on path: %s",
+                    description, response.getRequestPath()));
+          }
         });
+  }
+
+  @Deprecated(forRemoval = true)
+  public <T> ResponseValidator satisfyBody(Class<T> responseType, Consumer<T> assertionConsumer) {
+    return executeAssertion(() -> assertionConsumer.accept(response.as(responseType)));
   }
 
   public ResponseValidator takeLessThan(Duration maxDuration) {

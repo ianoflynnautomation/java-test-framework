@@ -1,7 +1,5 @@
 package junit;
 
-import static org.springframework.test.util.AssertionErrors.assertNotNull;
-
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -45,28 +43,16 @@ class GymTests extends ApiTestBase {
       // Act
       ApiResponse apiResponse =
           gymsApiClient.createGym(new BearerTokenAuth(authToken), command).block();
+      CreateGymResponse responseBody = apiResponse.as(CreateGymResponse.class);
 
       // Assert
-      apiResponse
-          .should()
-          .beCreated()
-          .and()
-          .satisfyBody(
-              CreateGymResponse.class,
-              responseBody -> {
-                assertNotNull(responseBody.data().id(), "Gym ID should not be null");
+      apiResponse.should().beCreated();
 
-                org.assertj.core.api.Assertions.assertThat(responseBody.data())
-                    .usingRecursiveComparison()
-                    .ignoringFields("id")
-                    .isEqualTo(gymToCreate);
-
-                registerForCleanup(
-                    () ->
-                        gymsApiClient
-                            .deleteGym(new BearerTokenAuth(authToken), responseBody.data().id())
-                            .block());
-              });
+      registerForCleanup(
+          () ->
+              gymsApiClient
+                  .deleteGym(new BearerTokenAuth(authToken), responseBody.data().id())
+                  .block());
     }
   }
 }

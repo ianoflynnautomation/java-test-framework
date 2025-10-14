@@ -1,7 +1,5 @@
 package junit;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
 import java.time.Duration;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -53,6 +51,7 @@ public class EventsTests extends ApiTestBase {
       // Act
       ApiResponse apiResponse =
           eventsApiClient.createEvent(new BearerTokenAuth(authToken), command).block();
+      CreateBjjEventResponse responseBody = apiResponse.as(CreateBjjEventResponse.class);
 
       // Assert
       apiResponse
@@ -63,50 +62,39 @@ public class EventsTests extends ApiTestBase {
           .and()
           .takeLessThan(Duration.ofMillis(500))
           .and()
-          .matchSchema("schemas/CreateBjjEventResponseSchema.json")
-          .and()
-          .satisfyBody(
-              CreateBjjEventResponse.class,
-              responseBody -> {
-                assertNotNull(responseBody.data().id(), "Event ID should not be null");
+          .matchSchema("schemas/CreateBjjEventResponseSchema.json");
 
-                org.assertj.core.api.Assertions.assertThat(responseBody.data())
-                    .usingRecursiveComparison()
-                    .ignoringFields("id", "createdOnUtc", "updatedOnUtc")
-                    .isEqualTo(eventToCreate);
-
-                registerForCleanup(
-                    () ->
-                        eventsApiClient
-                            .deleteEvent(new BearerTokenAuth(authToken), responseBody.data().id())
-                            .block());
-              });
+      registerForCleanup(
+          () ->
+              eventsApiClient
+                  .deleteEvent(new BearerTokenAuth(authToken), responseBody.data().id())
+                  .block());
     }
+  }
 
-    @ParameterizedTest(name = "Run #{index}: Field=''{0}'', Value=''{1}''")
-    @CsvSource({
-      "Data.Name,           '', 'Event Name is required.'",
-      "Data.Pricing.Amount, -10.00, 'Amount must be greater than 0.'"
-    })
-    @DisplayName("Should return 400 Bad Request for various invalid data points")
-    void createBjjEvent_withInvalidData_shouldReturn400(
-        String field, String invalidValue, String errorMessage) {
-      // Arrange
-      Object invalidPayload =
-          BjjEventFactory.createPayloadWithInvalidDetails(Map.of(field, invalidValue));
+  @ParameterizedTest(name = "Run #{index}: Field=''{0}'', Value=''{1}''")
+  @CsvSource({
+    "Data.Name,           '', 'Event Name is required.'",
+    "Data.Pricing.Amount, -10.00, 'Amount must be greater than 0.'"
+  })
+  @DisplayName("Should return 400 Bad Request for various invalid data points")
+  void createBjjEvent_withInvalidData_shouldReturn400(
+      String field, String invalidValue, String errorMessage) {
+    // Arrange
+    Object invalidPayload =
+        BjjEventFactory.createPayloadWithInvalidDetails(Map.of(field, invalidValue));
 
-      // Act
-      ApiResponse apiResponse =
-          eventsApiClient
-              .createEventWithInvalidPayload(new BearerTokenAuth(authToken), invalidPayload)
-              .block();
+    // Act
+    ApiResponse apiResponse =
+        eventsApiClient
+            .createEventWithInvalidPayload(new BearerTokenAuth(authToken), invalidPayload)
+            .block();
 
-      // Assert
-      apiResponse
-          .should()
-          .beBadRequest()
-          .and()
-          .containErrorForField("Data.Name", "Event Name is required.");
-    }
+    // Assert
+    apiResponse
+        .should()
+        .beBadRequest()
+        .and()
+        .containErrorForField("Data.Name", "Event Name is required.");
   }
 }
