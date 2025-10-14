@@ -7,6 +7,7 @@ import net.logstash.logback.argument.StructuredArguments;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebDriverException;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -39,7 +40,7 @@ public class ScreenshotService {
             StructuredArguments.keyValue(
                 "driverInstance", driver != null ? driver.getClass().getName() : "null"));
       }
-    } catch (Exception e) {
+    } catch (WebDriverException e) {
       log.error(
           "Failed to take screenshot.",
           e,

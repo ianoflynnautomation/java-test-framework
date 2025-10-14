@@ -20,11 +20,12 @@ import solutions.bjjeire.api.validation.ApiResponse;
 @RequiredArgsConstructor
 public class RequestExecutor {
 
+  private static final int MAX_BODY_LOG_LENGTH = 1000;
   private final WebClient webClient;
   private final RetryPolicy retryPolicy;
   private final ObjectMapper objectMapper;
 
-  public Mono<ApiResponse> execute(ApiRequestBuilder request) {
+  public Mono<ApiResponse> execute(ApiRequest request) {
     long startTime = System.nanoTime();
 
     return createRequestSpec(request)
@@ -44,7 +45,7 @@ public class RequestExecutor {
         .retryWhen(retryPolicy.getRetrySpec(request.getPath(), request.getMethod()));
   }
 
-  private WebClient.RequestHeadersSpec<?> createRequestSpec(ApiRequestBuilder request) {
+  private WebClient.RequestHeadersSpec<?> createRequestSpec(ApiRequest request) {
     WebClient.RequestBodySpec requestBodySpec =
         webClient
             .method(request.getMethod())
@@ -68,7 +69,7 @@ public class RequestExecutor {
 
   @SuppressWarnings("unchecked")
   private WebClient.RequestHeadersSpec<?> handleBody(
-      WebClient.RequestBodySpec requestBodySpec, ApiRequestBuilder request) {
+      WebClient.RequestBodySpec requestBodySpec, ApiRequest request) {
     if (request.getBody() == null) {
       return requestBodySpec;
     }
@@ -102,11 +103,11 @@ public class RequestExecutor {
         StructuredArguments.kv("eventType", "api_interaction"),
         StructuredArguments.kv("url", response.getRequestPath()),
         StructuredArguments.kv("response_status_code", response.getStatusCode()),
-        StructuredArguments.kv("response_body", truncateBody(response.getBodyAsString(), 1000)),
+        StructuredArguments.kv("response_body", truncateBody(response.getBodyAsString())),
         StructuredArguments.kv("duration_ms", response.getExecutionTime().toMillis()));
   }
 
-  private void logApiFailure(ApiRequestBuilder request, Throwable error) {
+  private void logApiFailure(ApiRequest request, Throwable error) {
     log.error(
         "API Request Execution Failed",
         StructuredArguments.kv("eventType", "api_failure"),
@@ -116,8 +117,10 @@ public class RequestExecutor {
         error);
   }
 
-  private String truncateBody(String body, int maxLength) {
+  private String truncateBody(String body) {
     if (body == null) return null;
-    return body.length() > maxLength ? body.substring(0, maxLength) + "..." : body;
+    return body.length() > MAX_BODY_LOG_LENGTH
+        ? body.substring(0, MAX_BODY_LOG_LENGTH) + "..."
+        : body;
   }
 }

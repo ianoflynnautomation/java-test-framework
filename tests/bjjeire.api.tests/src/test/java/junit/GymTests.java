@@ -49,9 +49,9 @@ class GymTests extends ApiTestBase {
       // Assert
       apiResponse
           .should()
-          .isCreated()
+          .beCreated()
           .and()
-          .bodySatisfies(
+          .satisfyBody(
               CreateGymResponse.class,
               responseBody -> {
                 assertNotNull(responseBody.data().id(), "Gym ID should not be null");

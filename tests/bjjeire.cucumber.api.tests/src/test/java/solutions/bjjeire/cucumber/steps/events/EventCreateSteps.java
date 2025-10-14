@@ -64,7 +64,7 @@ public class EventCreateSteps {
   @Then("the event should be successfully added")
   public void theEventShouldBeSuccessfullyAdded() {
     ApiResponse response = testContext.getLastResponse();
-    response.should().isCreated();
+    response.should().beCreated();
   }
 
   @Then(
@@ -72,6 +72,6 @@ public class EventCreateSteps {
   public void adminIsNotifiedThatTheEventCreationFailedForWithMessage(
       String field, String errorMessage) {
     ApiResponse response = testContext.getLastResponse();
-    response.should().isBadRequest().and().bodyContainsErrorForField(field, errorMessage);
+    response.should().beBadRequest().and().containErrorForField(field, errorMessage);
   }
 }

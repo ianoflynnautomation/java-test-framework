@@ -15,10 +15,10 @@ public class BjjEventsApiClient {
   private final RequestExecutor requestExecutor;
 
   public Mono<ApiResponse> createEvent(Authentication auth, CreateBjjEventCommand command) {
-    ApiRequestBuilder request =
-        ApiRequestBuilder.builder()
+    ApiRequest request =
+        ApiRequest.builder()
             .post(BjjEventEndpoints.BJJ_EVENTS)
-            .auth(auth)
+            .authentication(auth)
             .body(command)
             .build();
     return requestExecutor.execute(request);
@@ -26,20 +26,20 @@ public class BjjEventsApiClient {
 
   public Mono<ApiResponse> createEventWithInvalidPayload(
       Authentication auth, Object invalidPayload) {
-    ApiRequestBuilder request =
-        ApiRequestBuilder.builder()
+    ApiRequest request =
+        ApiRequest.builder()
             .post(BjjEventEndpoints.BJJ_EVENTS)
-            .auth(auth)
+            .authentication(auth)
             .body(invalidPayload)
             .build();
     return requestExecutor.execute(request);
   }
 
   public Mono<ApiResponse> deleteEvent(Authentication auth, String eventId) {
-    ApiRequestBuilder request =
-        ApiRequestBuilder.builder()
+    ApiRequest request =
+        ApiRequest.builder()
             .delete(BjjEventEndpoints.bjjEventById(eventId))
-            .auth(auth)
+            .authentication(auth)
             .build();
     return requestExecutor.execute(request);
   }

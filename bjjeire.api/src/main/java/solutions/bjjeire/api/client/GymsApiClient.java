@@ -15,14 +15,14 @@ public class GymsApiClient {
   private final RequestExecutor requestExecutor;
 
   public Mono<ApiResponse> createGym(Authentication auth, CreateGymCommand command) {
-    ApiRequestBuilder request =
-        ApiRequestBuilder.builder().post(GymEndpoints.GYMS).auth(auth).body(command).build();
+    ApiRequest request =
+        ApiRequest.builder().post(GymEndpoints.GYMS).authentication(auth).body(command).build();
     return requestExecutor.execute(request);
   }
 
   public Mono<ApiResponse> deleteGym(Authentication auth, String gymId) {
-    ApiRequestBuilder request =
-        ApiRequestBuilder.builder().delete(GymEndpoints.gymById(gymId)).auth(auth).build();
+    ApiRequest request =
+        ApiRequest.builder().delete(GymEndpoints.gymById(gymId)).authentication(auth).build();
     return requestExecutor.execute(request);
   }
 }

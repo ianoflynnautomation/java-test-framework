@@ -43,6 +43,6 @@ public class GymCreateSteps {
   @Then("the gym should be successfully added")
   public void theGymShouldBeSuccessfullyAdded() {
     ApiResponse response = testContext.getLastResponse();
-    response.should().isCreated();
+    response.should().beCreated();
   }
 }

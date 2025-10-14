@@ -1,11 +1,10 @@
 package solutions.bjjeire.api.services;
 
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
-import solutions.bjjeire.api.client.ApiRequestBuilder;
+import solutions.bjjeire.api.client.ApiRequest;
 import solutions.bjjeire.api.client.RequestExecutor;
 import solutions.bjjeire.api.config.TestUsersConfig;
 import solutions.bjjeire.api.endpoints.AuthEndpoints;
@@ -20,10 +19,14 @@ public class AuthService {
   private final RequestExecutor requestExecutor;
   private final TestUsersConfig testUsersConfig;
 
-  private final Map<String, Mono<String>> cachedUserTokens = new ConcurrentHashMap<>();
+  private final ThreadLocal<String> threadTokenCache = ThreadLocal.withInitial(() -> null);
 
   public Mono<String> getTokenFor(String userKey) {
-    return cachedUserTokens.computeIfAbsent(userKey, this::authenticate);
+    String cachedToken = threadTokenCache.get();
+    if (cachedToken != null) {
+      return Mono.just(cachedToken);
+    }
+    return authenticate(userKey).doOnSuccess(threadTokenCache::set);
   }
 
   private Mono<String> authenticate(String userKey) {
@@ -44,8 +47,8 @@ public class AuthService {
   }
 
   public Mono<ApiResponse> authenticateWithCredentials(String userId, String role) {
-    ApiRequestBuilder request =
-        ApiRequestBuilder.builder()
+    ApiRequest request =
+        ApiRequest.builder()
             .get(AuthEndpoints.GENERATE_TOKEN)
             .queryParams(Map.of("userId", userId, "role", role))
             .build();

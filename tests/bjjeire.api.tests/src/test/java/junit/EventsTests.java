@@ -57,15 +57,15 @@ public class EventsTests extends ApiTestBase {
       // Assert
       apiResponse
           .should()
-          .isCreated()
+          .beCreated()
           .and()
-          .hasHeader("Content-Type", "application/json")
+          .haveHeader("Content-Type", "application/json")
           .and()
-          .hasExecutionTimeUnder(Duration.ofSeconds(1))
+          .takeLessThan(Duration.ofMillis(500))
           .and()
-          .bodyMatchesSchema("schemas/CreateBjjEventResponseSchema.json")
+          .matchSchema("schemas/CreateBjjEventResponseSchema.json")
           .and()
-          .bodySatisfies(
+          .satisfyBody(
               CreateBjjEventResponse.class,
               responseBody -> {
                 assertNotNull(responseBody.data().id(), "Event ID should not be null");
@@ -104,9 +104,9 @@ public class EventsTests extends ApiTestBase {
       // Assert
       apiResponse
           .should()
-          .isBadRequest()
+          .beBadRequest()
           .and()
-          .bodyContainsErrorForField("Data.Name", "Event Name is required.");
+          .containErrorForField("Data.Name", "Event Name is required.");
     }
   }
 }

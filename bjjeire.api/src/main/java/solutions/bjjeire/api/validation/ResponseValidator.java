@@ -27,7 +27,7 @@ public class ResponseValidator {
     return this;
   }
 
-  public ResponseValidator hasStatusCode(int expectedStatusCode) {
+  public ResponseValidator haveStatusCode(int expectedStatusCode) {
     return executeAssertion(
         () ->
             assertThat(response.getStatusCode())
@@ -37,31 +37,31 @@ public class ResponseValidator {
                 .isEqualTo(expectedStatusCode));
   }
 
-  public ResponseValidator isOk() {
-    return hasStatusCode(200);
+  public ResponseValidator beOk() {
+    return haveStatusCode(200);
   }
 
-  public ResponseValidator isCreated() {
-    return hasStatusCode(201);
+  public ResponseValidator beCreated() {
+    return haveStatusCode(201);
   }
 
-  public ResponseValidator isBadRequest() {
-    return hasStatusCode(400);
+  public ResponseValidator beBadRequest() {
+    return haveStatusCode(400);
   }
 
-  public ResponseValidator isUnauthorized() {
-    return hasStatusCode(401);
+  public ResponseValidator beUnauthorized() {
+    return haveStatusCode(401);
   }
 
-  public ResponseValidator isForbidden() {
-    return hasStatusCode(403);
+  public ResponseValidator beForbidden() {
+    return haveStatusCode(403);
   }
 
-  public ResponseValidator isNotFound() {
-    return hasStatusCode(404);
+  public ResponseValidator beNotFound() {
+    return haveStatusCode(404);
   }
 
-  public ResponseValidator hasHeader(String headerName) {
+  public ResponseValidator haveHeader(String headerName) {
     return executeAssertion(
         () ->
             assertThat(response.getHeaders().containsKey(headerName))
@@ -70,10 +70,10 @@ public class ResponseValidator {
                 .isTrue());
   }
 
-  public ResponseValidator hasHeader(String headerName, String expectedValue) {
+  public ResponseValidator haveHeader(String headerName, String expectedValue) {
     return executeAssertion(
         () -> {
-          hasHeader(headerName);
+          haveHeader(headerName);
           assertThat(response.header(headerName))
               .withFailMessage(
                   "Expected header '%s' to have value '%s', but was '%s'.",
@@ -82,7 +82,7 @@ public class ResponseValidator {
         });
   }
 
-  public ResponseValidator bodyContainsText(String expectedSubstring) {
+  public ResponseValidator containText(String expectedSubstring) {
     return executeAssertion(
         () -> {
           String body = getAndValidateBody();
@@ -93,7 +93,7 @@ public class ResponseValidator {
         });
   }
 
-  public ResponseValidator bodyMatchesSchema(String schemaPath) {
+  public ResponseValidator matchSchema(String schemaPath) {
     try (InputStream schemaStream = getClass().getClassLoader().getResourceAsStream(schemaPath)) {
       if (schemaStream == null) {
         throw new ApiAssertionException(
@@ -126,7 +126,7 @@ public class ResponseValidator {
     }
   }
 
-  public ResponseValidator bodyContainsErrorForField(String field, String expectedMessage) {
+  public ResponseValidator containErrorForField(String field, String expectedMessage) {
     return executeAssertion(
         () -> {
           ValidationErrorResponse errorResponse = response.as(ValidationErrorResponse.class);
@@ -139,7 +139,7 @@ public class ResponseValidator {
         });
   }
 
-  public ResponseValidator bodyHasJsonPathValue(String jsonPathExpression, Object expectedValue) {
+  public ResponseValidator haveJsonPathValue(String jsonPathExpression, Object expectedValue) {
     return executeAssertion(
         () -> {
           String body = getAndValidateBody();
@@ -159,7 +159,7 @@ public class ResponseValidator {
         });
   }
 
-  public <T> ResponseValidator bodySatisfies(Class<T> type, Consumer<T> consumer) {
+  public <T> ResponseValidator satisfyBody(Class<T> type, Consumer<T> consumer) {
     return executeAssertion(
         () -> {
           T bodyAsObject = response.as(type);
@@ -167,7 +167,7 @@ public class ResponseValidator {
         });
   }
 
-  public ResponseValidator hasExecutionTimeUnder(Duration maxDuration) {
+  public ResponseValidator takeLessThan(Duration maxDuration) {
     return executeAssertion(
         () ->
             assertThat(response.getExecutionTime())

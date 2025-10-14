@@ -65,6 +65,10 @@ public class ApiResponse {
     return as(JsonNode.class);
   }
 
+  public ResponseValidator shouldBe() {
+    return new ResponseValidator(this);
+  }
+
   public ResponseValidator should() {
     return new ResponseValidator(this);
   }
